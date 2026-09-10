@@ -119,14 +119,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               style={{
                 width: '42px',
                 height: '42px',
-                borderRadius: '8px',
-                background: '#ffffff',
-                padding: '2px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)'
+                flexShrink: 0
               }}
             >
               <img src="/logo.png" alt="Read Academy Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
