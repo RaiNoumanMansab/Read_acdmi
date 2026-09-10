@@ -350,7 +350,7 @@ export const AdmissionsView: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '0.88rem' }}>
+            <div className="bca-form-row" style={{ fontSize: '0.88rem' }}>
               <div><strong>Student Name:</strong> {selectedApp.studentName}</div>
               <div><strong>Gender:</strong> {selectedApp.gender}</div>
               <div><strong>Date of Birth:</strong> {selectedApp.dob}</div>
@@ -468,7 +468,7 @@ export const AdmissionsView: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="bca-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                     Applying For Class *
@@ -541,7 +541,7 @@ export const AdmissionsView: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="bca-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                     Primary Mobile / WhatsApp *
@@ -574,7 +574,7 @@ export const AdmissionsView: React.FC = () => {
           {/* Section 3: Previous School & Address */}
           {formSection === 'previous' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="bca-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                     Previous School Name

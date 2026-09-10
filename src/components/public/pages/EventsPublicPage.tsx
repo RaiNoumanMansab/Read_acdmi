@@ -79,25 +79,26 @@ export const EventsPublicPage: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '24px',
-                  flexWrap: 'wrap'
+                  flexWrap: 'wrap',
+                  borderTop: '3px solid #E62929'
                 }}
               >
                 {/* Date Badge */}
                 <div
                   style={{
-                    backgroundColor: '#eff6ff',
-                    color: '#0B3974',
+                    backgroundColor: '#feecec',
+                    color: '#E62929',
                     borderRadius: '14px',
                     padding: '12px 18px',
                     textAlign: 'center',
                     minWidth: '70px',
-                    border: '1px solid #bfdbfe'
+                    border: '1px solid #fecaca'
                   }}
                 >
                   <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase' }}>
                     {monthStr}
                   </div>
-                  <div style={{ fontSize: '1.7rem', fontWeight: 900, lineHeight: 1, color: '#0B3974' }}>
+                  <div style={{ fontSize: '1.7rem', fontWeight: 900, lineHeight: 1, color: '#E62929' }}>
                     {dayNum}
                   </div>
                 </div>
@@ -185,7 +186,7 @@ export const EventsPublicPage: React.FC = () => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="bca-form-row">
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                   Mobile / WhatsApp *

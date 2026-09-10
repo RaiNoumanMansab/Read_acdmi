@@ -75,7 +75,7 @@ export const AdmissionsPublicPage: React.FC = () => {
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 52px auto' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Simple & Transparent
             </span>
             <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
@@ -94,10 +94,24 @@ export const AdmissionsPublicPage: React.FC = () => {
               <div
                 key={idx}
                 className="bca-card"
-                style={{ padding: '24px', position: 'relative', borderTop: '4px solid #0B3974' }}
+                style={{ padding: '24px', position: 'relative', borderTop: '4px solid #E62929' }}
               >
-                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0B3974', opacity: 0.6, marginBottom: '10px' }}>
-                  {s.step}
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px 12px',
+                    borderRadius: '8px',
+                    backgroundColor: '#feecec',
+                    color: '#E62929',
+                    border: '1px solid #fecaca',
+                    fontSize: '1.1rem',
+                    fontWeight: 900,
+                    marginBottom: '12px'
+                  }}
+                >
+                  Step {s.step}
                 </div>
                 <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
                   {s.title}
@@ -113,7 +127,7 @@ export const AdmissionsPublicPage: React.FC = () => {
 
       {/* Split Section: Fee Structure & Eligibility vs Online Inquiry Form */}
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '40px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '32px' }}>
           {/* Left Column: Fee Schedule & Required Docs */}
           <div>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: '0 0 18px 0' }}>
@@ -205,7 +219,7 @@ export const AdmissionsPublicPage: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="bca-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                     Email Address *
@@ -235,7 +249,7 @@ export const AdmissionsPublicPage: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="bca-form-row">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                     Prospective Student Name *

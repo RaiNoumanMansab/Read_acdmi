@@ -48,6 +48,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         background: '#ffffff',
         borderRadius: '16px',
         border: '1px solid #e2e8f0',
+        borderTop: '3px solid #E62929',
         padding: '20px',
         display: 'flex',
         flexDirection: 'column',
@@ -59,9 +60,9 @@ export const StatCard: React.FC<StatCardProps> = ({
         overflow: 'hidden'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(11, 57, 116, 0.1)';
-        e.currentTarget.style.borderColor = '#0B3974';
+        e.currentTarget.style.transform = 'translateY(-3px)';
+        e.currentTarget.style.boxShadow = '0 12px 24px -4px rgba(230, 41, 41, 0.18)';
+        e.currentTarget.style.borderColor = '#E62929';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'none';

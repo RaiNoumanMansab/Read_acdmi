@@ -189,7 +189,7 @@ export const TeachersView: React.FC = () => {
 
       {/* GRID VIEW */}
       {viewMode === 'grid' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
           {filtered.map((t) => (
             <div
               key={t.id}
@@ -342,7 +342,7 @@ export const TeachersView: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.86rem' }}>
+            <div className="bca-form-row" style={{ fontSize: '0.86rem' }}>
               <div><strong>Highest Degree:</strong> {selectedTeacher.qualification}</div>
               <div><strong>Experience:</strong> {selectedTeacher.experienceYears} Years</div>
               <div><strong>Email:</strong> {selectedTeacher.email}</div>
@@ -412,7 +412,7 @@ export const TeachersView: React.FC = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="bca-form-row">
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                 Department *
@@ -444,7 +444,7 @@ export const TeachersView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="bca-form-row">
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                 Qualification *

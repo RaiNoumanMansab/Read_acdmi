@@ -32,7 +32,8 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
   };
 
   return (
-    <footer style={{ backgroundColor: '#04142a', color: '#cbd5e1', paddingTop: '64px', paddingBottom: '32px', borderTop: '4px solid #FFD700' }}>
+    <footer style={{ backgroundColor: '#04142a', color: '#cbd5e1', paddingTop: '64px', paddingBottom: '32px', borderTop: '4px solid #E62929', position: 'relative' }}>
+      <div className="brand-top-bar-gradient" style={{ position: 'absolute', top: 0, left: 0, right: 0 }} />
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
         {/* Top 4-Column Grid */}
         <div

@@ -418,7 +418,7 @@ export const FeesView: React.FC = () => {
               <span className="bca-badge bca-badge-paid" style={{ marginTop: '6px' }}>PAID & RECONCILED</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.84rem', marginBottom: '18px' }}>
+            <div className="bca-form-row" style={{ fontSize: '0.84rem', marginBottom: '18px' }}>
               <div><strong>Receipt No:</strong> REC-2026-9042</div>
               <div><strong>Date:</strong> {selectedReceipt.paidDate || '2026-09-03'}</div>
               <div><strong>Student Name:</strong> {selectedReceipt.studentName}</div>

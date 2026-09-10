@@ -205,7 +205,7 @@ export const PayrollView: React.FC = () => {
               </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.84rem', background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '18px' }}>
+            <div className="bca-form-row" style={{ fontSize: '0.84rem', background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '18px' }}>
               <div><strong>Employee Name:</strong> {selectedSlip.teacherName}</div>
               <div><strong>Employee ID:</strong> {selectedSlip.empId}</div>
               <div><strong>Designation:</strong> {selectedSlip.designation}</div>

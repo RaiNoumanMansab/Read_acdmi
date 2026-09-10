@@ -175,7 +175,7 @@ export const StudentProgressView: React.FC = () => {
           </div>
 
           {/* Charts Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div className="bca-grid-2" style={{ marginBottom: '20px' }}>
             {/* Multi-Term Trend */}
             <div className="bca-card" style={{ padding: '20px' }}>
               <h4 style={{ margin: '0 0 4px 0', fontSize: '0.98rem' }}>Multi-Term Grade Trajectory</h4>

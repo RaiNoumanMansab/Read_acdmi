@@ -88,13 +88,13 @@ export const ContactPage: React.FC = () => {
 
       {/* Main Grid: Info Cards + Form */}
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '40px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '32px' }}>
           {/* Left Column: Contact Cards & Map */}
           <div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-              <div className="bca-card" style={{ padding: '20px' }}>
-                <MapPin size={22} color="#0B3974" style={{ marginBottom: '10px' }} />
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#0B3974' }}>
+            <div className="bca-grid-2" style={{ marginBottom: '24px' }}>
+              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>
+                <MapPin size={22} color="#E62929" style={{ marginBottom: '10px' }} />
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#E62929' }}>
                   Campus Address
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
@@ -102,9 +102,9 @@ export const ContactPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bca-card" style={{ padding: '20px' }}>
-                <Phone size={22} color="#0B3974" style={{ marginBottom: '10px' }} />
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#0B3974' }}>
+              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>
+                <Phone size={22} color="#E62929" style={{ marginBottom: '10px' }} />
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#E62929' }}>
                   Direct Phone
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
@@ -113,9 +113,9 @@ export const ContactPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bca-card" style={{ padding: '20px' }}>
-                <Mail size={22} color="#0B3974" style={{ marginBottom: '10px' }} />
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#0B3974' }}>
+              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>
+                <Mail size={22} color="#E62929" style={{ marginBottom: '10px' }} />
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#E62929' }}>
                   Email Inquiries
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
@@ -247,7 +247,7 @@ export const ContactPage: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="bca-form-row">
                   <div>
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                       Email Address *
@@ -356,7 +356,7 @@ export const ContactPage: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="bca-form-row">
                   <div>
                     <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                       Preferred Date *

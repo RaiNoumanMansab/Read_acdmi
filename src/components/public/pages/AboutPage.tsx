@@ -45,10 +45,10 @@ export const AboutPage: React.FC = () => {
       {/* Mission, Vision & Core Pillars */}
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
-            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #0B3974' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', color: '#0B3974', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                <Target size={24} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #E62929' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                <Target size={24} color="#E62929" />
               </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
                 Our Mission
@@ -58,9 +58,9 @@ export const AboutPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #4CAF50' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#e8f5e9', color: '#4CAF50', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                <Eye size={24} />
+            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #E62929' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                <Eye size={24} color="#E62929" />
               </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
                 Our Vision
@@ -70,14 +70,14 @@ export const AboutPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #FFD700' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#fff9c4', color: '#8c6800', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                <Compass size={24} />
+            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #E62929' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                <Compass size={24} color="#E62929" />
               </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
                 Our Motto
               </h2>
-              <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0B3974', margin: '0 0 8px 0', fontStyle: 'italic' }}>
+              <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#E62929', margin: '0 0 8px 0', fontStyle: 'italic' }}>
                 "{SCHOOL_INFO.motto}"
               </p>
               <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.7, margin: 0 }}>
@@ -92,7 +92,7 @@ export const AboutPage: React.FC = () => {
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Historical Journey
             </span>
             <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
@@ -116,20 +116,21 @@ export const AboutPage: React.FC = () => {
                   borderRadius: '14px',
                   display: 'flex',
                   gap: '20px',
-                  alignItems: 'flex-start'
+                  alignItems: 'flex-start',
+                  borderTop: '3px solid #E62929'
                 }}
               >
                 <div
                   style={{
-                    backgroundColor: '#eff6ff',
-                    color: '#0B3974',
+                    backgroundColor: '#feecec',
+                    color: '#E62929',
                     padding: '10px 18px',
                     borderRadius: '10px',
                     fontWeight: 900,
                     fontSize: '1.25rem',
                     minWidth: '90px',
                     textAlign: 'center',
-                    border: '1px solid #bfdbfe'
+                    border: '1px solid #fecaca'
                   }}
                 >
                   {m.year}
@@ -152,7 +153,7 @@ export const AboutPage: React.FC = () => {
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               World-Class Infrastructure
             </span>
             <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
@@ -160,7 +161,7 @@ export const AboutPage: React.FC = () => {
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
             {[
               {
                 title: 'Smart Interactive Classrooms',
@@ -202,7 +203,7 @@ export const AboutPage: React.FC = () => {
       {/* Official Accreditations */}
       <section style={{ padding: '50px 24px', backgroundColor: '#f1f5f9', borderTop: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '20px' }}>
+          <div style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '20px', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
             Accredited & Affiliated With Prestigious Educational Bodies
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', flexWrap: 'wrap' }}>

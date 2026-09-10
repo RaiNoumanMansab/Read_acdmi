@@ -160,7 +160,7 @@ export const AccountsView: React.FC = () => {
       </div>
 
       {/* Doughnut Charts Breakdown */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+      <div className="bca-grid-2" style={{ marginBottom: '24px' }}>
         <div className="bca-card" style={{ padding: '20px' }}>
           <h3 style={{ margin: '0 0 14px 0', fontSize: '1.05rem', fontWeight: 700 }}>Income by Revenue Stream</h3>
           <div style={{ height: '220px' }}>
@@ -258,7 +258,7 @@ export const AccountsView: React.FC = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="bca-form-row">
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Entry Type</label>
               <select
@@ -283,7 +283,7 @@ export const AccountsView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="bca-form-row">
             <div>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Category</label>
               <input

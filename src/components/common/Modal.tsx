@@ -52,12 +52,12 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
+        className="bca-modal-content"
         style={{
           backgroundColor: '#ffffff',
           borderRadius: '16px',
-          width: '100%',
-          maxWidth,
-          maxHeight: '90vh',
+          width: 'min(100%, ' + maxWidth + ')',
+          maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
@@ -69,7 +69,7 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Header */}
         <div
           style={{
-            padding: '20px 24px',
+            padding: '16px 20px',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
@@ -78,11 +78,11 @@ export const Modal: React.FC<ModalProps> = ({
           }}
         >
           <div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
               {title}
             </h3>
             {subtitle && (
-              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '3px 0 0 0' }}>
+              <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '3px 0 0 0' }}>
                 {subtitle}
               </p>
             )}
@@ -100,6 +100,7 @@ export const Modal: React.FC<ModalProps> = ({
               justifyContent: 'center',
               cursor: 'pointer',
               color: '#64748b',
+              flexShrink: 0,
               transition: 'background-color 0.15s'
             }}
             onMouseOver={(e) => (e.currentTarget.style.background = '#e2e8f0')}
@@ -112,7 +113,7 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Content */}
         <div
           style={{
-            padding: '24px',
+            padding: '18px 20px',
             overflowY: 'auto',
             flex: 1
           }}
@@ -124,13 +125,14 @@ export const Modal: React.FC<ModalProps> = ({
         {footer && (
           <div
             style={{
-              padding: '16px 24px',
+              padding: '14px 20px',
               borderTop: '1px solid #e2e8f0',
               background: '#f8fafc',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
-              gap: '12px'
+              gap: '10px',
+              flexWrap: 'wrap'
             }}
           >
             {footer}

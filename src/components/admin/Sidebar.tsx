@@ -51,7 +51,7 @@ interface NavItemConfig {
 const NAV_ITEMS: NavItemConfig[] = [
   // MAIN
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, category: 'MAIN' },
-  { id: 'admissions', label: 'Admissions', icon: UserPlus, badge: '18 New', badgeType: 'emerald', category: 'MAIN' },
+  { id: 'admissions', label: 'Admissions', icon: UserPlus, badge: '18 New', badgeType: 'rose', category: 'MAIN' },
   { id: 'students', label: 'Students', icon: Users, badge: '1,248', category: 'MAIN' },
 
   // ACADEMIC
@@ -67,13 +67,13 @@ const NAV_ITEMS: NavItemConfig[] = [
   { id: 'teacher-duties', label: 'Teacher Duties', icon: Briefcase, category: 'STAFF' },
 
   // FINANCE
-  { id: 'fees', label: 'Fees & Vouchers', icon: Receipt, badge: 'Due', badgeType: 'amber', category: 'FINANCE' },
+  { id: 'fees', label: 'Fees & Vouchers', icon: Receipt, badge: 'Due', badgeType: 'rose', category: 'FINANCE' },
   { id: 'payroll', label: 'Payroll', icon: DollarSign, category: 'FINANCE' },
   { id: 'accounts', label: 'Accounts (P&L)', icon: PieChart, category: 'FINANCE' },
   { id: 'reports', label: 'Reports', icon: FileSpreadsheet, category: 'FINANCE' },
 
   // CMS & COMMS
-  { id: 'notices', label: 'Notices', icon: Bell, badge: '4', badgeType: 'primary', category: 'CMS & COMMS' },
+  { id: 'notices', label: 'Notices', icon: Bell, badge: '4 New', badgeType: 'rose', category: 'CMS & COMMS' },
   { id: 'blogs', label: 'Blogs CMS', icon: PenTool, category: 'CMS & COMMS' },
   { id: 'gallery', label: 'Gallery CMS', icon: Image, category: 'CMS & COMMS' },
   { id: 'events', label: 'Events CMS', icon: CalendarCheck, category: 'CMS & COMMS' },

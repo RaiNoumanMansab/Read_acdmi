@@ -99,7 +99,7 @@ export const TeachersPublicPage: React.FC = () => {
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
             gap: '24px'
           }}
         >
@@ -112,7 +112,8 @@ export const TeachersPublicPage: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                borderRadius: '14px'
+                borderRadius: '14px',
+                borderTop: '3px solid #E62929'
               }}
             >
               <div>
@@ -120,13 +121,13 @@ export const TeachersPublicPage: React.FC = () => {
                   <img
                     src={t.avatar}
                     alt={t.name}
-                    style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #eff6ff' }}
+                    style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #fecaca' }}
                   />
                   <div>
                     <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 4px 0', color: '#0f172a' }}>
                       {t.name}
                     </h3>
-                    <div style={{ fontSize: '0.78rem', color: '#0B3974', fontWeight: 800 }}>
+                    <div style={{ fontSize: '0.78rem', color: '#E62929', fontWeight: 800 }}>
                       Faculty Specialist • {t.department}
                     </div>
                   </div>

@@ -38,39 +38,29 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   return (
     <header className="admin-topbar">
       {/* Left: Mobile hamburger & Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <button
           onClick={onOpenMobileSidebar}
-          className="bca-btn-icon"
-          style={{ display: 'none' }}
+          className="bca-btn-icon flex lg:hidden"
           id="mobile-menu-btn"
+          title="Open Navigation Menu"
         >
           <Menu size={20} />
         </button>
 
-        {/* Global Search Bar (opens Ctrl+K) */}
+        {/* Mobile Search Button (small screens) */}
+        <button
+          onClick={onOpenCommandPalette}
+          className="bca-btn-icon flex sm:hidden"
+          title="Search anything (Cmd+K)"
+        >
+          <Search size={18} />
+        </button>
+
+        {/* Global Search Bar (opens Ctrl+K on sm+) */}
         <div
           onClick={onOpenCommandPalette}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            backgroundColor: '#f1f5f9',
-            border: '1px solid #e2e8f0',
-            borderRadius: '10px',
-            padding: '7px 14px',
-            cursor: 'pointer',
-            width: '280px',
-            transition: 'border-color 0.15s, background-color 0.15s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#cbd5e1';
-            e.currentTarget.style.backgroundColor = '#ffffff';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#e2e8f0';
-            e.currentTarget.style.backgroundColor = '#f1f5f9';
-          }}
+          className="hidden sm:flex items-center gap-2.5 bg-slate-100 hover:bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-1.5 cursor-pointer w-48 md:w-64 lg:w-72 transition-all"
         >
           <Search size={16} color="#94a3b8" />
           <span style={{ fontSize: '0.84rem', color: '#64748b', flex: 1 }}>
@@ -93,36 +83,26 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       </div>
 
       {/* Right: Academic Session, Switcher, Notifications, Profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Academic Session Pill */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Academic Session Pill (Hidden on smaller screens) */}
         <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '5px 12px',
-            backgroundColor: '#eff6ff',
-            borderRadius: '8px',
-            border: '1px solid #bfdbfe',
-            fontSize: '0.8rem',
-            color: '#1e40af',
-            fontWeight: 600
-          }}
+          className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 font-semibold"
         >
           <Calendar size={14} color="#2563eb" />
           <span>Session 2026–2027 • Term 1</span>
         </div>
 
-        {/* View Public Website */}
+        {/* View Public Website (Hidden on mobile) */}
         <button
           onClick={onSwitchToPublic}
-          className="bca-btn bca-btn-secondary"
+          className="bca-btn bca-btn-secondary hidden md:inline-flex"
           style={{ padding: '6px 12px', fontSize: '0.82rem' }}
           title="Open Public School Website"
         >
           <Globe size={15} color="#2563eb" />
           <span>Public Website</span>
         </button>
+
 
         {/* Notifications */}
         <div style={{ position: 'relative' }}>
@@ -135,13 +115,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             <span
               style={{
                 position: 'absolute',
-                top: '7px',
-                right: '7px',
-                width: '8px',
-                height: '8px',
-                backgroundColor: '#f43f5e',
+                top: '6px',
+                right: '6px',
+                width: '9px',
+                height: '9px',
+                backgroundColor: '#E62929',
                 borderRadius: '50%',
-                border: '2px solid #ffffff'
+                border: '2px solid #ffffff',
+                boxShadow: '0 0 0 2px rgba(230, 41, 41, 0.3)'
               }}
             />
           </button>
@@ -153,10 +134,12 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 right: 0,
                 top: '46px',
                 width: '320px',
+                maxWidth: 'calc(100vw - 24px)',
                 backgroundColor: '#ffffff',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
                 border: '1px solid #e2e8f0',
+                borderTop: '3px solid #E62929',
                 zIndex: 100,
                 overflow: 'hidden'
               }}
@@ -241,7 +224,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 border: '2px solid #2563eb'
               }}
             />
-            <div style={{ textAlign: 'left', display: 'none' }} className="user-text">
+            <div className="text-left hidden md:block">
               <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
                 Dr. Shahbaz Alam
               </div>
@@ -249,7 +232,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 Executive Principal
               </div>
             </div>
-            <ChevronDown size={14} color="#64748b" />
+            <ChevronDown size={14} color="#64748b" className="hidden sm:block" />
           </div>
 
           {showProfileMenu && (
@@ -272,7 +255,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                   Dr. Shahbaz Alam
                 </div>
                 <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                  principal@beaconcrest.edu.pk
+                  principal@readacademy.edu.pk
                 </div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.7rem', color: '#059669', background: '#ecfdf5', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
                   <Shield size={11} /> Super Admin

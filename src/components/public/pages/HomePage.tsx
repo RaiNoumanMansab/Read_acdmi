@@ -27,13 +27,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       <section
         style={{
           position: 'relative',
-          minHeight: '620px',
+          minHeight: 'auto',
           display: 'flex',
           alignItems: 'center',
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
           overflow: 'hidden',
-          padding: '80px 24px'
+          padding: 'clamp(40px, 7vw, 80px) 20px'
         }}
       >
         {/* Background decorative circles */}
@@ -52,13 +52,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
 
         <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: '720px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '22px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
               <img
                 src="/logo.png"
                 alt="Read Academy Sahiwal"
                 style={{
-                  height: '72px',
+                  height: 'clamp(40px, 8vw, 68px)',
                   width: 'auto',
+                  flexShrink: 0,
                   filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.35))'
                 }}
               />
@@ -66,30 +67,36 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 16px',
+                  gap: '6px',
+                  padding: '5px 12px',
                   borderRadius: '30px',
                   background: 'rgba(255, 255, 255, 0.12)',
                   backdropFilter: 'blur(8px)',
                   border: '1px solid rgba(255, 215, 0, 0.35)',
-                  fontSize: '0.84rem',
+                  fontSize: '0.76rem',
                   fontWeight: 700,
-                  color: '#FFD700'
+                  color: '#FFD700',
+                  maxWidth: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
-                <Sparkles size={15} color="#FFD700" />
-                <span>Read To Lead (Since 2018) • Admissions Open 2026-2027</span>
+                <Sparkles size={13} color="#FFD700" style={{ flexShrink: 0 }} />
+                <span className="hidden sm:inline">Read To Lead (Since 2018) • </span>
+                <span>Admissions 2026-2027</span>
               </div>
             </div>
 
             <h1
               style={{
-                fontSize: 'clamp(2.5rem, 5.2vw, 3.8rem)',
+                fontSize: 'clamp(1.65rem, 4.2vw, 3.6rem)',
                 fontWeight: 900,
-                lineHeight: 1.15,
-                letterSpacing: '-0.03em',
+                lineHeight: 1.18,
+                letterSpacing: '-0.02em',
                 marginBottom: '16px',
-                color: '#ffffff'
+                color: '#ffffff',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
+                maxWidth: '100%'
               }}
             >
               <span className="text-gold-gradient">
@@ -103,41 +110,41 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
             {/* Golden Decorative Divider */}
             <div
               style={{
-                width: '120px',
+                width: '90px',
                 height: '4px',
                 background: 'linear-gradient(90deg, #FFD700 0%, #E6C200 60%, transparent 100%)',
                 borderRadius: '2px',
-                marginBottom: '22px'
+                marginBottom: '18px'
               }}
             />
 
             <p
               style={{
-                fontSize: 'clamp(1rem, 2vw, 1.2rem)',
+                fontSize: 'clamp(0.9rem, 1.8vw, 1.15rem)',
                 color: '#e2e8f0',
-                lineHeight: 1.65,
-                marginBottom: '32px'
+                lineHeight: 1.6,
+                marginBottom: '26px'
               }}
             >
               At Read Academy Sahiwal, established in 2018 with the motto "Read To Lead", we provide disciplined academic excellence, modern science labs, and transformative student character development.
             </p>
 
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', width: '100%' }}>
               <button
                 onClick={onOpenApply}
                 className="bca-btn bca-btn-gold"
-                style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '10px' }}
+                style={{ padding: '12px 20px', fontSize: '0.9rem', borderRadius: '10px' }}
               >
                 <span>Apply for Admission</span>
-                <ArrowRight size={18} />
+                <ArrowRight size={16} />
               </button>
 
               <button
                 onClick={() => onNavigate('academics')}
                 style={{
-                  padding: '14px 24px',
+                  padding: '12px 18px',
                   borderRadius: '10px',
-                  fontSize: '0.95rem',
+                  fontSize: '0.88rem',
                   fontWeight: 700,
                   backgroundColor: 'rgba(255, 255, 255, 0.12)',
                   color: '#ffffff',
@@ -155,9 +162,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               <button
                 onClick={() => onNavigate('contact')}
                 style={{
-                  padding: '14px 20px',
+                  padding: '12px 14px',
                   borderRadius: '10px',
-                  fontSize: '0.95rem',
+                  fontSize: '0.88rem',
                   fontWeight: 600,
                   background: 'none',
                   color: '#FFD700',
@@ -173,14 +180,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 2. QUICK STATS BANNER */}
-      <section style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '36px 24px' }}>
+      <section style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '28px 16px' }}>
         <div
           style={{
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '24px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+            gap: '16px',
             textAlign: 'center'
           }}
         >
@@ -191,14 +198,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
             { value: '24:1', label: 'Student-Teacher Ratio', sub: 'Individualized Attention' },
             { value: '18', label: 'Advanced Laboratories', sub: 'Robotics, AI, Physics & Bio' }
           ].map((stat, idx) => (
-            <div key={idx} style={{ padding: '8px' }}>
-              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0B3974', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            <div key={idx} style={{ padding: '6px' }}>
+              <div style={{ fontSize: 'clamp(1.75rem, 4vw, 2.2rem)', fontWeight: 900, color: '#0B3974', letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {stat.value}
               </div>
-              <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
+              <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
                 {stat.label}
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
                 {stat.sub}
               </div>
             </div>
@@ -207,16 +214,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 3. CORE VALUES / WHY CHOOSE US */}
-      <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
+      <section style={{ padding: 'clamp(40px, 7vw, 80px) 20px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 52px auto' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 40px auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Institutional Distinction
             </span>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)', fontWeight: 900, color: '#0f172a', margin: '8px 0 12px 0', letterSpacing: '-0.02em' }}>
               Why Read Academy Sahiwal Leads in Modern Education
             </h2>
-            <p style={{ fontSize: '0.94rem', color: '#64748b', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.92rem', color: '#64748b', lineHeight: 1.6 }}>
               We balance rigorous academic foundations with experiential learning, technological fluency, and enduring ethical character.
             </p>
           </div>
@@ -224,8 +231,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '24px'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '20px'
             }}
           >
             {[
@@ -269,11 +276,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                     padding: '28px',
                     borderRadius: '16px',
                     transition: 'transform 0.2s, box-shadow 0.2s',
-                    cursor: 'default'
+                    cursor: 'default',
+                    borderTop: '3px solid #E62929'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 16px 30px rgba(11, 57, 116, 0.12)';
+                    e.currentTarget.style.boxShadow = '0 16px 30px rgba(230, 41, 41, 0.15)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
@@ -285,15 +293,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                       width: '50px',
                       height: '50px',
                       borderRadius: '12px',
-                      backgroundColor: '#eff6ff',
-                      color: '#0B3974',
+                      backgroundColor: '#feecec',
+                      color: '#E62929',
+                      border: '1px solid #fecaca',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: '18px'
                     }}
                   >
-                    <Icon size={24} />
+                    <Icon size={24} color="#E62929" />
                   </div>
                   <h3 style={{ fontSize: '1.18rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
                     {v.title}
@@ -312,7 +321,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 52px auto' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Educational Continuum
             </span>
             <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
@@ -326,7 +335,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '24px'
             }}
           >
@@ -418,13 +427,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 5. PRINCIPAL'S MESSAGE SPOTLIGHT */}
-      <section style={{ padding: '80px 24px', backgroundColor: '#04142a', color: '#ffffff' }}>
+      <section style={{ padding: '80px 24px', backgroundColor: '#04142a', color: '#ffffff', position: 'relative' }}>
+        <div className="brand-top-bar-gradient" style={{ position: 'absolute', top: 0, left: 0, right: 0 }} />
         <div
           style={{
             maxWidth: '1100px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '48px',
             alignItems: 'center'
           }}
@@ -435,28 +445,28 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 borderRadius: '20px',
                 overflow: 'hidden',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-                border: '3px solid rgba(255,215,0,0.3)'
+                border: '3px solid #E62929'
               }}
             >
               <img
                 src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80"
                 alt="Principal"
-                style={{ width: '100%', height: '440px', objectFit: 'cover' }}
+                style={{ width: '100%', height: 'clamp(280px, 45vw, 440px)', objectFit: 'cover' }}
               />
             </div>
             <div
               style={{
                 position: 'absolute',
-                bottom: '-20px',
-                right: '-10px',
-                backgroundColor: '#0B3974',
+                bottom: '12px',
+                right: '12px',
+                backgroundColor: '#E62929',
                 color: '#ffffff',
                 border: '2px solid #FFD700',
-                padding: '12px 20px',
+                padding: '10px 16px',
                 borderRadius: '12px',
                 fontWeight: 800,
-                fontSize: '0.86rem',
-                boxShadow: '0 10px 20px rgba(11,57,116,0.5)'
+                fontSize: '0.82rem',
+                boxShadow: '0 10px 20px rgba(230,41,41,0.5)'
               }}
             >
               25+ Years in Academic Leadership
@@ -464,8 +474,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           </div>
 
           <div>
-            <Quote size={40} color="#FFD700" style={{ marginBottom: '16px', opacity: 0.9 }} />
-            <h2 style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1.2, margin: '0 0 18px 0', letterSpacing: '-0.02em' }}>
+            <Quote size={40} color="#E62929" style={{ marginBottom: '16px', filter: 'drop-shadow(0 2px 8px rgba(230,41,41,0.4))' }} />
+            <h2 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.2rem)', fontWeight: 900, lineHeight: 1.2, margin: '0 0 18px 0', letterSpacing: '-0.02em' }}>
               "We prepare our students not merely for exams, but for the moral and intellectual leadership of tomorrow."
             </h2>
             <p style={{ fontSize: '0.94rem', color: '#cbd5e1', lineHeight: 1.7, margin: '0 0 24px 0' }}>
@@ -475,7 +485,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff' }}>
                 {SCHOOL_INFO.principal}
               </div>
-              <div style={{ fontSize: '0.84rem', color: '#FFD700' }}>
+              <div style={{ fontSize: '0.84rem', color: '#FFD700', fontWeight: 700 }}>
                 Executive Principal & Academic Director (Ph.D. Oxford)
               </div>
             </div>
@@ -486,7 +496,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       {/* 6. LATEST NOTICES & UPCOMING EVENTS SPLIT */}
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '32px' }}>
             {/* Notices List */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -495,7 +505,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 </h3>
                 <button
                   onClick={() => onNavigate('events')}
-                  style={{ background: 'none', border: 'none', color: '#0B3974', fontWeight: 700, fontSize: '0.84rem', cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: '#E62929', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer' }}
                 >
                   View All →
                 </button>
@@ -513,7 +523,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span className="bca-badge bca-badge-primary">{notice.category}</span>
+                      <span className={`bca-badge ${notice.priority === 'Urgent' ? 'bca-badge-red' : 'bca-badge-primary'}`}>{notice.category}</span>
                       <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{notice.date}</span>
                     </div>
                     <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: '0 0 6px 0', color: '#0f172a' }}>
@@ -535,59 +545,50 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 </h3>
                 <button
                   onClick={() => onNavigate('events')}
-                  style={{ background: 'none', border: 'none', color: '#0B3974', fontWeight: 700, fontSize: '0.84rem', cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: '#0B3974', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer' }}
                 >
                   Full Calendar →
                 </button>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {MOCK_EVENTS.slice(0, 3).map((evt) => {
-                  const d = new Date(evt.date);
-                  return (
+                {MOCK_EVENTS.slice(0, 3).map((evt) => (
+                  <div
+                    key={evt.id}
+                    className="bca-card"
+                    style={{
+                      padding: '18px',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px'
+                    }}
+                  >
                     <div
-                      key={evt.id}
-                      className="bca-card"
                       style={{
-                        padding: '18px',
-                        borderRadius: '12px',
-                        display: 'flex',
-                        gap: '16px',
-                        alignItems: 'center'
+                        padding: '10px 14px',
+                        backgroundColor: '#feecec',
+                        color: '#E62929',
+                        borderRadius: '10px',
+                        textAlign: 'center',
+                        flexShrink: 0,
+                        border: '1px solid #fecaca'
                       }}
                     >
-                      <div
-                        style={{
-                          minWidth: '54px',
-                          textAlign: 'center',
-                          backgroundColor: '#eff6ff',
-                          borderRadius: '10px',
-                          padding: '8px',
-                          color: '#0B3974',
-                          border: '1px solid #bfdbfe'
-                        }}
-                      >
-                        <div style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>
-                          {d.toLocaleDateString('en-US', { month: 'short' })}
-                        </div>
-                        <div style={{ fontSize: '1.3rem', fontWeight: 900, lineHeight: 1, color: '#0B3974' }}>
-                          {d.getDate()}
-                        </div>
-                      </div>
-
-                      <div style={{ flex: 1 }}>
-                        <span className="bca-badge bca-badge-primary" style={{ marginBottom: '4px' }}>{evt.category}</span>
-                        <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: '2px 0 4px 0', color: '#0f172a' }}>
-                          {evt.title}
-                        </h4>
-                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.76rem', color: '#64748b' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {evt.time}</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> {evt.location}</span>
-                        </div>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 900, lineHeight: 1 }}>{evt.date.split(' ')[1] || '15'}</div>
+                      <div style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>{evt.date.split(' ')[0] || 'SEP'}</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ fontSize: '0.94rem', fontWeight: 700, margin: 0, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {evt.title}
+                      </h4>
+                      <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>📍 {evt.location}</span>
+                        <span>• {evt.time}</span>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -597,14 +598,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       {/* 7. PARENT & ALUMNI TESTIMONIALS */}
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 52px auto' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Community Voices
+          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              PARENT TESTIMONIALS & TRUST
             </span>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
-              Loved by Discerning Families & Inspired Scholars
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3.8vw, 2.4rem)', fontWeight: 900, color: '#0f172a', margin: '8px 0 12px' }}>
+              What Our Community Says
             </h2>
-            <p style={{ fontSize: '0.94rem', color: '#64748b', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.94rem', color: '#64748b', margin: 0 }}>
               Hear reflections from parents and alumni on how Read Academy Sahiwal shaped their developmental journey.
             </p>
           </div>
@@ -612,7 +613,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '24px'
             }}
           >

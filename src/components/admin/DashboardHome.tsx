@@ -176,45 +176,48 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #082a57 100%)',
           borderRadius: '20px',
-          padding: '30px 36px',
+          padding: '24px clamp(20px, 4vw, 36px)',
           color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '28px',
+          flexWrap: 'wrap',
+          gap: '16px',
+          marginBottom: '24px',
           boxShadow: '0 10px 25px -5px rgba(11, 57, 116, 0.25)',
           position: 'relative',
           overflow: 'hidden',
-          borderLeft: '5px solid #FFD700'
+          borderLeft: '5px solid #E62929'
         }}
       >
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255, 215, 0, 0.4)', padding: '4px 14px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: 700, marginBottom: '12px' }}>
-            <img src="/logo.png" alt="Read Academy Sahiwal" style={{ height: '22px', width: 'auto' }} />
+        <div style={{ position: 'relative', zIndex: 2, flex: '1 1 280px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255, 215, 0, 0.4)', padding: '4px 14px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px' }}>
+            <img src="/logo.png" alt="Read Academy Sahiwal" style={{ height: '20px', width: 'auto' }} />
             <span style={{ color: '#FFD700' }}>Read Academy Sahiwal ERP • "Read To Lead"</span>
           </div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', margin: 0 }}>
+          <h1 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 1.85rem)', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', margin: 0 }}>
             Good Morning, Admin 👋
           </h1>
-          <p style={{ color: '#cbd5e1', fontSize: '0.92rem', margin: '8px 0 0 0', maxWidth: '640px' }}>
+          <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '6px 0 0 0', maxWidth: '640px' }}>
             Today is <strong style={{ color: '#ffffff' }}>{todayDate}</strong>. All 32 classes are currently in session with 94.7% attendance. Term 1 Assessments begin in 3 weeks.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', position: 'relative', zIndex: 2 }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
           <button
             onClick={() => showToast('Exported Executive Dashboard Summary (PDF)', undefined, 'success')}
             className="bca-btn"
-            style={{ background: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)' }}
+            style={{ background: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)', padding: '8px 14px', fontSize: '0.84rem' }}
           >
-            <Download size={16} />
+            <Download size={15} />
             <span>Export Summary</span>
           </button>
           <button
             onClick={() => onNavigate('admissions')}
-            className="bca-btn bca-btn-gold"
+            className="bca-btn bca-btn-red"
+            style={{ padding: '8px 16px', fontSize: '0.84rem' }}
           >
-            <UserPlus size={16} />
+            <UserPlus size={15} />
             <span>Review Admissions</span>
           </button>
         </div>
@@ -224,9 +227,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '18px',
-          marginBottom: '28px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
         }}
       >
         <StatCard
@@ -338,87 +341,87 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
-          gap: '20px',
-          marginBottom: '28px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '18px',
+          marginBottom: '24px'
         }}
       >
         {/* Chart 1: Income vs Expenses */}
-        <div className="bca-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div className="bca-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Income vs Expenses</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0' }}>Monthly financial trend (Jan – Dec 2026)</p>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Income vs Expenses</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '2px 0 0' }}>Monthly financial trend (Jan – Dec 2026)</p>
             </div>
             <button
               onClick={() => onNavigate('accounts')}
               className="bca-btn bca-btn-secondary"
-              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+              style={{ padding: '4px 10px', fontSize: '0.76rem' }}
             >
               Details
             </button>
           </div>
-          <div style={{ height: '240px' }}>
+          <div style={{ height: '220px' }}>
             <Bar data={incomeVsExpenseData} options={chartOptions} />
           </div>
         </div>
 
         {/* Chart 2: Student Attendance Trend */}
-        <div className="bca-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div className="bca-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Student Attendance Trend</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0' }}>Weekly attendance rate across all grades</p>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Student Attendance Trend</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '2px 0 0' }}>Weekly attendance rate across all grades</p>
             </div>
             <button
               onClick={() => onNavigate('attendance')}
               className="bca-btn bca-btn-secondary"
-              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+              style={{ padding: '4px 10px', fontSize: '0.76rem' }}
             >
               Daily Register
             </button>
           </div>
-          <div style={{ height: '240px' }}>
+          <div style={{ height: '220px' }}>
             <Line data={attendanceTrendData} options={chartOptions} />
           </div>
         </div>
 
         {/* Chart 3: Fee Collection vs Target */}
-        <div className="bca-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div className="bca-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Fee Recovery & Target</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0' }}>Past 6 months collection milestones</p>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Fee Recovery & Target</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '2px 0 0' }}>Past 6 months collection milestones</p>
             </div>
             <button
               onClick={() => onNavigate('fees')}
               className="bca-btn bca-btn-secondary"
-              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+              style={{ padding: '4px 10px', fontSize: '0.76rem' }}
             >
               Vouchers
             </button>
           </div>
-          <div style={{ height: '240px' }}>
+          <div style={{ height: '220px' }}>
             <Bar data={feeCollectionData} options={chartOptions} />
           </div>
         </div>
 
         {/* Chart 4: Subject Performance */}
-        <div className="bca-card" style={{ padding: '22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <div className="bca-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Subject-wise Performance</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0' }}>Mean assessment scores in major subjects</p>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Subject-wise Performance</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '2px 0 0' }}>Mean assessment scores in major subjects</p>
             </div>
             <button
               onClick={() => onNavigate('exams-results')}
               className="bca-btn bca-btn-secondary"
-              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+              style={{ padding: '4px 10px', fontSize: '0.76rem' }}
             >
               Exams
             </button>
           </div>
-          <div style={{ height: '240px' }}>
+          <div style={{ height: '220px' }}>
             <Bar data={subjectPerformanceData} options={chartOptions} />
           </div>
         </div>
@@ -428,8 +431,8 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
-          gap: '20px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '18px'
         }}
       >
         {/* Section 1: Recent Admissions */}

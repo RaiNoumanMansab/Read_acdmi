@@ -95,7 +95,7 @@ export const SettingsView: React.FC = () => {
           <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>School Official Information</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="bca-form-row">
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                   School Name
@@ -133,7 +133,7 @@ export const SettingsView: React.FC = () => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div className="bca-form-row-3">
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                   Campus Phone
@@ -186,7 +186,7 @@ export const SettingsView: React.FC = () => {
           <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Active Academic Year & Evaluation System</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="bca-form-row">
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
                   Current Active Academic Session

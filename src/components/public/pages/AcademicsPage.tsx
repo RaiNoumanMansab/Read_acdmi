@@ -124,10 +124,10 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
             ))}
           </div>
 
-          <div className="bca-card" style={{ padding: '40px', borderLeft: '6px solid #0B3974' }}>
+          <div className="bca-card" style={{ padding: '40px', borderTop: '4px solid #E62929', borderLeft: '4px solid #E62929' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '18px' }}>
               <div>
-                <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                   {current.grades}
                 </span>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', margin: '4px 0 0 0' }}>
@@ -177,7 +177,7 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Pedagogical Methodology
             </span>
             <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
@@ -185,7 +185,7 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
             {[
               {
                 title: 'Inquiry-Based Discovery',
@@ -221,7 +221,7 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Beyond the Classroom
             </span>
             <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
@@ -239,8 +239,8 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
               const Icon = club.icon;
               return (
                 <div key={idx} className="bca-card" style={{ padding: '24px', borderRadius: '12px' }}>
-                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#eff6ff', color: '#0B3974', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-                    <Icon size={20} />
+                  <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                    <Icon size={20} color="#E62929" />
                   </div>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
                     {club.name}
