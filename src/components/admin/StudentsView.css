@@ -431,7 +431,7 @@
 /* --- STUDENT PROFILE MODAL RESPONSIVE STYLES --- */
 .profile-header-banner {
   height: 4px;
-  background: linear-gradient(90deg, #0B3974 0%, #E62929 50%, #FFD700 100%);
+  background: #E62929;
   border-radius: 4px 4px 0 0;
   margin: -24px -24px 20px -24px;
 }

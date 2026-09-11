@@ -16,7 +16,7 @@ export const AboutPage: React.FC = () => {
           color: '#ffffff',
           padding: '70px 24px',
           textAlign: 'center',
-          borderBottom: '4px solid #FFD700'
+          borderBottom: '4px solid #E62929'
         }}
       >
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -90,7 +90,7 @@ export const AboutPage: React.FC = () => {
 
       {/* Historical Milestones Timeline */}
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '50px' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Historical Journey
@@ -100,7 +100,7 @@ export const AboutPage: React.FC = () => {
             </h2>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
             {[
               { year: '2018', title: 'Establishment of Read Academy Sahiwal', desc: 'Inaugurated with modern primary and elementary wings under the motto "Read To Lead".' },
               { year: '2020', title: 'Advanced Science & Digital Labs', desc: 'Constructed state-of-the-art physics, chemistry, and multimedia computer laboratories.' },
@@ -115,20 +115,21 @@ export const AboutPage: React.FC = () => {
                   padding: '24px',
                   borderRadius: '14px',
                   display: 'flex',
-                  gap: '20px',
-                  alignItems: 'flex-start',
-                  borderTop: '3px solid #E62929'
+                  flexDirection: 'column',
+                  gap: '14px',
+                  borderTop: '3px solid #E62929',
+                  backgroundColor: '#ffffff'
                 }}
               >
                 <div
                   style={{
                     backgroundColor: '#feecec',
                     color: '#E62929',
-                    padding: '10px 18px',
-                    borderRadius: '10px',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
                     fontWeight: 900,
-                    fontSize: '1.25rem',
-                    minWidth: '90px',
+                    fontSize: '1.1rem',
+                    width: 'fit-content',
                     textAlign: 'center',
                     border: '1px solid #fecaca'
                   }}
@@ -136,7 +137,7 @@ export const AboutPage: React.FC = () => {
                   {m.year}
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.4 }}>
                     {m.title}
                   </h3>
                   <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>

@@ -70,7 +70,7 @@ export const ContactPage: React.FC = () => {
           color: '#ffffff',
           padding: '70px 24px',
           textAlign: 'center',
-          borderBottom: '4px solid #FFD700'
+          borderBottom: '4px solid #E62929'
         }}
       >
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -166,7 +166,7 @@ export const ContactPage: React.FC = () => {
                     boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
                     textAlign: 'center',
                     maxWidth: '280px',
-                    borderTop: '4px solid #FFD700'
+                    borderTop: '4px solid #E62929'
                   }}
                 >
                   <div style={{ fontWeight: 800, color: '#0B3974', fontSize: '0.95rem' }}>

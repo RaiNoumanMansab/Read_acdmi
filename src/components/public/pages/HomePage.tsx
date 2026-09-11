@@ -64,6 +64,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 }}
               />
               <div
+                className="animate-float"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -665,7 +666,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           color: '#ffffff',
           padding: '80px 24px',
           textAlign: 'center',
-          borderTop: '4px solid #FFD700'
+          borderTop: '4px solid #E62929'
         }}
       >
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>

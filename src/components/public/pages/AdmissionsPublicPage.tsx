@@ -45,7 +45,7 @@ export const AdmissionsPublicPage: React.FC = () => {
           color: '#ffffff',
           padding: '70px 24px',
           textAlign: 'center',
-          borderBottom: '4px solid #FFD700'
+          borderBottom: '4px solid #E62929'
         }}
       >
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>

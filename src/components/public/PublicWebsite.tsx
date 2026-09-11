@@ -10,6 +10,8 @@ import { GalleryPublicPage } from './pages/GalleryPublicPage';
 import { EventsPublicPage } from './pages/EventsPublicPage';
 import { BlogPublicPage } from './pages/BlogPublicPage';
 import { ContactPage } from './pages/ContactPage';
+import { LoginPage } from './pages/LoginPage';
+import { SignUpPage } from './pages/SignUpPage';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
 import { CheckCircle } from 'lucide-react';
@@ -72,6 +74,8 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
         {activePage === 'events' && <EventsPublicPage />}
         {activePage === 'blog' && <BlogPublicPage />}
         {activePage === 'contact' && <ContactPage />}
+        {activePage === 'login' && <LoginPage onNavigate={handleNavigate} onOpenAdmin={onOpenAdmin} />}
+        {activePage === 'signup' && <SignUpPage onNavigate={handleNavigate} />}
       </main>
 
       {/* Global Footer */}

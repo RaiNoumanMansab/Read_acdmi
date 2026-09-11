@@ -46,79 +46,6 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
 
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-      {/* Top Notification Bar with Brand Red Accent */}
-      <div
-        style={{
-          backgroundColor: '#061d3d',
-          color: '#e2e8f0',
-          padding: '6px 14px',
-          fontSize: '0.74rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '8px',
-          borderBottom: '3px solid #E62929'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <a
-            href={`tel:${SCHOOL_INFO.phone.split('/')[1]?.trim() || SCHOOL_INFO.phone}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#e2e8f0', textDecoration: 'none' }}
-          >
-            <Phone size={12} color="#FFD700" />
-            <span style={{ fontWeight: 600 }}>{SCHOOL_INFO.phone.split('/')[1]?.trim() || SCHOOL_INFO.phone}</span>
-          </a>
-          <div className="hidden md:flex" style={{ alignItems: 'center', gap: '6px' }}>
-            <Mail size={12} color="#FFD700" />
-            <span>{SCHOOL_INFO.email}</span>
-          </div>
-          <div className="hidden lg:flex" style={{ alignItems: 'center', gap: '6px' }}>
-            <Clock size={12} color="#FFD700" />
-            <span>Mon - Sat: 07:30 AM - 03:00 PM</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <span
-            className="hidden sm:inline-flex items-center gap-1.5"
-            style={{
-              backgroundColor: '#E62929',
-              color: '#ffffff',
-              padding: '2px 10px',
-              borderRadius: '20px',
-              fontWeight: 800,
-              fontSize: '0.7rem',
-              boxShadow: '0 2px 6px rgba(230, 41, 41, 0.4)'
-            }}
-          >
-            Admissions Open 2026-2027
-          </span>
-          <button
-            onClick={onOpenAdmin}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.14)',
-              color: '#ffffff',
-              border: '1px solid rgba(255,215,0,0.35)',
-              borderRadius: '6px',
-              padding: '3px 9px',
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E62929')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.14)')}
-          >
-            <LogIn size={11} color="#FFD700" />
-            <span>Portal Login</span>
-          </button>
-        </div>
-      </div>
-
       {/* Main Navigation Bar */}
       <div
         style={{
@@ -127,7 +54,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid #f1f5f9',
+          borderBottom: '3px solid #E62929',
           gap: '12px'
         }}
       >
@@ -140,7 +67,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             src="/logo.png"
             alt="Read Academy Sahiwal"
             style={{
-              height: '38px',
+              height: '40px',
               width: 'auto',
               objectFit: 'contain',
               flexShrink: 0,
@@ -174,7 +101,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                   fontWeight: isActive ? 800 : 600,
                   color: isActive ? '#0B3974' : '#334155',
                   backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                  borderBottom: isActive ? '2px solid #FFD700' : '2px solid transparent',
+                  borderBottom: isActive ? '2px solid #E62929' : '2px solid transparent',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease'
                 }}
@@ -187,7 +114,42 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          {/* Apply Now button (Hidden on mobile < 640px, visible on sm+) */}
+          {/* Portal Login Button */}
+          <button
+            onClick={() => handleNavClick('login')}
+            className="bca-btn hidden md:inline-flex"
+            style={{
+              padding: '6px 12px',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              backgroundColor: activePage === 'login' ? '#feecec' : '#f8fafc',
+              color: '#E62929',
+              border: '1px solid #fecaca',
+              borderRadius: '8px'
+            }}
+          >
+            <LogIn size={13} color="#E62929" />
+            <span>Portal Login</span>
+          </button>
+
+          {/* Register / Sign Up Button */}
+          <button
+            onClick={() => handleNavClick('signup')}
+            className="bca-btn hidden xl:inline-flex"
+            style={{
+              padding: '6px 12px',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              backgroundColor: activePage === 'signup' ? '#0B3974' : '#eff6ff',
+              color: activePage === 'signup' ? '#ffffff' : '#0B3974',
+              border: '1px solid #bfdbfe',
+              borderRadius: '8px'
+            }}
+          >
+            <span>Register</span>
+          </button>
+
+          {/* Apply Now button */}
           <button
             onClick={onOpenApply}
             className="bca-btn bca-btn-gold hidden sm:inline-flex"
@@ -212,9 +174,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div
+          className="animate-slide-down"
           style={{
             backgroundColor: '#ffffff',
-            borderBottom: '3px solid #FFD700',
+            borderBottom: '3px solid #E62929',
             padding: '16px 20px',
             display: 'flex',
             flexDirection: 'column',
@@ -250,13 +213,39 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               {link.label}
             </button>
           ))}
-          <div style={{ paddingTop: '10px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '10px' }}>
+          <div style={{ paddingTop: '10px', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => handleNavClick('login')}
+                className="bca-btn bca-btn-gold"
+                style={{ flex: 1, justifyContent: 'center', fontSize: '0.84rem' }}
+              >
+                <LogIn size={15} /> Portal Login
+              </button>
+              <button
+                onClick={() => handleNavClick('signup')}
+                className="bca-btn bca-btn-secondary"
+                style={{ flex: 1, justifyContent: 'center', fontSize: '0.84rem' }}
+              >
+                Sign Up
+              </button>
+            </div>
             <button
               onClick={() => { setMobileMenuOpen(false); onOpenAdmin(); }}
-              className="bca-btn bca-btn-secondary"
-              style={{ flex: 1, justifyContent: 'center', fontSize: '0.84rem' }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '8px',
+                border: '1px solid #fecaca',
+                backgroundColor: '#feecec',
+                color: '#E62929',
+                fontWeight: 800,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                textAlign: 'center'
+              }}
             >
-              <LogIn size={15} /> Admin Portal
+              🛡️ Enter Super Admin ERP Portal
             </button>
           </div>
         </div>

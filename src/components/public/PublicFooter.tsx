@@ -108,8 +108,13 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
                 </button>
               </li>
               <li>
-                <button onClick={onOpenAdmin} style={{ background: 'none', border: 'none', color: '#FFD700', cursor: 'pointer', padding: 0, fontWeight: 700 }}>
-                  Faculty / Admin Portal Login
+                <button onClick={() => nav('login')} style={{ background: 'none', border: 'none', color: '#E62929', cursor: 'pointer', padding: 0, fontWeight: 800 }}>
+                  Portal Login (Student / Teacher / Admin)
+                </button>
+              </li>
+              <li>
+                <button onClick={() => nav('signup')} style={{ background: 'none', border: 'none', color: '#FFD700', cursor: 'pointer', padding: 0, fontWeight: 700 }}>
+                  Register New Account
                 </button>
               </li>
             </ul>

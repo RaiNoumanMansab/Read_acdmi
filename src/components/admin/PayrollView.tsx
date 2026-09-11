@@ -196,7 +196,7 @@ export const PayrollView: React.FC = () => {
             </>
           }
         >
-          <div style={{ border: '2px solid #e2e8f0', borderRadius: '12px', padding: '24px', background: '#ffffff', borderTop: '4px solid #FFD700' }}>
+          <div style={{ border: '2px solid #e2e8f0', borderRadius: '12px', padding: '24px', background: '#ffffff', borderTop: '4px solid #E62929' }}>
             <div style={{ textAlign: 'center', borderBottom: '2px solid #0B3974', paddingBottom: '12px', marginBottom: '18px' }}>
               <img src="/logo.png" alt="Read Academy Sahiwal" style={{ height: '48px', marginBottom: '6px' }} />
               <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#0B3974', fontWeight: 900 }}>READ ACADEMY SAHIWAL</h3>
