@@ -23,7 +23,7 @@ interface SignUpPageProps {
 
 export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
   const { showToast } = useToast();
-  const [accountType, setAccountType] = useState<'parent' | 'student' | 'faculty'>('parent');
+  const [accountType, setAccountType] = useState<'parent' | 'student' | 'faculty' | 'admin'>('parent');
   
   // Form State
   const [fullName, setFullName] = useState('');
@@ -192,12 +192,31 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                 fontWeight: 800,
                 cursor: 'pointer',
                 backgroundColor: accountType === 'faculty' ? '#ffffff' : 'transparent',
-                color: accountType === 'faculty' ? '#E62929' : '#64748b',
+                color: accountType === 'faculty' ? '#0B3974' : '#64748b',
                 boxShadow: accountType === 'faculty' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                 transition: 'all 0.2s'
               }}
             >
-              💼 Faculty Applicant
+              💼 Faculty
+            </button>
+            <button
+              type="button"
+              onClick={() => setAccountType('admin')}
+              style={{
+                flex: 1,
+                padding: '8px 6px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                backgroundColor: accountType === 'admin' ? '#ffffff' : 'transparent',
+                color: accountType === 'admin' ? '#E62929' : '#64748b',
+                boxShadow: accountType === 'admin' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              🛡️ Admin
             </button>
           </div>
 
@@ -284,10 +303,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               </div>
             </div>
 
-            {/* Roll No or Grade Level */}
+            {/* Roll No, Class, or Employee Designation */}
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                {accountType === 'student' ? 'Roll No / Registration No' : accountType === 'parent' ? "Child's Admission Roll No or Grade" : 'Specialization / Subject'}
+                {accountType === 'student' ? 'Roll No / Registration No' : accountType === 'parent' ? "Child's Admission Roll No or Grade" : accountType === 'admin' ? 'Admin Staff / Officer Designation' : 'Faculty Specialization / Subject'}
               </label>
               <div style={{ position: 'relative' }}>
                 <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
@@ -295,7 +314,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                 </div>
                 <input
                   type="text"
-                  placeholder={accountType === 'student' ? 'e.g. RAS-2026-89' : accountType === 'parent' ? 'e.g. Grade 9 / RAS-2026-89' : 'e.g. Mathematics / Physics'}
+                  placeholder={accountType === 'student' ? 'e.g. RAS-2026-89' : accountType === 'parent' ? 'e.g. Grade 9 / RAS-2026-89' : accountType === 'admin' ? 'e.g. Registrar Office / Accounts Desk' : 'e.g. Mathematics / Physics'}
                   value={rollOrClass}
                   onChange={(e) => setRollOrClass(e.target.value)}
                   style={{

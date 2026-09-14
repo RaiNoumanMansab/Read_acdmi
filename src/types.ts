@@ -34,6 +34,33 @@ export type AdminTab =
   | 'reports'
   | 'settings';
 
+export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT';
+
+export interface AdminProfile {
+  id: string;
+  userId: string;
+  empId: string;
+  designation: string;
+  department: string;
+  permissions: string[];
+  isSuperAdmin: boolean;
+  emergencyContact?: string;
+  createdAt: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  phone?: string;
+  role: UserRole;
+  avatarUrl?: string;
+  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
+  adminProfile?: AdminProfile;
+  lastLogin?: string;
+  createdAt: string;
+}
+
 export interface Student {
   id: string;
   name: string;
