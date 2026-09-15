@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -7,7 +8,7 @@ const router = Router();
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { classId, sectionId, subjectId, teacherId } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.HomeworkItemWhereInput = {};
 
     if (classId) whereClause.classId = String(classId);
     if (sectionId) whereClause.sectionId = String(sectionId);

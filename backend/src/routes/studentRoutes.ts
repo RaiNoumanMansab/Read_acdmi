@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma, FeeStatus } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -8,11 +9,11 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const { classId, sectionId, feeStatus, q } = req.query;
 
-    const whereClause: any = {};
+    const whereClause: Prisma.StudentWhereInput = {};
 
     if (classId) whereClause.classId = String(classId);
     if (sectionId) whereClause.sectionId = String(sectionId);
-    if (feeStatus) whereClause.feeStatus = String(feeStatus).toUpperCase();
+    if (feeStatus) whereClause.feeStatus = String(feeStatus).toUpperCase() as FeeStatus;
 
     if (q) {
       whereClause.OR = [
@@ -125,9 +126,9 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     });
 
     res.status(201).json({ status: 'success', message: 'Student enrolled successfully', data: newStudent });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Create student error:', error);
-    if (error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       res.status(400).json({ status: 'error', message: 'A student with this Roll No or Admission No already exists' });
       return;
     }

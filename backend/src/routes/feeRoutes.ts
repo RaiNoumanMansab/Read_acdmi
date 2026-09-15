@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma, FeeStatus, TransactionType } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -9,10 +10,10 @@ const router = Router();
 router.get('/vouchers', async (req: Request, res: Response) => {
   try {
     const { billingMonth, status, studentId, classId } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.FeeVoucherWhereInput = {};
 
     if (billingMonth) whereClause.billingMonth = String(billingMonth);
-    if (status) whereClause.status = String(status).toUpperCase();
+    if (status) whereClause.status = String(status).toUpperCase() as FeeStatus;
     if (studentId) whereClause.studentId = String(studentId);
     if (classId) {
       whereClause.student = { classId: String(classId) };
@@ -179,9 +180,9 @@ router.patch('/vouchers/:id/pay', async (req: Request, res: Response): Promise<v
 router.get('/transactions', async (req: Request, res: Response) => {
   try {
     const { type, category } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.AccountTransactionWhereInput = {};
 
-    if (type) whereClause.type = String(type).toUpperCase();
+    if (type) whereClause.type = String(type).toUpperCase() as TransactionType;
     if (category) whereClause.category = String(category);
 
     const transactions = await prisma.accountTransaction.findMany({

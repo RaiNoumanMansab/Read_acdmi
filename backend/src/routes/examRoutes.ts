@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -60,7 +61,7 @@ router.get('/:id/datesheet', async (req: Request, res: Response): Promise<void> 
     const { id } = req.params;
     const { classId } = req.query;
 
-    const whereClause: any = { examId: id };
+    const whereClause: Prisma.DateSheetItemWhereInput = { examId: id };
     if (classId) whereClause.classId = String(classId);
 
     const datesheet = await prisma.dateSheetItem.findMany({
@@ -123,7 +124,7 @@ router.get('/:id/marks', async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const { subjectId, classId, studentId } = req.query;
 
-    const whereClause: any = { examId: id };
+    const whereClause: Prisma.MarksEntryWhereInput = { examId: id };
     if (subjectId) whereClause.subjectId = String(subjectId);
     if (studentId) whereClause.studentId = String(studentId);
     if (classId) {

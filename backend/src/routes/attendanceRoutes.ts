@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -12,14 +13,15 @@ router.get('/students', async (req: Request, res: Response): Promise<void> => {
     // Normalize to YYYY-MM-DD
     const dateOnly = new Date(queryDate.toISOString().split('T')[0]);
 
-    const whereClause: any = {
+    const whereClause: Prisma.StudentAttendanceWhereInput = {
       date: dateOnly,
     };
 
     if (classId || sectionId) {
-      whereClause.student = {};
-      if (classId) whereClause.student.classId = String(classId);
-      if (sectionId) whereClause.student.sectionId = String(sectionId);
+      whereClause.student = {
+        ...(classId ? { classId: String(classId) } : {}),
+        ...(sectionId ? { sectionId: String(sectionId) } : {}),
+      };
     }
 
     const attendance = await prisma.studentAttendance.findMany({

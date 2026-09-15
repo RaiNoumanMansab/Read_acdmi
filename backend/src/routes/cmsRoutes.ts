@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma, NoticePriority } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -9,9 +10,9 @@ const router = Router();
 router.get('/notices', async (req: Request, res: Response) => {
   try {
     const { priority, audience } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.NoticeWhereInput = {};
 
-    if (priority) whereClause.priority = String(priority).toUpperCase();
+    if (priority) whereClause.priority = String(priority).toUpperCase() as NoticePriority;
     if (audience) whereClause.audience = String(audience);
 
     const notices = await prisma.notice.findMany({

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -7,7 +8,7 @@ const router = Router();
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { department, status, q } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.TeacherWhereInput = {};
 
     if (department) whereClause.department = String(department);
     if (status) whereClause.status = String(status);
@@ -120,9 +121,9 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     });
 
     res.status(201).json({ status: 'success', message: 'Teacher profile created', data: newTeacher });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Create teacher error:', error);
-    if (error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       res.status(400).json({ status: 'error', message: 'A teacher with this Emp ID or Email already exists' });
       return;
     }

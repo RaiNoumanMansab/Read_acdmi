@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -56,7 +57,7 @@ router.post('/classes', async (req: Request, res: Response): Promise<void> => {
 router.get('/sections', async (req: Request, res: Response) => {
   try {
     const { classId } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.SectionWhereInput = {};
     if (classId) whereClause.classId = String(classId);
 
     const sections = await prisma.section.findMany({
@@ -143,7 +144,7 @@ router.post('/subjects', async (req: Request, res: Response): Promise<void> => {
 router.get('/class-subjects', async (req: Request, res: Response) => {
   try {
     const { classId, sectionId, teacherId } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.ClassSubjectWhereInput = {};
     if (classId) whereClause.classId = String(classId);
     if (sectionId) whereClause.sectionId = String(sectionId);
     if (teacherId) whereClause.teacherId = String(teacherId);
@@ -212,7 +213,7 @@ router.post('/class-subjects', async (req: Request, res: Response): Promise<void
 router.get('/timetable', async (req: Request, res: Response) => {
   try {
     const { classId, sectionId, dayOfWeek } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.TimetableSlotWhereInput = {};
     if (classId) whereClause.classId = String(classId);
     if (sectionId) whereClause.sectionId = String(sectionId);
     if (dayOfWeek) whereClause.dayOfWeek = String(dayOfWeek);

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Prisma, ApplicationStatus } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -7,9 +8,9 @@ const router = Router();
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { status, classId } = req.query;
-    const whereClause: any = {};
+    const whereClause: Prisma.AdmissionApplicationWhereInput = {};
 
-    if (status) whereClause.status = String(status).toUpperCase();
+    if (status) whereClause.status = String(status).toUpperCase() as ApplicationStatus;
     if (classId) whereClause.appliedClassId = String(classId);
 
     const applications = await prisma.admissionApplication.findMany({
