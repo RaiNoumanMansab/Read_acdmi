@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { SCHOOL_INFO } from '../../../mockData';
 import { useToast } from '../../common/Toast';
+import { cmsApi } from '../../../services/api';
 
 export const ContactPage: React.FC = () => {
   const { showToast } = useToast();
@@ -29,21 +30,34 @@ export const ContactPage: React.FC = () => {
   const [tourTime, setTourTime] = useState('10:00 AM');
   const [wingInterest, setWingInterest] = useState('Senior School (Grades 9-12)');
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !message) {
       showToast('Please fill required fields', undefined, 'error');
       return;
     }
-    showToast(
-      'Message Dispatched to Reception Desk',
-      'Our team will respond via email or phone within 24 hours.',
-      'success'
-    );
-    setName('');
-    setEmail('');
-    setPhone('');
-    setMessage('');
+
+    try {
+      await cmsApi.submitContact({
+        fullName: name,
+        email,
+        phone,
+        subject,
+        message,
+      });
+
+      showToast(
+        'Message Dispatched to Reception Desk',
+        'Our team will respond via email or phone within 24 hours.',
+        'success'
+      );
+      setName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+    } catch (err: any) {
+      showToast('Error Sending Message', err.message || 'Please try again', 'error');
+    }
   };
 
   const handleBookTour = (e: React.FormEvent) => {
@@ -133,6 +147,46 @@ export const ContactPage: React.FC = () => {
                   Mon - Fri: 07:30 AM - 03:30 PM<br />
                   Sat: 08:00 AM - 01:00 PM
                 </p>
+              </div>
+            </div>
+
+            {/* Fee Payment Info Card */}
+            <div className="bca-card" style={{ padding: '22px', borderTop: '3px solid #4CAF50', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                <div style={{ background: '#e8f5e9', padding: '8px', borderRadius: '10px' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: '#1b5e20' }}>Fee Payment Details</h4>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Send fees to any of the below accounts</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* JazzCash */}
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                    📱 JazzCash / EasyPaisa
+                  </div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', letterSpacing: '0.04em' }}>0321-6909047</div>
+                  <div style={{ fontSize: '0.76rem', color: '#475569' }}>Account Name: <strong>Hafiz Abdul Nasir</strong></div>
+                </div>
+                {/* Alfalah Bank */}
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                    🏦 Bank Alfalah
+                  </div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', letterSpacing: '0.04em' }}>59435002040250</div>
+                  <div style={{ fontSize: '0.76rem', color: '#475569' }}>Account Name: <strong>Hafiz Abdul Nasir</strong></div>
+                </div>
+                {/* Email */}
+                <div style={{ fontSize: '0.78rem', color: '#64748b', paddingTop: '4px' }}>
+                  📧 After payment, send screenshot to:{' '}
+                  <a href="mailto:readacademysahiwal2018@gmail.com" style={{ color: '#0B3974', fontWeight: 700 }}>
+                    readacademysahiwal2018@gmail.com
+                  </a>
+                </div>
               </div>
             </div>
 

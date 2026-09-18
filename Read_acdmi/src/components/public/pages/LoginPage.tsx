@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { SCHOOL_INFO } from '../../../mockData';
 import { useToast } from '../../common/Toast';
+import { authApi } from '../../../services/api';
 
 interface LoginPageProps {
   onNavigate: (page: string) => void;
@@ -31,7 +32,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onOpenAdmin })
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       showToast('Please enter both Email/Username and Password', undefined, 'error');
@@ -40,20 +41,30 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onOpenAdmin })
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      const response = await authApi.login({
+        email,
+        password,
+        role: role === 'admin' ? 'SUPER_ADMIN' : role.toUpperCase(),
+      });
+
       setIsSubmitting(false);
-      if (role === 'admin') {
+
+      if (role === 'admin' || response.user.role === 'SUPER_ADMIN' || response.user.role === 'ADMIN') {
         onOpenAdmin();
-        showToast('Admin Login Successful', 'Welcome to Campus Super Administrator ERP Portal', 'success');
+        showToast('Admin Login Successful', `Welcome ${response.user.fullName} to ERP Portal`, 'success');
       } else {
         showToast(
-          `Logged in as ${role === 'student' ? 'Student / Parent' : 'Teacher / Faculty'}`,
+          `Logged in as ${response.user.fullName}`,
           `Welcome back to Read Academy Sahiwal Portal!`,
           'success'
         );
         onNavigate('home');
       }
-    }, 600);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      showToast('Login Failed', err.message || 'Invalid email or password', 'error');
+    }
   };
 
   const handleQuickDemo = (selectedRole: 'student' | 'teacher' | 'admin') => {

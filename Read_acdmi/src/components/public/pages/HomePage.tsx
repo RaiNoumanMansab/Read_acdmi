@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowRight,
   Award,
@@ -12,8 +12,9 @@ import {
   Users,
   Quote
 } from 'lucide-react';
-import { MOCK_NOTICES, MOCK_EVENTS, MOCK_TESTIMONIALS, SCHOOL_INFO } from '../../../mockData';
+import { PARENT_TESTIMONIALS, SCHOOL_INFO } from '../../../mockData';
 import type { Testimonial } from '../../../mockData';
+import { cmsApi } from '../../../services/api';
 
 interface HomePageProps {
   onNavigate: (page: string) => void;
@@ -21,6 +22,18 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) => {
+  const [notices, setNotices] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    cmsApi.getNotices().then((res) => {
+      if (res?.data) setNotices(res.data);
+    }).catch(() => {});
+
+    cmsApi.getEvents().then((res) => {
+      if (res?.data) setEvents(res.data);
+    }).catch(() => {});
+  }, []);
   return (
     <div>
       {/* 1. HERO SECTION */}
@@ -82,8 +95,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 }}
               >
                 <Sparkles size={13} color="#FFD700" style={{ flexShrink: 0 }} />
-                <span className="hidden sm:inline">Read To Lead (Since 2018) • </span>
-                <span>Admissions 2026-2027</span>
+                <span>Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com</span>
               </div>
             </div>
 
@@ -127,7 +139,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 marginBottom: '26px'
               }}
             >
-              At Read Academy Sahiwal, established in 2018 with the motto "Read To Lead", we provide disciplined academic excellence, modern science labs, and transformative student character development.
+              At Read Academy Sahiwal, established in 2018 with the motto "Read To Lead", we provide disciplined academic excellence from Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com, modern science labs, and transformative student character development.
             </p>
 
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', width: '100%' }}>
@@ -193,7 +205,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           }}
         >
           {[
-            { value: '1,248+', label: 'Enrolled Scholars', sub: 'Across Grades 1 to 12' },
+            { value: '1,248+', label: 'Enrolled Scholars', sub: 'Nursery to Matric, FA, FSC, ICS, I.Com & D.Com' },
             { value: '86', label: 'Faculty Mentors', sub: '100% Certified & Vetted' },
             { value: '100%', label: 'University Acceptance', sub: 'LUMS, NUST, Cambridge & GIKI' },
             { value: '24:1', label: 'Student-Teacher Ratio', sub: 'Individualized Attention' },
@@ -326,10 +338,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               Educational Continuum
             </span>
             <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
-              Academic Wings Engineered for Every Milestone
+              Academic Wings — Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com
             </h2>
             <p style={{ fontSize: '0.94rem', color: '#64748b', lineHeight: 1.6 }}>
-              From playful foundational inquiry to high-stakes pre-university distinction.
+              From playful foundational inquiry to high-stakes pre-university and college board distinction.
             </p>
           </div>
 
@@ -342,7 +354,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           >
             {[
               {
-                title: 'Early Years & Kindergarten',
+                title: 'Early Years (Nursery & KG)',
                 age: 'Ages 3 – 5 Years',
                 desc: 'Montessori-inspired active exploration nurturing motor coordination, linguistic fluency, and emotional empathy.',
                 image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&auto=format&fit=crop&q=80',
@@ -363,11 +375,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 badge: 'Analytical Discovery'
               },
               {
-                title: 'Senior School (Grades 9 & 10)',
+                title: 'Senior School (Matriculation - Grades 9 & 10)',
                 age: 'Ages 14 – 16 Years',
                 desc: 'Specialized Matriculation (SSC-I & SSC-II) Science pathways preparing scholars for board distinctions and high academic achievement.',
                 image: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=600&auto=format&fit=crop&q=80',
-                badge: 'Board Excellence'
+                badge: 'Matric Excellence'
+              },
+              {
+                title: 'College (FA, FSC, ICS, I.Com & D.Com)',
+                age: 'Ages 16 – 18+ Years',
+                desc: 'FSc Pre-Medical, FSc Pre-Engineering, ICS, I.Com, FA, and D.Com professional programs for higher board success.',
+                image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=80',
+                badge: 'College Programs'
               }
             ].map((prog, idx) => (
               <div
@@ -513,25 +532,25 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {MOCK_NOTICES.slice(0, 3).map((notice) => (
+                {notices.slice(0, 3).map((notice) => (
                   <div
                     key={notice.id}
                     className="bca-card"
                     style={{
                       padding: '18px',
                       borderRadius: '12px',
-                      borderLeft: notice.priority === 'Urgent' ? '4px solid #E62929' : '4px solid #0B3974'
+                      borderLeft: notice.priority === 'URGENT' || notice.priority === 'Urgent' ? '4px solid #E62929' : '4px solid #0B3974'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span className={`bca-badge ${notice.priority === 'Urgent' ? 'bca-badge-red' : 'bca-badge-primary'}`}>{notice.category}</span>
-                      <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{notice.date}</span>
+                      <span className={`bca-badge ${notice.priority === 'URGENT' || notice.priority === 'Urgent' ? 'bca-badge-red' : 'bca-badge-primary'}`}>{notice.category}</span>
+                      <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{notice.publishedDate ? new Date(notice.publishedDate).toLocaleDateString() : notice.date}</span>
                     </div>
                     <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: '0 0 6px 0', color: '#0f172a' }}>
                       {notice.title}
                     </h4>
                     <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
-                      {notice.content.slice(0, 110)}...
+                      {notice.content ? notice.content.slice(0, 110) : ''}...
                     </p>
                   </div>
                 ))}
@@ -553,7 +572,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {MOCK_EVENTS.slice(0, 3).map((evt) => (
+                {events.slice(0, 3).map((evt) => (
                   <div
                     key={evt.id}
                     className="bca-card"
@@ -568,25 +587,30 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                     <div
                       style={{
                         padding: '10px 14px',
-                        backgroundColor: '#feecec',
-                        color: '#E62929',
+                        backgroundColor: '#eff6ff',
+                        color: '#0B3974',
                         borderRadius: '10px',
                         textAlign: 'center',
-                        flexShrink: 0,
-                        border: '1px solid #fecaca'
+                        fontWeight: 900,
+                        border: '1px solid #bfdbfe',
+                        minWidth: '58px'
                       }}
                     >
-                      <div style={{ fontSize: '1.2rem', fontWeight: 900, lineHeight: 1 }}>{evt.date.split(' ')[1] || '15'}</div>
-                      <div style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>{evt.date.split(' ')[0] || 'SEP'}</div>
+                      <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {evt.eventDate ? new Date(evt.eventDate).toLocaleString('default', { month: 'short' }) : 'EVENT'}
+                      </div>
+                      <div style={{ fontSize: '1.35rem', lineHeight: 1.1 }}>
+                        {evt.eventDate ? new Date(evt.eventDate).getDate() : ''}
+                      </div>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ fontSize: '0.94rem', fontWeight: 700, margin: 0, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div>
+                      <span className="bca-badge bca-badge-blue" style={{ marginBottom: '4px' }}>{evt.category}</span>
+                      <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: '2px 0 4px 0', color: '#0f172a' }}>
                         {evt.title}
                       </h4>
-                      <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>📍 {evt.location}</span>
-                        <span>• {evt.time}</span>
-                      </div>
+                      <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>
+                        {evt.location} • {evt.eventTime || 'TBA'}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -618,7 +642,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               gap: '24px'
             }}
           >
-            {MOCK_TESTIMONIALS.map((test: Testimonial) => (
+            {PARENT_TESTIMONIALS.map((test: Testimonial) => (
               <div
                 key={test.id}
                 className="bca-card"

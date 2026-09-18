@@ -67,7 +67,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
             </div>
 
             <p style={{ fontSize: '0.84rem', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 16px 0' }}>
-              Empowering visionary thinkers and ethical leaders through quality curriculum, disciplined character development, and interactive learning in Sahiwal.
+              Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com. Empowering visionary thinkers and ethical leaders through quality curriculum, disciplined character development, and interactive learning in Sahiwal.
             </p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: '#4CAF50', fontWeight: 600 }}>

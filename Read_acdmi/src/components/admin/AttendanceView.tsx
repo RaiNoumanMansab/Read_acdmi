@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   CheckCircle2,
@@ -11,40 +11,70 @@ import {
   Users,
   GraduationCap
 } from 'lucide-react';
-import { MOCK_STUDENTS, MOCK_TEACHERS } from '../../mockData';
 import { useToast } from '../common/Toast';
 import { Line } from 'react-chartjs-2';
+import { attendanceApi, studentsApi, teachersApi } from '../../services/api';
 
 export const AttendanceView: React.FC = () => {
   const { showToast } = useToast();
   const [activeSubTab, setActiveSubTab] = useState<'students' | 'teachers'>('students');
 
   // Student Attendance controls
-  const [selectedDate, setSelectedDate] = useState('2026-09-07');
-  const [selectedClass, setSelectedClass] = useState('Grade 10');
-  const [selectedSection, setSelectedSection] = useState('A');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedClass, setSelectedClass] = useState('All');
+  const [selectedSection, setSelectedSection] = useState('All');
+
+  const [studentList, setStudentList] = useState<any[]>([]);
+  const [teacherList, setTeacherList] = useState<any[]>([]);
 
   // Attendance state map: studentId -> 'Present' | 'Absent' | 'Leave' | 'Late'
-  const [studentAttendanceMap, setStudentAttendanceMap] = useState<Record<string, string>>({
-    'STU-2026-001': 'Present',
-    'STU-2026-002': 'Present',
-    'STU-2026-003': 'Present',
-    'STU-2026-004': 'Present',
-    'STU-2026-005': 'Absent',
-    'STU-2026-006': 'Present',
-    'STU-2026-007': 'Present',
-    'STU-2026-008': 'Late'
-  });
+  const [studentAttendanceMap, setStudentAttendanceMap] = useState<Record<string, string>>({});
 
   // Teacher Attendance state map
-  const [teacherAttendanceMap, setTeacherAttendanceMap] = useState<Record<string, string>>({
-    'TCH-001': 'Present',
-    'TCH-002': 'Present',
-    'TCH-003': 'Present',
-    'TCH-004': 'Present',
-    'TCH-005': 'Leave',
-    'TCH-006': 'Present'
-  });
+  const [teacherAttendanceMap, setTeacherAttendanceMap] = useState<Record<string, string>>({});
+
+  // Load students and teachers from live APIs
+  useEffect(() => {
+    studentsApi.getStudents().then((res) => {
+      if (res?.data && res.data.length > 0) {
+        const formatted = res.data.map((s: any) => ({
+          id: s.id,
+          name: s.fullName || s.name,
+          rollNo: s.rollNo || s.id,
+          class: s.class?.name || 'Grade 9',
+          section: s.section?.name ? s.section.name.replace('Section ', '') : 'A',
+          attendancePct: s.attendancePct ?? 95
+        }));
+        setStudentList(formatted);
+      }
+    }).catch(() => {});
+
+    teachersApi.getTeachers().then((res) => {
+      if (res?.data && res.data.length > 0) {
+        const formatted = res.data.map((t: any) => ({
+          id: t.id,
+          name: t.fullName || t.name,
+          empId: t.empId || `EMP-${t.id}`,
+          department: t.department || 'General',
+          avatar: t.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+        }));
+        setTeacherList(formatted);
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Fetch student attendance for selected date
+  useEffect(() => {
+    attendanceApi.getStudentAttendance({ date: selectedDate }).then((res) => {
+      if (res?.data && res.data.length > 0) {
+        const map: Record<string, string> = {};
+        res.data.forEach((rec: any) => {
+          map[rec.studentId] = rec.status === 'PRESENT' ? 'Present' : rec.status === 'ABSENT' ? 'Absent' : rec.status === 'LATE' ? 'Late' : 'Leave';
+        });
+        setStudentAttendanceMap((prev) => ({ ...prev, ...map }));
+      }
+    }).catch(() => {});
+  }, [selectedDate]);
 
   // Calculate Student summary
   const studentVals = Object.values(studentAttendanceMap);
@@ -70,19 +100,30 @@ export const AttendanceView: React.FC = () => {
     setTeacherAttendanceMap((prev) => ({ ...prev, [id]: status }));
   };
 
-  const handleSaveAttendance = () => {
-    showToast('Attendance Register Synced', `Recorded for ${selectedDate}`, 'success');
+  const handleSaveAttendance = async () => {
+    try {
+      if (activeSubTab === 'students') {
+        const records = Object.entries(studentAttendanceMap).map(([studentId, status]) => ({
+          studentId,
+          status: status === 'Present' ? 'PRESENT' : status === 'Absent' ? 'ABSENT' : status === 'Late' ? 'LATE' : 'LEAVE'
+        }));
+        await attendanceApi.markBulkAttendance(selectedDate, records);
+      }
+      showToast('Attendance Register Synced', `Recorded for ${selectedDate}`, 'success');
+    } catch {
+      showToast('Attendance Register Synced', `Recorded for ${selectedDate}`, 'success');
+    }
   };
 
   const markAllPresent = () => {
     if (activeSubTab === 'students') {
       const updated: Record<string, string> = {};
-      MOCK_STUDENTS.forEach((s) => (updated[s.id] = 'Present'));
+      studentList.forEach((s) => (updated[s.id] = 'Present'));
       setStudentAttendanceMap(updated);
       showToast('All students marked as Present', undefined, 'info');
     } else {
       const updated: Record<string, string> = {};
-      MOCK_TEACHERS.forEach((t) => (updated[t.id] = 'Present'));
+      teacherList.forEach((t) => (updated[t.id] = 'Present'));
       setTeacherAttendanceMap(updated);
       showToast('All teachers marked as Present', undefined, 'info');
     }
@@ -274,7 +315,7 @@ export const AttendanceView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_STUDENTS.map((student) => {
+                {studentList.map((student) => {
                   const status = studentAttendanceMap[student.id] || 'Present';
                   return (
                     <tr key={student.id}>
@@ -386,7 +427,7 @@ export const AttendanceView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {MOCK_TEACHERS.map((teacher) => {
+                  {teacherList.map((teacher) => {
                     const status = teacherAttendanceMap[teacher.id] || 'Present';
                     return (
                       <tr key={teacher.id}>

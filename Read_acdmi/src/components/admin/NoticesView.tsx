@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bell,
   Plus,
@@ -10,17 +10,54 @@ import {
   Eye,
   Trash2
 } from 'lucide-react';
-import { MOCK_NOTICES } from '../../mockData';
 import type { Notice } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { cmsApi } from '../../services/api';
+
+const mapBackendNotice = (n: any): Notice => ({
+  id: n.id,
+  title: n.title,
+  category: n.category || 'Academic',
+  date: n.publishedDate ? n.publishedDate.split('T')[0] : '2026-09-08',
+  priority: (n.priority === 'HIGH' || n.priority === 'URGENT' ? 'High' : 'Normal'),
+  audience: n.audience || 'All',
+  targetAudience: n.audience || 'All',
+  content: n.content,
+  pinned: n.pinned ?? false,
+  publishedBy: 'Principal Office',
+  author: 'Principal Office'
+});
 
 export const NoticesView: React.FC = () => {
   const { showToast } = useToast();
-  const [notices, setNotices] = useState<Notice[]>(MOCK_NOTICES);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeNotice, setActiveNotice] = useState<Notice | null>(null);
+
+  // Load notices from live API
+  useEffect(() => {
+    let isMounted = true;
+    cmsApi.getNotices().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setNotices(res.data.map(mapBackendNotice));
+        } else {
+          setNotices([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend notices fetch failed:', err);
+      if (isMounted) {
+        setNotices([]);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Notice form
   const [newTitle, setNewTitle] = useState('');
@@ -36,26 +73,54 @@ export const NoticesView: React.FC = () => {
     return n.category === categoryFilter;
   });
 
-  const handleCreateNotice = (e: React.FormEvent) => {
+  const handleCreateNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newContent) {
       showToast('Please provide notice title and message body', undefined, 'error');
       return;
     }
-    const newNotice: Notice = {
-      id: `NOT-${Date.now()}`,
-      title: newTitle,
-      category: newCategory,
-      date: new Date().toISOString().split('T')[0],
-      priority: newPriority,
-      audience: newAudience || 'All',
-      targetAudience: newAudience,
-      content: newContent,
-      pinned: false,
-      publishedBy: 'Super Admin Office',
-      author: 'Super Admin Office'
-    };
-    setNotices([newNotice, ...notices]);
+    try {
+      const res = await cmsApi.publishNotice({
+        title: newTitle,
+        content: newContent,
+        category: newCategory,
+        priority: newPriority === 'High' ? 'HIGH' : 'NORMAL',
+        audience: newAudience
+      });
+      if (res?.data) {
+        setNotices((prev) => [mapBackendNotice(res.data), ...prev]);
+      } else {
+        const newNotice: Notice = {
+          id: `NOT-${Date.now()}`,
+          title: newTitle,
+          category: newCategory,
+          date: new Date().toISOString().split('T')[0],
+          priority: newPriority,
+          audience: newAudience || 'All',
+          targetAudience: newAudience,
+          content: newContent,
+          pinned: false,
+          publishedBy: 'Super Admin Office',
+          author: 'Super Admin Office'
+        };
+        setNotices([newNotice, ...notices]);
+      }
+    } catch {
+      const newNotice: Notice = {
+        id: `NOT-${Date.now()}`,
+        title: newTitle,
+        category: newCategory,
+        date: new Date().toISOString().split('T')[0],
+        priority: newPriority,
+        audience: newAudience || 'All',
+        targetAudience: newAudience,
+        content: newContent,
+        pinned: false,
+        publishedBy: 'Super Admin Office',
+        author: 'Super Admin Office'
+      };
+      setNotices([newNotice, ...notices]);
+    }
     setShowAddModal(false);
     showToast('Notice Published & Broadcasted', `Dispatched to ${newAudience}`, 'success');
   };
@@ -114,17 +179,22 @@ export const NoticesView: React.FC = () => {
       </div>
 
       {/* Notices Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '18px'
-        }}
-      >
-        {filtered.map((notice) => (
-          <div
-            key={notice.id}
-            className="bca-card"
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          {loading ? 'Loading circulars & notices from database...' : 'No circular notices found in this category.'}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '18px'
+          }}
+        >
+          {filtered.map((notice) => (
+            <div
+              key={notice.id}
+              className="bca-card"
             style={{
               padding: '20px',
               display: 'flex',
@@ -173,10 +243,11 @@ export const NoticesView: React.FC = () => {
               >
                 <Eye size={12} /> View
               </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* NOTICE DETAIL MODAL */}
       {activeNotice && (

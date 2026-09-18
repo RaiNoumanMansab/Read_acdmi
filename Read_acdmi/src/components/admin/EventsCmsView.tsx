@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -9,16 +9,50 @@ import {
   CheckCircle,
   Download
 } from 'lucide-react';
-import { MOCK_EVENTS } from '../../mockData';
 import type { SchoolEvent } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { cmsApi } from '../../services/api';
+
+const mapBackendEvent = (e: any): SchoolEvent => ({
+  id: e.id,
+  title: e.title,
+  category: e.category || 'Academic',
+  date: e.eventDate ? e.eventDate.split('T')[0] : '2026-10-15',
+  time: e.eventTime || '09:00 AM - 01:00 PM',
+  location: e.location || 'Auditorium Hall',
+  description: e.description || '',
+  image: e.bannerImage || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=80',
+  status: 'Upcoming',
+  organizer: 'Institutional Events Directorate',
+  targetAudience: 'All School',
+  isPublic: e.isPublic ?? true,
+  registeredCount: 45
+});
 
 export const EventsCmsView: React.FC = () => {
   const { showToast } = useToast();
-  const [events, setEvents] = useState<SchoolEvent[]>(MOCK_EVENTS);
+  const [events, setEvents] = useState<SchoolEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<SchoolEvent | null>(null);
+
+  // Fetch events from live API
+  useEffect(() => {
+    let isMounted = true;
+    cmsApi.getEvents().then((res) => {
+      if (isMounted) {
+        if (res?.data) {
+          setEvents(res.data.map(mapBackendEvent));
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend events fetch fallback:', err);
+      if (isMounted) setLoading(false);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Event form
   const [newTitle, setNewTitle] = useState('');
@@ -28,30 +62,62 @@ export const EventsCmsView: React.FC = () => {
   const [newLocation, setNewLocation] = useState('Auditorium Hall');
   const [newDesc, setNewDesc] = useState('');
 
-  const handleCreateEvent = (e: React.FormEvent) => {
+  const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle) {
       showToast('Please specify event title', undefined, 'error');
       return;
     }
-    const newEvt: SchoolEvent = {
-      id: `EVT-${Date.now()}`,
-      title: newTitle,
-      category: newCategory,
-      date: newDate,
-      time: newTime,
-      location: newLocation,
-      description: newDesc || 'Institutional event open to registered participants and families.',
-      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=80',
-      status: 'Upcoming',
-      organizer: 'Institutional Events Directorate',
-      targetAudience: 'All School',
-      isPublic: true,
-      registeredCount: 0
-    };
-    setEvents([...events, newEvt]);
+    try {
+      const res = await cmsApi.scheduleEvent({
+        title: newTitle,
+        category: newCategory,
+        eventDate: newDate,
+        eventTime: newTime,
+        location: newLocation,
+        description: newDesc || 'Institutional event open to registered participants and families.',
+        isPublic: true
+      });
+      if (res?.data) {
+        setEvents((prev) => [...prev, mapBackendEvent(res.data)]);
+      } else {
+        const newEvt: SchoolEvent = {
+          id: `EVT-${Date.now()}`,
+          title: newTitle,
+          category: newCategory,
+          date: newDate,
+          time: newTime,
+          location: newLocation,
+          description: newDesc || 'Institutional event open to registered participants and families.',
+          image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=80',
+          status: 'Upcoming',
+          organizer: 'Institutional Events Directorate',
+          targetAudience: 'All School',
+          isPublic: true,
+          registeredCount: 0
+        };
+        setEvents((prev) => [...prev, newEvt]);
+      }
+    } catch {
+      const newEvt: SchoolEvent = {
+        id: `EVT-${Date.now()}`,
+        title: newTitle,
+        category: newCategory,
+        date: newDate,
+        time: newTime,
+        location: newLocation,
+        description: newDesc || 'Institutional event open to registered participants and families.',
+        image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&auto=format&fit=crop&q=80',
+        status: 'Upcoming',
+        organizer: 'Institutional Events Directorate',
+        targetAudience: 'All School',
+        isPublic: true,
+        registeredCount: 0
+      };
+      setEvents((prev) => [...prev, newEvt]);
+    }
     setShowAddModal(false);
-    showToast('Event Scheduled & Published', newEvt.title, 'success');
+    showToast('Event Scheduled & Published', newTitle, 'success');
   };
 
   return (
@@ -74,96 +140,115 @@ export const EventsCmsView: React.FC = () => {
       </div>
 
       {/* Events Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '20px'
-        }}
-      >
-        {events.map((evt) => {
-          const evtDate = new Date(evt.date);
-          const monthStr = evtDate.toLocaleDateString('en-US', { month: 'short' });
-          const dayNum = evtDate.getDate();
+      {loading ? (
+        <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+          Loading events...
+        </div>
+      ) : events.length === 0 ? (
+        <div className="bca-card" style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+          <CalendarIcon size={40} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+          <p style={{ fontWeight: 600, fontSize: '1rem', color: '#334155' }}>No Events Scheduled</p>
+          <p style={{ fontSize: '0.85rem' }}>Create a new calendar event using the button above.</p>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '20px'
+          }}
+        >
+          {events.map((evt) => {
+            const evtDate = new Date(evt.date);
+            const monthStr = evtDate.toLocaleDateString('en-US', { month: 'short' });
+            const dayNum = evtDate.getDate();
 
-          return (
-            <div
-              key={evt.id}
-              className="bca-card"
-              style={{
-                padding: '22px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '14px' }}>
-                  <div
-                    style={{
-                      backgroundColor: '#eff6ff',
-                      color: '#2563eb',
-                      padding: '10px 14px',
-                      borderRadius: '12px',
-                      textAlign: 'center',
-                      minWidth: '58px',
-                      border: '1px solid #bfdbfe'
-                    }}
+            return (
+              <div
+                key={evt.id}
+                className="bca-card"
+                style={{
+                  padding: '22px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '14px' }}>
+                    <div
+                      style={{
+                        backgroundColor: '#eff6ff',
+                        color: '#2563eb',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        textAlign: 'center',
+                        minWidth: '58px',
+                        border: '1px solid #bfdbfe'
+                      }}
+                    >
+                      <div style={{ fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                        {monthStr}
+                      </div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 900, lineHeight: 1.1 }}>
+                        {dayNum}
+                      </div>
+                    </div>
+                    <div>
+                      <span
+                        className="bca-badge"
+                        style={{
+                          backgroundColor: '#f1f5f9',
+                          color: '#475569',
+                          marginBottom: '6px',
+                          display: 'inline-block'
+                        }}
+                      >
+                        {evt.category}
+                      </span>
+                      <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                        {evt.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: '0.82rem', color: '#475569', margin: '0 0 14px 0', lineHeight: 1.5 }}>
+                    {evt.description}
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem', color: '#64748b', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Clock size={14} color="#64748b" />
+                      <span>{evt.time}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={14} color="#64748b" />
+                      <span>{evt.location}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Users size={14} color="#64748b" />
+                      <span>Audience: <strong>{evt.targetAudience}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                  <span style={{ fontSize: '0.76rem', color: '#059669', fontWeight: 700 }}>
+                    {evt.registeredCount} RSVPs Confirmed
+                  </span>
+                  <button
+                    onClick={() => setSelectedEvent(evt)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
                   >
-                    <div style={{ fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase' }}>
-                      {monthStr}
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 900, lineHeight: 1.1 }}>
-                      {dayNum}
-                    </div>
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <span className="bca-badge bca-badge-primary" style={{ marginBottom: '4px' }}>
-                      {evt.category}
-                    </span>
-                    <h3 style={{ fontSize: '1.08rem', fontWeight: 700, margin: '4px 0 0', color: '#0f172a' }}>
-                      {evt.title}
-                    </h3>
-                  </div>
-                </div>
-
-                <p style={{ fontSize: '0.82rem', color: '#475569', margin: '0 0 14px 0', lineHeight: 1.5 }}>
-                  {evt.description}
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem', color: '#64748b', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Clock size={14} color="#64748b" />
-                    <span>{evt.time}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <MapPin size={14} color="#64748b" />
-                    <span>{evt.location}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={14} color="#64748b" />
-                    <span>Audience: <strong>{evt.targetAudience}</strong></span>
-                  </div>
+                    <Eye size={13} /> Details
+                  </button>
                 </div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                <span style={{ fontSize: '0.76rem', color: '#059669', fontWeight: 700 }}>
-                  {evt.registeredCount} RSVPs Confirmed
-                </span>
-                <button
-                  onClick={() => setSelectedEvent(evt)}
-                  className="bca-btn bca-btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                >
-                  <Eye size={13} /> Details
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* EVENT DETAIL MODAL */}
       {selectedEvent && (

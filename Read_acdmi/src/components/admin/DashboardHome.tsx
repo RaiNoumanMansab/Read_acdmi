@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   GraduationCap,
@@ -31,16 +31,10 @@ import {
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { StatCard } from '../common/StatCard';
-import {
-  MOCK_STUDENTS,
-  MOCK_ADMISSIONS,
-  MOCK_FEE_VOUCHERS,
-  MOCK_EVENTS,
-  MOCK_NOTICES,
-  SCHOOL_INFO
-} from '../../mockData';
+import { SCHOOL_INFO } from '../../mockData';
 import type { AdminTab } from '../../types';
 import { useToast } from '../common/Toast';
+import { adminApi, admissionsApi, feesApi, cmsApi, studentsApi } from '../../services/api';
 
 // Register Chart.js components
 ChartJS.register(
@@ -62,6 +56,82 @@ interface DashboardHomeProps {
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
   const { showToast } = useToast();
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [recentAdmissions, setRecentAdmissions] = useState<any[]>([]);
+  const [recentVouchers, setRecentVouchers] = useState<any[]>([]);
+  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [recentNotices, setRecentNotices] = useState<any[]>([]);
+  const [topStudents, setTopStudents] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    adminApi.getDashboard().then((res) => {
+      if (isMounted && res?.data) {
+        setDashboardData(res.data);
+        if (res.data.recentAdmissions?.length > 0) {
+          setRecentAdmissions(res.data.recentAdmissions.map((a: any) => ({
+            id: a.id,
+            studentName: a.studentName || a.fullName,
+            appliedClass: a.appliedClass?.name || 'Grade 9',
+            applicationDate: a.applicationDate ? a.applicationDate.split('T')[0] : '2026-09-08',
+            status: a.status === 'APPROVED' ? 'Approved' : 'Pending'
+          })));
+        }
+        if (res.data.recentNotices?.length > 0) {
+          setRecentNotices(res.data.recentNotices.map((n: any) => ({
+            id: n.id,
+            title: n.title,
+            category: n.category || 'Academic',
+            priority: n.priority === 'HIGH' ? 'High' : 'Normal',
+            date: n.publishedDate ? n.publishedDate.split('T')[0] : '2026-09-08'
+          })));
+        }
+      }
+    }).catch(() => {});
+
+    feesApi.getVouchers().then((res) => {
+      if (isMounted && res?.data && res.data.length > 0) {
+        setRecentVouchers(res.data.map((v: any) => ({
+          voucherNo: v.voucherNo || `VCH-${v.id}`,
+          studentName: v.student?.fullName || 'Student',
+          class: v.student?.class?.name || 'Grade 9',
+          section: v.student?.section?.name ? v.student.section.name.replace('Section ', '') : 'A',
+          totalAmount: Number(v.totalAmount) || 8500,
+          status: v.status === 'PAID' ? 'Paid' : 'Pending',
+          dueDate: v.dueDate ? v.dueDate.split('T')[0] : '2026-09-20',
+          paymentMethod: v.paymentMethod || 'Bank Alfalah'
+        })));
+      }
+    }).catch(() => {});
+
+    cmsApi.getEvents().then((res) => {
+      if (isMounted && res?.data && res.data.length > 0) {
+        setRecentEvents(res.data.slice(0, 3).map((e: any) => ({
+          id: e.id,
+          title: e.title,
+          date: e.eventDate ? e.eventDate.split('T')[0] : '2026-10-15',
+          time: e.eventTime || '09:00 AM',
+          location: e.location || 'Auditorium'
+        })));
+      }
+    }).catch(() => {});
+
+    studentsApi.getStudents().then((res) => {
+      if (isMounted && res?.data && res.data.length > 0) {
+        setTopStudents(res.data.slice(0, 4).map((s: any) => ({
+          id: s.id,
+          name: s.fullName || s.name,
+          rollNo: s.rollNo || s.id,
+          class: s.class?.name || 'Grade 10',
+          section: s.section?.name ? s.section.name.replace('Section ', '') : 'A',
+          attendancePct: s.attendancePct ?? 96,
+          avatar: s.avatarUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80'
+        })));
+      }
+    }).catch(() => {});
+
+    return () => { isMounted = false; };
+  }, []);
   const todayDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -234,105 +304,105 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
       >
         <StatCard
           label="Total Students"
-          value="1,248"
-          change="+4.2%"
+          value={dashboardData?.stats?.totalStudents !== undefined ? dashboardData.stats.totalStudents.toLocaleString() : "0"}
+          change="+0%"
           isPositive={true}
-          trendText="vs last term"
+          trendText="enrolled in database"
           icon={<Users size={22} />}
           iconBg="#eff6ff"
           iconColor="#0B3974"
-          sparklineData={[1120, 1150, 1180, 1210, 1230, 1248]}
+          sparklineData={[0, 0, 0, 0, 0, dashboardData?.stats?.totalStudents || 0]}
           onClick={() => onNavigate('students')}
         />
 
         <StatCard
           label="Teachers & Staff"
-          value="86"
-          change="+2"
+          value={dashboardData?.stats?.totalTeachers !== undefined ? dashboardData.stats.totalTeachers.toString() : "0"}
+          change="+0"
           isPositive={true}
-          trendText="new faculty"
+          trendText="active faculty"
           icon={<GraduationCap size={22} />}
           iconBg="#fff9c4"
           iconColor="#8c6800"
-          sparklineData={[80, 81, 82, 84, 85, 86]}
+          sparklineData={[0, 0, 0, 0, 0, dashboardData?.stats?.totalTeachers || 0]}
           onClick={() => onNavigate('teachers')}
         />
 
         <StatCard
           label="Active Classes"
-          value="32"
+          value={dashboardData?.stats?.totalClasses !== undefined ? dashboardData.stats.totalClasses.toString() : "0"}
           change="100%"
           isPositive={true}
-          trendText="capacity"
+          trendText="academic wings"
           icon={<BookOpen size={22} />}
           iconBg="#eff6ff"
           iconColor="#0B3974"
-          sparklineData={[30, 30, 31, 32, 32, 32]}
+          sparklineData={[0, 0, 0, 0, 0, dashboardData?.stats?.totalClasses || 0]}
           onClick={() => onNavigate('classes-subjects')}
         />
 
         <StatCard
           label="Today's Attendance"
-          value="94.7%"
-          change="+1.3%"
+          value={dashboardData?.stats?.todayAttendancePct !== undefined ? `${dashboardData.stats.todayAttendancePct}%` : "0%"}
+          change="0%"
           isPositive={true}
-          trendText="1,182 present"
+          trendText="real-time logs"
           icon={<CheckSquare size={22} />}
           iconBg="#e8f5e9"
           iconColor="#4CAF50"
-          sparklineData={[92, 93.5, 94.1, 93.8, 94.7]}
+          sparklineData={[0, 0, 0, 0, 0, dashboardData?.stats?.todayAttendancePct || 0]}
           onClick={() => onNavigate('attendance')}
         />
 
         <StatCard
           label="Fee Collection"
-          value="Rs. 2.4M"
-          change="92%"
+          value={dashboardData?.stats?.feeCollection ? `Rs. ${(dashboardData.stats.feeCollection.collected || 0).toLocaleString()}` : "Rs. 0"}
+          change={`${dashboardData?.stats?.feeCollection?.pct || 0}%`}
           isPositive={true}
-          trendText="September dues"
+          trendText="collected this term"
           icon={<Receipt size={22} />}
           iconBg="#eff6ff"
           iconColor="#0B3974"
-          sparklineData={[1.8, 2.1, 2.3, 2.4]}
+          sparklineData={[0, 0, 0, dashboardData?.stats?.feeCollection?.collected || 0]}
           onClick={() => onNavigate('fees')}
         />
 
         <StatCard
-          label="Pending Fees"
-          value="Rs. 340K"
-          change="-14%"
+          label="Outstanding Dues"
+          value={dashboardData?.stats?.feeCollection?.pending ? `Rs. ${(dashboardData.stats.feeCollection.pending || 0).toLocaleString()}` : "Rs. 0"}
+          change="0%"
           isPositive={true}
-          trendText="decreasing"
+          trendText="recoveries pending"
           icon={<AlertTriangle size={22} />}
           iconBg="#fff9c4"
           iconColor="#b8860b"
-          sparklineData={[520, 480, 410, 370, 340]}
+          sparklineData={[0, 0, 0, dashboardData?.stats?.feeCollection?.pending || 0]}
           onClick={() => onNavigate('fees')}
         />
 
         <StatCard
           label="New Admissions"
-          value="18"
-          change="+6"
+          value={dashboardData?.stats?.pendingAdmissions !== undefined ? dashboardData.stats.pendingAdmissions.toString() : "0"}
+          change="+0"
           isPositive={true}
-          trendText="this week"
+          trendText="pending review"
           icon={<UserPlus size={22} />}
           iconBg="#feecec"
           iconColor="#E62929"
-          sparklineData={[4, 7, 9, 12, 18]}
+          sparklineData={[0, 0, 0, dashboardData?.stats?.pendingAdmissions || 0]}
           onClick={() => onNavigate('admissions')}
         />
 
         <StatCard
           label="Net Profit"
-          value="Rs. 1.38M"
-          change="+18.4%"
+          value={dashboardData?.stats?.feeCollection?.collected ? `Rs. ${(dashboardData.stats.feeCollection.collected || 0).toLocaleString()}` : "Rs. 0"}
+          change="+0%"
           isPositive={true}
-          trendText="fiscal surplus"
+          trendText="fiscal ledger"
           icon={<DollarSign size={22} />}
           iconBg="#e8f5e9"
           iconColor="#4CAF50"
-          sparklineData={[0.9, 1.05, 1.2, 1.38]}
+          sparklineData={[0, 0, 0, dashboardData?.stats?.feeCollection?.collected || 0]}
           onClick={() => onNavigate('accounts')}
         />
       </div>
@@ -444,7 +514,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {MOCK_ADMISSIONS.slice(0, 4).map((adm) => (
+            {recentAdmissions.slice(0, 4).map((adm) => (
               <div
                 key={adm.id}
                 style={{
@@ -465,7 +535,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
                     Applied: <strong style={{ color: '#2563eb' }}>{adm.appliedClass}</strong> • {adm.applicationDate}
                   </div>
                 </div>
-                <span className={`bca-badge bca-badge-${adm.status.toLowerCase().replace(' ', '-')}`}>
+                <span className={`bca-badge bca-badge-${(adm.status || 'pending').toLowerCase().replace(' ', '-')}`}>
                   {adm.status}
                 </span>
               </div>
@@ -482,7 +552,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {MOCK_FEE_VOUCHERS.filter(f => f.status === 'Paid').slice(0, 4).map((fee) => (
+            {recentVouchers.filter(f => f.status === 'Paid').slice(0, 4).map((fee) => (
               <div
                 key={fee.voucherNo}
                 style={{
@@ -523,7 +593,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {MOCK_FEE_VOUCHERS.filter(f => f.status !== 'Paid').slice(0, 4).map((fee) => (
+            {recentVouchers.filter(f => f.status !== 'Paid').slice(0, 4).map((fee) => (
               <div
                 key={fee.voucherNo}
                 style={{
@@ -548,7 +618,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
                   <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#b45309' }}>
                     Rs. {fee.totalAmount.toLocaleString()}
                   </div>
-                  <span className={`bca-badge bca-badge-${fee.status.toLowerCase()}`}>
+                  <span className={`bca-badge bca-badge-${(fee.status || 'pending').toLowerCase()}`}>
                     {fee.status}
                   </span>
                 </div>
@@ -566,7 +636,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {MOCK_EVENTS.slice(0, 3).map((evt) => (
+            {recentEvents.slice(0, 3).map((evt) => (
               <div
                 key={evt.id}
                 style={{
@@ -618,7 +688,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {MOCK_NOTICES.slice(0, 3).map((notice) => (
+            {recentNotices.slice(0, 3).map((notice) => (
               <div
                 key={notice.id}
                 style={{
@@ -651,7 +721,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {MOCK_STUDENTS.slice(0, 4).map((student, idx) => (
+            {topStudents.slice(0, 4).map((student, idx) => (
               <div
                 key={student.id}
                 style={{

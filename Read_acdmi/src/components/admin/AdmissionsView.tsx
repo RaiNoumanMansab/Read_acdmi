@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   UserPlus,
   CheckCircle,
@@ -13,27 +13,118 @@ import {
   Download,
   Upload,
   Check,
-  X
+  X,
+  DollarSign
 } from 'lucide-react';
-import { MOCK_ADMISSIONS } from '../../mockData';
 import type { AdmissionApplication } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { admissionsApi, academicsApi } from '../../services/api';
+
+export const ALL_CLASSES = [
+  'Nursery',
+  'Grade 1',
+  'Grade 2',
+  'Grade 3',
+  'Grade 4',
+  'Grade 5',
+  'Grade 6',
+  'Grade 7',
+  'Grade 8',
+  'Grade 9 (Matric)',
+  'Grade 10 (Matric)',
+  'FSC Pre-Medical',
+  'FSC Pre-Engineering',
+  'ICS',
+  'I.Com',
+  'FA',
+  'D.Com'
+];
+
+const mapBackendAdmission = (a: any): AdmissionApplication => ({
+  id: a.applicationNo || a.id || `ADM-${a.id}`,
+  studentName: a.studentName || a.fullName || 'Candidate',
+  appliedClass: a.appliedClass?.name || a.appliedClass || 'Grade 9',
+  parentName: a.parentName || 'Parent',
+  parentPhone: a.parentPhone || '+92 300 0000000',
+  parentEmail: a.parentEmail || 'parent@readacademy.edu.pk',
+  applicationDate: a.applicationDate ? a.applicationDate.split('T')[0] : new Date().toISOString().split('T')[0],
+  status: (a.status === 'APPROVED' ? 'Approved' : a.status === 'REJECTED' ? 'Rejected' : a.status === 'UNDER_REVIEW' ? 'Under Review' : 'Pending'),
+  gender: a.gender === 'FEMALE' ? 'Female' : 'Male',
+  dob: a.dob ? a.dob.split('T')[0] : '2011-06-15',
+  previousSchool: a.previousSchool ? a.previousSchool : 'Not Provided',
+  previousPercentage: a.previousPercentage ? `${a.previousPercentage}%` : 'Not Provided',
+  address: a.homeAddress || a.address || 'Sahiwal, Punjab',
+  documentsSubmitted: Array.isArray(a.documentsSubmitted) ? a.documentsSubmitted : [],
+  notes: a.adminNotes || a.notes || ''
+});
 
 export const AdmissionsView: React.FC = () => {
   const { showToast } = useToast();
-  const [applications, setApplications] = useState<AdmissionApplication[]>(MOCK_ADMISSIONS);
+  const [applications, setApplications] = useState<AdmissionApplication[]>([]);
+  const [classesList, setClassesList] = useState<string[]>(ALL_CLASSES);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedApp, setSelectedApp] = useState<AdmissionApplication | null>(null);
   const [showNewFormModal, setShowNewFormModal] = useState(false);
+
+  // Approval with custom fee voucher setup modal
+  const [approvalModalApp, setApprovalModalApp] = useState<AdmissionApplication | null>(null);
+  const [tuitionFee, setTuitionFee] = useState<number>(8500);
+  const [admissionFee, setAdmissionFee] = useState<number>(10000);
+  const [examFee, setExamFee] = useState<number>(1500);
+  const [labFee, setLabFee] = useState<number>(1000);
+  const [utilityCharges, setUtilityCharges] = useState<number>(800);
+  const [feeDueDate, setFeeDueDate] = useState<string>(
+    new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
+  const [adminNotes, setAdminNotes] = useState<string>('Approved based on entrance interview and academic merits.');
+  const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
+
+  // Load admissions and classes from backend API
+  useEffect(() => {
+    let isMounted = true;
+    admissionsApi.getAdmissions().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setApplications(res.data.map(mapBackendAdmission));
+        } else {
+          setApplications([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend admissions fetch failed:', err);
+      if (isMounted) {
+        setApplications([]);
+        setLoading(false);
+      }
+    });
+
+    academicsApi.getClasses().then((res) => {
+      if (isMounted && res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        const sorted = [...res.data].sort((a: any, b: any) => {
+          const levelA = typeof a.numericLevel === 'number' ? a.numericLevel : 99;
+          const levelB = typeof b.numericLevel === 'number' ? b.numericLevel : 99;
+          return levelA - levelB;
+        });
+        setClassesList(sorted.map((c: any) => c.name));
+      }
+    }).catch((err) => {
+      console.warn('Academics getClasses error:', err);
+    });
+
+    return () => { isMounted = false; };
+  }, []);
 
   // Stats calculation
   const totalApps = applications.length;
   const pendingApps = applications.filter((a) => a.status === 'Pending').length;
   const approvedApps = applications.filter((a) => a.status === 'Approved').length;
   const rejectedApps = applications.filter((a) => a.status === 'Rejected').length;
-  const thisMonthApps = 18;
+  const currentMonthPrefix = new Date().toISOString().substring(0, 7);
+  const thisMonthApps = applications.filter((a) => a.applicationDate.startsWith(currentMonthPrefix)).length;
 
   // New Admission form states
   const [formSection, setFormSection] = useState<'student' | 'parent' | 'previous' | 'documents'>('student');
@@ -45,8 +136,8 @@ export const AdmissionsView: React.FC = () => {
   const [newParentPhone, setNewParentPhone] = useState('');
   const [newParentEmail, setNewParentEmail] = useState('');
   const [newPrevSchool, setNewPrevSchool] = useState('');
-  const [newPrevPercentage, setNewPrevPercentage] = useState('88.5%');
-  const [newAddress, setNewAddress] = useState('Sector F-7, Islamabad');
+  const [newPrevPercentage, setNewPrevPercentage] = useState('');
+  const [newAddress, setNewAddress] = useState('Sahiwal, Punjab');
 
   const filtered = applications.filter((app) => {
     const matchesSearch =
@@ -57,41 +148,126 @@ export const AdmissionsView: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleUpdateStatus = (id: string, newStatus: 'Approved' | 'Rejected' | 'Under Review') => {
+  const handleOpenApproveModal = (app: AdmissionApplication) => {
+    setApprovalModalApp(app);
+    // Set appropriate fees based on class
+    const isCollege = app.appliedClass.toLowerCase().includes('fsc') ||
+      app.appliedClass.toLowerCase().includes('ics') ||
+      app.appliedClass.toLowerCase().includes('icom') ||
+      app.appliedClass.toLowerCase().includes('fa') ||
+      app.appliedClass.toLowerCase().includes('d.com');
+    setTuitionFee(isCollege ? 9500 : 7500);
+    setAdmissionFee(10000);
+    setExamFee(1500);
+    setLabFee(isCollege ? 1500 : 800);
+    setUtilityCharges(800);
+    setFeeDueDate(new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+    setAdminNotes(`Approved candidate ${app.studentName} for ${app.appliedClass}.`);
+  };
+
+  const handleConfirmApproval = async () => {
+    if (!approvalModalApp) return;
+    setIsSubmittingApproval(true);
+    try {
+      const res = await admissionsApi.updateStatus(
+        approvalModalApp.id,
+        'APPROVED',
+        adminNotes,
+        {
+          tuitionFee: Number(tuitionFee),
+          admissionFee: Number(admissionFee),
+          examFee: Number(examFee),
+          labFee: Number(labFee),
+          utilityCharges: Number(utilityCharges),
+          dueDate: feeDueDate
+        }
+      );
+
+      const enrolled = res?.data?.enrolledStudent;
+      const voucher = res?.data?.voucher;
+      showToast(
+        'Admission Approved & Student Enrolled!',
+        `Student ${enrolled?.fullName || approvalModalApp.studentName} enrolled (${enrolled?.rollNo || 'New Roll No'}). Fee Challan ${voucher?.voucherNo || ''} (Total: Rs. ${voucher?.totalAmount || tuitionFee + admissionFee + examFee + labFee + utilityCharges}) created!`,
+        'success'
+      );
+
+      setApplications((prev) =>
+        prev.map((app) => (app.id === approvalModalApp.id ? { ...app, status: 'Approved' } : app))
+      );
+      if (selectedApp && selectedApp.id === approvalModalApp.id) {
+        setSelectedApp({ ...selectedApp, status: 'Approved' });
+      }
+      setApprovalModalApp(null);
+    } catch (err: any) {
+      console.error('Error approving admission with custom fee:', err);
+      showToast('Approval Failed', err?.response?.data?.message || err?.message || 'Failed to approve admission', 'error');
+    } finally {
+      setIsSubmittingApproval(false);
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, newStatus: 'Approved' | 'Rejected' | 'Under Review') => {
+    if (newStatus === 'Approved') {
+      const target = applications.find((a) => a.id === id);
+      if (target) {
+        handleOpenApproveModal(target);
+        return;
+      }
+    }
+    const apiStatus = newStatus === 'Rejected' ? 'REJECTED' : 'UNDER_REVIEW';
+    try {
+      await admissionsApi.updateStatus(id, apiStatus);
+      showToast(`Application ${id} status updated to ${newStatus}`, undefined, 'info');
+    } catch (err: any) {
+      showToast('Status Update Failed', err?.message || 'Error updating status', 'error');
+    }
     setApplications((prev) =>
       prev.map((app) => (app.id === id ? { ...app, status: newStatus } : app))
     );
-    showToast(`Application ${id} status updated to ${newStatus}`, undefined, 'info');
     if (selectedApp && selectedApp.id === id) {
       setSelectedApp({ ...selectedApp, status: newStatus });
     }
   };
 
-  const handleCreateApplication = (e: React.FormEvent) => {
+  const handleCreateApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStudentName || !newParentName || !newParentPhone) {
       showToast('Please complete all mandatory fields', undefined, 'error');
       return;
     }
-    const newApp: AdmissionApplication = {
-      id: `ADM-2026-${Math.floor(200 + Math.random() * 800)}`,
-      studentName: newStudentName,
-      appliedClass: newClass,
-      parentName: newParentName,
-      parentPhone: newParentPhone,
-      parentEmail: newParentEmail || 'parent@beaconcrest.edu.pk',
-      applicationDate: new Date().toISOString().split('T')[0],
-      status: 'Pending',
-      gender: newGender,
-      dob: newDob,
-      previousSchool: newPrevSchool || 'City International School',
-      previousPercentage: newPrevPercentage,
-      address: newAddress,
-      documentsSubmitted: ['Birth Certificate (B-Form)', 'Past Academic Transcripts', 'Father CNIC Copy']
-    };
-    setApplications([newApp, ...applications]);
-    setShowNewFormModal(false);
-    showToast('Admission Application Registered', `Application ID: ${newApp.id}`, 'success');
+    try {
+      const res = await admissionsApi.submitAdmission({
+        studentName: newStudentName,
+        appliedClass: newClass,
+        appliedClassId: newClass,
+        parentName: newParentName,
+        parentPhone: newParentPhone,
+        parentEmail: newParentEmail || 'parent@readacademy.edu.pk',
+        gender: newGender === 'Female' ? 'FEMALE' : 'MALE',
+        dob: newDob,
+        previousSchool: newPrevSchool.trim() || undefined,
+        previousPercentage: newPrevPercentage ? Number(newPrevPercentage.replace('%', '')) : undefined,
+        homeAddress: newAddress,
+      });
+
+      if (res?.data) {
+        setApplications((prev) => [mapBackendAdmission(res.data), ...prev]);
+        setShowNewFormModal(false);
+        showToast('Admission Application Registered', `Application ${res.data.applicationNo || ''} saved successfully to database`, 'success');
+        setNewStudentName('');
+        setNewParentName('');
+        setNewParentPhone('');
+        setNewParentEmail('');
+        setNewPrevSchool('');
+      } else {
+        setShowNewFormModal(false);
+        showToast('Application Submitted', 'Application received', 'info');
+      }
+    } catch (err: any) {
+      console.error('Error registering admission:', err);
+      const errMsg = err?.response?.data?.message || err?.message || 'Failed to submit application to database';
+      showToast('Submission Failed', errMsg, 'error');
+    }
   };
 
   return (
@@ -240,63 +416,71 @@ export const AdmissionsView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((app) => (
-              <tr key={app.id}>
-                <td>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#1e40af' }}>
-                    {app.id}
-                  </span>
-                </td>
-                <td>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>{app.studentName}</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{app.gender} • Prev: {app.previousSchool}</div>
-                </td>
-                <td>
-                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{app.appliedClass}</span>
-                </td>
-                <td>
-                  <div style={{ fontWeight: 600, color: '#334155' }}>{app.parentName}</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{app.parentPhone}</div>
-                </td>
-                <td>{app.applicationDate}</td>
-                <td>
-                  <span className={`bca-badge bca-badge-${app.status.toLowerCase().replace(' ', '-')}`}>
-                    {app.status}
-                  </span>
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <div style={{ display: 'inline-flex', gap: '6px' }}>
-                    <button
-                      onClick={() => setSelectedApp(app)}
-                      className="bca-btn bca-btn-secondary"
-                      style={{ padding: '5px 10px', fontSize: '0.78rem' }}
-                    >
-                      <Eye size={13} /> Review
-                    </button>
-                    {app.status !== 'Approved' && (
-                      <button
-                        onClick={() => handleUpdateStatus(app.id, 'Approved')}
-                        className="bca-btn bca-btn-emerald"
-                        style={{ padding: '5px 8px' }}
-                        title="Approve Admission"
-                      >
-                        <Check size={14} />
-                      </button>
-                    )}
-                    {app.status !== 'Rejected' && (
-                      <button
-                        onClick={() => handleUpdateStatus(app.id, 'Rejected')}
-                        className="bca-btn"
-                        style={{ padding: '5px 8px', background: '#ffe4e6', color: '#e11d48', border: 'none' }}
-                        title="Reject Application"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                  {loading ? 'Loading admissions from database...' : 'No admission applications found.'}
                 </td>
               </tr>
-            ))}
+            ) : (
+              filtered.map((app) => (
+                <tr key={app.id}>
+                  <td>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#1e40af' }}>
+                      {app.id}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 700, color: '#0f172a' }}>{app.studentName}</div>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{app.gender} • Prev: {app.previousSchool}</div>
+                  </td>
+                  <td>
+                    <span style={{ fontWeight: 600, color: '#1e293b' }}>{app.appliedClass}</span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: '#334155' }}>{app.parentName}</div>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{app.parentPhone}</div>
+                  </td>
+                  <td>{app.applicationDate}</td>
+                  <td>
+                    <span className={`bca-badge bca-badge-${app.status.toLowerCase().replace(' ', '-')}`}>
+                      {app.status}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <button
+                        onClick={() => setSelectedApp(app)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '5px 10px', fontSize: '0.78rem' }}
+                      >
+                        <Eye size={13} /> Review
+                      </button>
+                      {app.status !== 'Approved' && (
+                        <button
+                          onClick={() => handleUpdateStatus(app.id, 'Approved')}
+                          className="bca-btn bca-btn-emerald"
+                          style={{ padding: '5px 8px' }}
+                          title="Approve Admission"
+                        >
+                          <Check size={14} />
+                        </button>
+                      )}
+                      {app.status !== 'Rejected' && (
+                        <button
+                          onClick={() => handleUpdateStatus(app.id, 'Rejected')}
+                          className="bca-btn"
+                          style={{ padding: '5px 8px', background: '#ffe4e6', color: '#e11d48', border: 'none' }}
+                          title="Reject Application"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -364,27 +548,37 @@ export const AdmissionsView: React.FC = () => {
 
             <div>
               <h4 style={{ margin: '0 0 8px 0', fontSize: '0.92rem' }}>Submitted Verification Documents</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {selectedApp.documentsSubmitted.map((doc, idx) => (
-                  <span
-                    key={idx}
-                    style={{
-                      background: '#eff6ff',
-                      border: '1px solid #bfdbfe',
-                      color: '#1e40af',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <FileCheck size={14} /> {doc}
-                  </span>
-                ))}
-              </div>
+              {selectedApp.documentsSubmitted && selectedApp.documentsSubmitted.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {selectedApp.documentsSubmitted.map((doc, idx) => {
+                    const isAttached = typeof doc === 'string' && (doc.includes('[Attached:') || doc.includes('[File:'));
+                    return (
+                      <span
+                        key={idx}
+                        style={{
+                          background: isAttached ? '#ecfdf5' : '#eff6ff',
+                          border: isAttached ? '1px solid #a7f3d0' : '1px solid #bfdbfe',
+                          color: isAttached ? '#065f46' : '#1e40af',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <FileCheck size={14} color={isAttached ? '#059669' : '#2563eb'} />
+                        {doc}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.82rem', color: '#64748b', fontStyle: 'italic', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                  No verification documents submitted yet (Candidate has not attached documents).
+                </div>
+              )}
             </div>
 
             {selectedApp.notes && (
@@ -478,19 +672,11 @@ export const AdmissionsView: React.FC = () => {
                     onChange={(e) => setNewClass(e.target.value)}
                     style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                   >
-                    <option value="Playgroup">Playgroup</option>
-                    <option value="Nursery">Nursery</option>
-                    <option value="Prep / KG">Prep / KG</option>
-                    <option value="Grade 1">Grade 1</option>
-                    <option value="Grade 2">Grade 2</option>
-                    <option value="Grade 3">Grade 3</option>
-                    <option value="Grade 4">Grade 4</option>
-                    <option value="Grade 5">Grade 5</option>
-                    <option value="Grade 6">Grade 6</option>
-                    <option value="Grade 7">Grade 7</option>
-                    <option value="Grade 8">Grade 8</option>
-                    <option value="Grade 9">Grade 9 (SSC-I)</option>
-                    <option value="Grade 10">Grade 10 (SSC-II)</option>
+                    {classesList.map((cls) => (
+                      <option key={cls} value={cls}>
+                        {cls}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -642,6 +828,168 @@ export const AdmissionsView: React.FC = () => {
           )}
         </form>
       </Modal>
+
+      {/* ADMISSION APPROVAL & CUSTOM FEE CHALLAN SETUP MODAL */}
+      {approvalModalApp && (
+        <Modal
+          isOpen={!!approvalModalApp}
+          onClose={() => setApprovalModalApp(null)}
+          title={`Approve Admission & Issue Fee Challan`}
+          subtitle={`Candidate: ${approvalModalApp.studentName} • Class: ${approvalModalApp.appliedClass}`}
+          maxWidth="640px"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={() => setApprovalModalApp(null)}
+                className="bca-btn bca-btn-secondary"
+                disabled={isSubmittingApproval}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmApproval}
+                className="bca-btn bca-btn-emerald"
+                disabled={isSubmittingApproval}
+              >
+                <Check size={16} />
+                {isSubmittingApproval ? 'Enrolling & Generating Challan...' : 'Confirm Approval & Generate Challan'}
+              </button>
+            </>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '14px', borderRadius: '10px' }}>
+              <div style={{ fontWeight: 700, color: '#166534', fontSize: '0.95rem' }}>
+                Admission Decision: Approved
+              </div>
+              <div style={{ fontSize: '0.82rem', color: '#15803d', marginTop: '4px' }}>
+                Approving this application will automatically register the student in PostgreSQL database, assign roll number, and generate a 3-part bank fee voucher with the exact fee breakdown configured below.
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Tuition Fee (Rs.) *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={tuitionFee}
+                  onChange={(e) => setTuitionFee(Number(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Admission / Registration Fee (Rs.) *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={admissionFee}
+                  onChange={(e) => setAdmissionFee(Number(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Examination Fee (Rs.)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="50"
+                  value={examFee}
+                  onChange={(e) => setExamFee(Number(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Lab / Practical Charges (Rs.)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="50"
+                  value={labFee}
+                  onChange={(e) => setLabFee(Number(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Utility & Library Charges (Rs.)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="50"
+                  value={utilityCharges}
+                  onChange={(e) => setUtilityCharges(Number(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Voucher Due Date *
+                </label>
+                <input
+                  type="date"
+                  value={feeDueDate}
+                  onChange={(e) => setFeeDueDate(e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            {/* Total Fee Preview Banner */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '12px 18px',
+                background: '#eff6ff',
+                borderRadius: '8px',
+                border: '1px solid #bfdbfe'
+              }}
+            >
+              <div>
+                <span style={{ fontSize: '0.82rem', color: '#1e40af', fontWeight: 700 }}>Total Fee Voucher Amount</span>
+                <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  Tuition ({tuitionFee}) + Admission ({admissionFee}) + Exam ({examFee}) + Lab ({labFee}) + Utility ({utilityCharges})
+                </div>
+              </div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8' }}>
+                Rs. {(Number(tuitionFee) + Number(admissionFee) + Number(examFee) + Number(labFee) + Number(utilityCharges)).toLocaleString()}
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                Admin Notes / Approval Remarks
+              </label>
+              <textarea
+                rows={2}
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

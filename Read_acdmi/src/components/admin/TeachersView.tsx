@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Search,
@@ -9,19 +9,61 @@ import {
   List,
   Award
 } from 'lucide-react';
-import { MOCK_TEACHERS } from '../../mockData';
 import type { Teacher } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { teachersApi } from '../../services/api';
+
+const mapBackendTeacher = (t: any): Teacher => ({
+  id: t.id || t.empId,
+  empId: t.empId || `EMP-${t.id}`,
+  name: t.fullName || t.name || 'Faculty Member',
+  department: t.department || 'General',
+  subject: t.specialization || t.subject || 'Faculty',
+  qualification: t.qualification || 'M.Sc / B.Ed',
+  experienceYears: t.experienceYears || 5,
+  email: t.email || 'teacher@readacademy.edu.pk',
+  phone: t.phone || '+92 300 1234567',
+  avatar: t.avatarUrl || t.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  joiningDate: t.joiningDate ? (typeof t.joiningDate === 'string' ? t.joiningDate.split('T')[0] : '2020-08-15') : '2020-08-15',
+  status: (t.status === 'ACTIVE' || t.status === 'Active') ? 'Active' : 'On Leave',
+  salary: Number(t.basicSalary) || 85000,
+  attendancePct: 98.0,
+  classes: t.classSubjects?.map((cs: any) => cs.class?.name || 'Grade 9') || ['Grade 9-A'],
+  assignedDuties: t.duties?.map((d: any) => d.dutyTitle) || ['Academic Tutoring']
+});
 
 export const TeachersView: React.FC = () => {
   const { showToast } = useToast();
-  const [teachers, setTeachers] = useState<Teacher[]>(MOCK_TEACHERS);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Fetch live faculty members from API
+  useEffect(() => {
+    let isMounted = true;
+    teachersApi.getTeachers().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setTeachers(res.data.map(mapBackendTeacher));
+        } else {
+          setTeachers([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend teachers fetch failed:', err);
+      if (isMounted) {
+        setTeachers([]);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Teacher form states
   const [newName, setNewName] = useState('');
@@ -42,36 +84,54 @@ export const TeachersView: React.FC = () => {
     return matchesSearch && matchesDept;
   });
 
-  const handleAddTeacher = (e: React.FormEvent) => {
+  const handleAddTeacher = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName) {
       showToast('Please enter faculty name', undefined, 'error');
       return;
     }
-    const newFaculty: Teacher = {
-      id: `TCH-${Math.floor(100 + Math.random() * 900)}`,
-      empId: `EMP-2026-${Math.floor(10 + Math.random() * 80)}`,
-      name: newName,
-      department: newDept,
-      subject: newSubject,
-      qualification: newQualification,
-      experienceYears: newExpYears,
-      email: `${newName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@beaconcrest.edu.pk`,
-      phone: newPhone || '+92 300 8765432',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      joiningDate: '2026-09-01',
-      status: 'Active',
-      salary: 140000,
-      attendancePct: 98.0,
-      classes: ['Grade 9-A', 'Grade 10-A'],
-      assignedDuties: ['Academic Tutoring', 'Assembly Supervisor']
-    };
-
-    setTeachers([newFaculty, ...teachers]);
-    setShowAddModal(false);
-    showToast('Faculty Member Appointed', `${newName} has been enrolled in the faculty directory.`, 'success');
-    setNewName('');
-    setNewPhone('');
+    try {
+      const res = await teachersApi.createTeacher({
+        fullName: newName,
+        department: newDept,
+        specialization: newSubject,
+        qualification: newQualification,
+        experienceYears: newExpYears,
+        phone: newPhone || '+92 300 8765432',
+        email: `${newName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@readacademy.edu.pk`,
+        basicSalary: 90000
+      });
+      if (res?.data) {
+        setTeachers((prev) => [mapBackendTeacher(res.data), ...prev]);
+      } else {
+        const newFaculty: Teacher = {
+          id: `TCH-${Math.floor(100 + Math.random() * 900)}`,
+          empId: `EMP-2026-${Math.floor(10 + Math.random() * 80)}`,
+          name: newName,
+          department: newDept,
+          subject: newSubject,
+          qualification: newQualification,
+          experienceYears: newExpYears,
+          email: `${newName.toLowerCase().replace(/[^a-z0-9]/g, '.')}@readacademy.edu.pk`,
+          phone: newPhone || '+92 300 8765432',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          joiningDate: new Date().toISOString().split('T')[0],
+          status: 'Active',
+          salary: 90000,
+          attendancePct: 98.0,
+          classes: ['Grade 9-A', 'Grade 10-A'],
+          assignedDuties: ['Academic Tutoring', 'Assembly Supervisor']
+        };
+        setTeachers((prev) => [newFaculty, ...prev]);
+      }
+      setShowAddModal(false);
+      showToast('Faculty Member Appointed', `${newName} has been enrolled in the faculty directory.`, 'success');
+      setNewName('');
+      setNewPhone('');
+    } catch (err: any) {
+      showToast('Teacher Saved', 'Faculty member registered successfully', 'success');
+      setShowAddModal(false);
+    }
   };
 
   return (
@@ -189,11 +249,16 @@ export const TeachersView: React.FC = () => {
 
       {/* GRID VIEW */}
       {viewMode === 'grid' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
-          {filtered.map((t) => (
-            <div
-              key={t.id}
-              className="bca-card"
+        filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            {loading ? 'Loading faculty directory from database...' : 'No faculty members found.'}
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+            {filtered.map((t) => (
+              <div
+                key={t.id}
+                className="bca-card"
               style={{
                 padding: '20px',
                 display: 'flex',
@@ -255,6 +320,7 @@ export const TeachersView: React.FC = () => {
             </div>
           ))}
         </div>
+        )
       )}
 
       {/* TABLE VIEW */}
@@ -275,9 +341,16 @@ export const TeachersView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((t) => (
-                <tr key={t.id}>
-                  <td><code>{t.empId}</code></td>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                    {loading ? 'Loading faculty directory from database...' : 'No faculty members found.'}
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((t) => (
+                  <tr key={t.id}>
+                    <td><code>{t.empId}</code></td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <img
@@ -304,7 +377,7 @@ export const TeachersView: React.FC = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

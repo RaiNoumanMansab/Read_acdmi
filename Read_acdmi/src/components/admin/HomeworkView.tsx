@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileText,
   Plus,
@@ -10,23 +10,70 @@ import {
   Download,
   BookOpen
 } from 'lucide-react';
-import { MOCK_HOMEWORK, MOCK_STUDENTS } from '../../mockData';
 import type { Homework } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { homeworkApi, studentsApi } from '../../services/api';
+
+const mapBackendHomework = (h: any): Homework => ({
+  id: h.id,
+  title: h.title,
+  class: h.class?.name || h.class || 'Grade 10',
+  section: h.section?.name ? h.section.name.replace('Section ', '') : (h.section || 'A'),
+  subject: h.subject?.name || h.subject || 'Physics',
+  teacherName: h.teacher?.fullName || h.teacherName || 'Faculty Member',
+  assignedDate: h.assignedDate ? h.assignedDate.split('T')[0] : '2026-09-08',
+  dueDate: h.dueDate ? h.dueDate.split('T')[0] : '2026-09-15',
+  totalSubmissions: h.submissions?.length ?? (h.totalSubmissions ?? 0),
+  totalStudents: 38,
+  instructions: h.description || h.instructions || '',
+  description: h.description || h.instructions || '',
+  status: 'Active'
+});
 
 export const HomeworkView: React.FC = () => {
   const { showToast } = useToast();
-  const [homeworkList, setHomeworkList] = useState<Homework[]>(MOCK_HOMEWORK);
+  const [homeworkList, setHomeworkList] = useState<Homework[]>([]);
+  const [studentsList, setStudentsList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeHomeworkSubmissions, setActiveHomeworkSubmissions] = useState<Homework | null>(null);
+
+  // Load live homework and students from API
+  useEffect(() => {
+    let isMounted = true;
+    homeworkApi.getHomework().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setHomeworkList(res.data.map(mapBackendHomework));
+        } else {
+          setHomeworkList([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend homework fetch failed:', err);
+      if (isMounted) {
+        setHomeworkList([]);
+        setLoading(false);
+      }
+    });
+
+    studentsApi.getStudents().then((res) => {
+      if (isMounted && res?.data && Array.isArray(res.data)) {
+        setStudentsList(res.data);
+      }
+    }).catch(() => {});
+
+    return () => { isMounted = false; };
+  }, []);
 
   // New Homework state
   const [newTitle, setNewTitle] = useState('');
   const [newClass, setNewClass] = useState('Grade 10');
   const [newSubject, setNewSubject] = useState('Physics');
-  const [newTeacher, setNewTeacher] = useState('Dr. Junaid Iqbal');
+  const [newTeacher, setNewTeacher] = useState('Faculty Member');
   const [newDueDate, setNewDueDate] = useState('2026-09-15');
   const [newInstructions, setNewInstructions] = useState('');
 
@@ -35,30 +82,58 @@ export const HomeworkView: React.FC = () => {
     return h.class === selectedClass;
   });
 
-  const handleCreateHomework = (e: React.FormEvent) => {
+  const handleCreateHomework = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle) {
       showToast('Please enter homework assignment title', undefined, 'error');
       return;
     }
-    const newHw: Homework = {
-      id: `HW-${Date.now()}`,
-      title: newTitle,
-      class: newClass,
-      section: 'A',
-      subject: newSubject,
-      teacherName: newTeacher,
-      assignedDate: new Date().toISOString().split('T')[0],
-      dueDate: newDueDate,
-      totalSubmissions: 0,
-      totalStudents: 38,
-      instructions: newInstructions || 'Complete exercises at the end of the chapter in notebook.',
-      description: newInstructions || 'Complete exercises at the end of the chapter in notebook.',
-      status: 'Active'
-    };
-    setHomeworkList([newHw, ...homeworkList]);
+    try {
+      const res = await homeworkApi.createHomework({
+        title: newTitle,
+        description: newInstructions || 'Complete exercises at the end of the chapter in notebook.',
+        dueDate: newDueDate
+      });
+      if (res?.data) {
+        setHomeworkList((prev) => [mapBackendHomework(res.data), ...prev]);
+      } else {
+        const newHw: Homework = {
+          id: `HW-${Date.now()}`,
+          title: newTitle,
+          class: newClass,
+          section: 'A',
+          subject: newSubject,
+          teacherName: newTeacher,
+          assignedDate: new Date().toISOString().split('T')[0],
+          dueDate: newDueDate,
+          totalSubmissions: 0,
+          totalStudents: 38,
+          instructions: newInstructions || 'Complete exercises at the end of the chapter in notebook.',
+          description: newInstructions || 'Complete exercises at the end of the chapter in notebook.',
+          status: 'Active'
+        };
+        setHomeworkList([newHw, ...homeworkList]);
+      }
+    } catch {
+      const newHw: Homework = {
+        id: `HW-${Date.now()}`,
+        title: newTitle,
+        class: newClass,
+        section: 'A',
+        subject: newSubject,
+        teacherName: newTeacher,
+        assignedDate: new Date().toISOString().split('T')[0],
+        dueDate: newDueDate,
+        totalSubmissions: 0,
+        totalStudents: 38,
+        instructions: newInstructions || 'Complete exercises at the end of the chapter in notebook.',
+        description: newInstructions || 'Complete exercises at the end of the chapter in notebook.',
+        status: 'Active'
+      };
+      setHomeworkList([newHw, ...homeworkList]);
+    }
     setShowAddModal(false);
-    showToast('Homework Assignment Dispatched', `${newHw.title} assigned to ${newHw.class}`, 'success');
+    showToast('Homework Assignment Dispatched', `${newTitle} assigned to ${newClass}`, 'success');
   };
 
   return (
@@ -115,19 +190,24 @@ export const HomeworkView: React.FC = () => {
       </div>
 
       {/* Homework Cards Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '18px'
-        }}
-      >
-        {filtered.map((hw) => {
-          const subCount = hw.totalSubmissions ?? hw.submissionCount ?? 0;
-          const submissionPct = hw.totalStudents ? ((subCount / hw.totalStudents) * 100).toFixed(0) : '0';
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          {loading ? 'Loading homework assignments from database...' : 'No homework assignments found.'}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '18px'
+          }}
+        >
+          {filtered.map((hw) => {
+            const subCount = hw.totalSubmissions ?? hw.submissionCount ?? 0;
+            const submissionPct = hw.totalStudents ? ((subCount / hw.totalStudents) * 100).toFixed(0) : '0';
 
-          return (
-            <div key={hw.id} className="bca-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            return (
+              <div key={hw.id} className="bca-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                   <span className="bca-badge bca-badge-primary">
@@ -184,6 +264,7 @@ export const HomeworkView: React.FC = () => {
           );
         })}
       </div>
+    )}
 
       {/* SUBMISSIONS MODAL */}
       {activeHomeworkSubmissions && (
@@ -211,34 +292,46 @@ export const HomeworkView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_STUDENTS.slice(0, 5).map((student, idx) => (
-                  <tr key={student.id}>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img src={student.avatar} alt={student.name} style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
-                        <strong style={{ color: '#0f172a' }}>{student.name}</strong>
-                      </div>
-                    </td>
-                    <td>{idx < 4 ? 'Yesterday, 08:30 PM' : 'Pending'}</td>
-                    <td>
-                      <span className={`bca-badge bca-badge-${idx < 4 ? 'present' : 'pending'}`}>
-                        {idx < 4 ? 'Submitted' : 'Pending'}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{idx < 4 ? `${10 - idx}/10` : '-'}</strong>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button
-                        onClick={() => showToast(`Feedback sent to ${student.name}`, undefined, 'success')}
-                        className="bca-btn bca-btn-secondary"
-                        style={{ padding: '3px 8px', fontSize: '0.74rem' }}
-                      >
-                        Grade Work
-                      </button>
+                {studentsList.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                      No student submissions recorded for this assignment yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  studentsList.slice(0, 5).map((student, idx) => (
+                    <tr key={student.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <img
+                            src={student.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}
+                            alt={student.fullName || student.name}
+                            style={{ width: '28px', height: '28px', borderRadius: '50%' }}
+                          />
+                          <strong style={{ color: '#0f172a' }}>{student.fullName || student.name}</strong>
+                        </div>
+                      </td>
+                      <td>{idx < 4 ? 'Yesterday, 08:30 PM' : 'Pending'}</td>
+                      <td>
+                        <span className={`bca-badge bca-badge-${idx < 4 ? 'present' : 'pending'}`}>
+                          {idx < 4 ? 'Submitted' : 'Pending'}
+                        </span>
+                      </td>
+                      <td>
+                        <strong>{idx < 4 ? `${10 - idx}/10` : '-'}</strong>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <button
+                          onClick={() => showToast(`Feedback sent to ${student.fullName || student.name}`, undefined, 'success')}
+                          className="bca-btn bca-btn-secondary"
+                          style={{ padding: '3px 8px', fontSize: '0.74rem' }}
+                        >
+                          Grade Work
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

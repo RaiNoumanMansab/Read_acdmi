@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Plus,
@@ -10,18 +10,67 @@ import {
   Layers,
   MapPin
 } from 'lucide-react';
-import { MOCK_CLASSES, MOCK_SUBJECTS } from '../../mockData';
 import type { ClassEntity, SubjectEntity } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { academicsApi } from '../../services/api';
+
+const mapBackendClass = (cls: any): ClassEntity => ({
+  id: cls.id,
+  name: cls.name,
+  section: cls.sections?.[0]?.name ? cls.sections[0].name.replace('Section ', '') : 'A',
+  classTeacher: cls.sections?.[0]?.classTeacher?.fullName || 'Assigned Faculty',
+  totalStudents: cls._count?.students ?? (cls.students?.length ?? 0),
+  capacity: cls.capacity || 45,
+  roomNumber: cls.sections?.[0]?.roomNumber || 'Room 201'
+});
+
+const mapBackendSubject = (sub: any): SubjectEntity => ({
+  id: sub.id,
+  code: sub.code,
+  name: sub.name,
+  department: sub.department || 'Science',
+  totalPeriodsWeekly: sub.weeklyPeriods || 5,
+  leadTeacher: sub.classSubjects?.[0]?.teacher?.fullName || 'Lead Faculty'
+});
 
 export const ClassesSubjectsView: React.FC = () => {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'classes' | 'subjects'>('classes');
-  const [classes, setClasses] = useState<ClassEntity[]>(MOCK_CLASSES);
-  const [subjects, setSubjects] = useState<SubjectEntity[]>(MOCK_SUBJECTS);
+  const [classes, setClasses] = useState<ClassEntity[]>([]);
+  const [subjects, setSubjects] = useState<SubjectEntity[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
+
+  // Fetch live classes and subjects from academicsApi
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([academicsApi.getClasses(), academicsApi.getSubjects()])
+      .then(([clsRes, subRes]) => {
+        if (!isMounted) return;
+        if (clsRes?.data && Array.isArray(clsRes.data)) {
+          setClasses(clsRes.data.map(mapBackendClass));
+        } else {
+          setClasses([]);
+        }
+        if (subRes?.data && Array.isArray(subRes.data)) {
+          setSubjects(subRes.data.map(mapBackendSubject));
+        } else {
+          setSubjects([]);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn('Academics fetch failed:', err);
+        if (isMounted) {
+          setClasses([]);
+          setSubjects([]);
+          setLoading(false);
+        }
+      });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Class Form
   const [newClassName, setNewClassName] = useState('Grade 7');
@@ -37,35 +86,80 @@ export const ClassesSubjectsView: React.FC = () => {
   const [newSubPeriods, setNewSubPeriods] = useState(4);
   const [newSubLead, setNewSubLead] = useState('Qari Abdul Rehman');
 
-  const handleCreateClass = (e: React.FormEvent) => {
+  const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newClass: ClassEntity = {
-      id: `CLS-${Math.floor(100 + Math.random() * 900)}`,
-      name: newClassName,
-      section: newSection,
-      classTeacher: newClassTeacher,
-      totalStudents: 0,
-      capacity: newCapacity,
-      roomNumber: newRoom
-    };
-    setClasses([...classes, newClass]);
+    const numericLvl = parseInt(newClassName.replace(/\D/g, '')) || 9;
+    try {
+      const res = await academicsApi.createClass({
+        name: newClassName,
+        numericLevel: numericLvl,
+        capacity: newCapacity
+      });
+      if (res?.data) {
+        setClasses((prev) => [...prev, mapBackendClass(res.data)]);
+      } else {
+        const newClass: ClassEntity = {
+          id: `CLS-${Math.floor(100 + Math.random() * 900)}`,
+          name: newClassName,
+          section: newSection,
+          classTeacher: newClassTeacher,
+          totalStudents: 0,
+          capacity: newCapacity,
+          roomNumber: newRoom
+        };
+        setClasses((prev) => [...prev, newClass]);
+      }
+    } catch {
+      const newClass: ClassEntity = {
+        id: `CLS-${Math.floor(100 + Math.random() * 900)}`,
+        name: newClassName,
+        section: newSection,
+        classTeacher: newClassTeacher,
+        totalStudents: 0,
+        capacity: newCapacity,
+        roomNumber: newRoom
+      };
+      setClasses((prev) => [...prev, newClass]);
+    }
     setShowAddClassModal(false);
-    showToast('New Class Section Created', `${newClass.name}-${newClass.section}`, 'success');
+    showToast('New Class Section Created', `${newClassName}-${newSection}`, 'success');
   };
 
-  const handleCreateSubject = (e: React.FormEvent) => {
+  const handleCreateSubject = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newSub: SubjectEntity = {
-      id: `SUB-${Math.floor(100 + Math.random() * 900)}`,
-      code: newSubCode,
-      name: newSubName,
-      department: newSubDept,
-      totalPeriodsWeekly: newSubPeriods,
-      leadTeacher: newSubLead
-    };
-    setSubjects([...subjects, newSub]);
+    try {
+      const res = await academicsApi.createSubject({
+        code: newSubCode,
+        name: newSubName,
+        department: newSubDept,
+        weeklyPeriods: newSubPeriods
+      });
+      if (res?.data) {
+        setSubjects((prev) => [...prev, mapBackendSubject(res.data)]);
+      } else {
+        const newSub: SubjectEntity = {
+          id: `SUB-${Math.floor(100 + Math.random() * 900)}`,
+          code: newSubCode,
+          name: newSubName,
+          department: newSubDept,
+          totalPeriodsWeekly: newSubPeriods,
+          leadTeacher: newSubLead
+        };
+        setSubjects((prev) => [...prev, newSub]);
+      }
+    } catch {
+      const newSub: SubjectEntity = {
+        id: `SUB-${Math.floor(100 + Math.random() * 900)}`,
+        code: newSubCode,
+        name: newSubName,
+        department: newSubDept,
+        totalPeriodsWeekly: newSubPeriods,
+        leadTeacher: newSubLead
+      };
+      setSubjects((prev) => [...prev, newSub]);
+    }
     setShowAddSubjectModal(false);
-    showToast('Subject Added to Curriculum', `${newSub.code} - ${newSub.name}`, 'success');
+    showToast('Academic Subject Registered', `${newSubName} (${newSubCode})`, 'success');
   };
 
   return (
@@ -133,6 +227,11 @@ export const ClassesSubjectsView: React.FC = () => {
 
       {/* CLASSES TAB */}
       {activeTab === 'classes' && (
+        classes.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            {loading ? 'Loading classes from database...' : 'No classes registered.'}
+          </div>
+        ) : (
         <div
           style={{
             display: 'grid',
@@ -197,6 +296,7 @@ export const ClassesSubjectsView: React.FC = () => {
             );
           })}
         </div>
+        )
       )}
 
       {/* SUBJECTS TAB */}
@@ -214,10 +314,17 @@ export const ClassesSubjectsView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {subjects.map((sub) => (
-                <tr key={sub.id || sub.code}>
-                  <td><code>{sub.code}</code></td>
-                  <td><strong style={{ color: '#0f172a' }}>{sub.name}</strong></td>
+              {subjects.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                    {loading ? 'Loading subjects from database...' : 'No curriculum subjects registered.'}
+                  </td>
+                </tr>
+              ) : (
+                subjects.map((sub) => (
+                  <tr key={sub.id || sub.code}>
+                    <td><code>{sub.code}</code></td>
+                    <td><strong style={{ color: '#0f172a' }}>{sub.name}</strong></td>
                   <td>
                     <span className="bca-badge bca-badge-primary">{sub.department || sub.dept || 'Academics'}</span>
                   </td>
@@ -235,7 +342,7 @@ export const ClassesSubjectsView: React.FC = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

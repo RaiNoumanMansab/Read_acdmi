@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Printer,
   Plus,
   MapPin
 } from 'lucide-react';
-import { MOCK_TIMETABLE } from '../../mockData';
 import type { TimetableSlot, TimetableSchedule } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { academicsApi } from '../../services/api';
+
+const EMPTY_TIMETABLE: TimetableSchedule = {
+  Monday: [],
+  Tuesday: [],
+  Wednesday: [],
+  Thursday: [],
+  Friday: [],
+  Saturday: []
+};
 
 interface ActiveSlotState extends TimetableSlot {
   day: string;
@@ -19,9 +28,48 @@ export const TimetableView: React.FC = () => {
   const { showToast } = useToast();
   const [selectedClass, setSelectedClass] = useState('Grade 10');
   const [selectedSection, setSelectedSection] = useState('A');
-  const [schedule, setSchedule] = useState<TimetableSchedule>(MOCK_TIMETABLE);
+  const [schedule, setSchedule] = useState<TimetableSchedule>(EMPTY_TIMETABLE);
   const [showEditModal, setShowEditModal] = useState(false);
   const [activeSlot, setActiveSlot] = useState<ActiveSlotState | null>(null);
+
+  // Load timetable from live API
+  useEffect(() => {
+    let isMounted = true;
+    academicsApi.getTimetable().then((res) => {
+      if (isMounted) {
+        const loaded: TimetableSchedule = {
+          Monday: [],
+          Tuesday: [],
+          Wednesday: [],
+          Thursday: [],
+          Friday: [],
+          Saturday: []
+        };
+        if (res?.data && res.data.length > 0) {
+          res.data.forEach((slot: any) => {
+            const dayName = slot.dayOfWeek as keyof TimetableSchedule;
+            if (loaded[dayName]) {
+              const existingIdx = loaded[dayName].findIndex((s) => s.period === slot.periodNumber);
+              const formattedSlot = {
+                period: slot.periodNumber,
+                time: `${slot.startTime || '08:00'} - ${slot.endTime || '08:45'}`,
+                subject: slot.subject?.name || 'Subject',
+                teacher: slot.teacher?.fullName || 'Faculty',
+                room: slot.roomNumber || 'Room 201'
+              };
+              if (existingIdx >= 0) {
+                loaded[dayName][existingIdx] = formattedSlot;
+              } else {
+                loaded[dayName].push(formattedSlot);
+              }
+            }
+          });
+        }
+        setSchedule(loaded);
+      }
+    }).catch(() => {});
+    return () => { isMounted = false; };
+  }, [selectedClass, selectedSection]);
 
   const days: (keyof TimetableSchedule)[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const periods = [

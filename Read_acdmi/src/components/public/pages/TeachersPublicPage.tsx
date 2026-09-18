@@ -1,26 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   GraduationCap,
   Mail,
   Award,
   Search
 } from 'lucide-react';
-import { MOCK_TEACHERS } from '../../../mockData';
 import { useToast } from '../../common/Toast';
+import { teachersApi } from '../../../services/api';
 
 export const TeachersPublicPage: React.FC = () => {
   const { showToast } = useToast();
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [selectedDept, setSelectedDept] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  useEffect(() => {
+    teachersApi.getTeachers().then((res) => {
+      if (res?.data) setTeachers(res.data);
+    }).catch(() => {});
+  }, []);
+
   const departments = ['All', 'Science', 'Mathematics', 'Computer Science', 'Languages', 'Social Sciences'];
 
-  const filtered = MOCK_TEACHERS.filter((t) => {
+  const filtered = teachers.filter((t) => {
+    const tName = t.fullName || t.name || '';
+    const tSub = t.specialization || t.subject || '';
     const matchesDept = selectedDept === 'All' || t.department === selectedDept;
     const matchesQuery =
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.department.toLowerCase().includes(searchQuery.toLowerCase());
+      tName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tSub.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.department && t.department.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesDept && matchesQuery;
   });
 
@@ -119,13 +128,13 @@ export const TeachersPublicPage: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
                   <img
-                    src={t.avatar}
-                    alt={t.name}
+                    src={t.avatarUrl || t.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'}
+                    alt={t.fullName || t.name}
                     style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #fecaca' }}
                   />
                   <div>
                     <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 4px 0', color: '#0f172a' }}>
-                      {t.name}
+                      {t.fullName || t.name}
                     </h3>
                     <div style={{ fontSize: '0.78rem', color: '#E62929', fontWeight: 800 }}>
                       Faculty Specialist • {t.department}
@@ -146,13 +155,13 @@ export const TeachersPublicPage: React.FC = () => {
 
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
-                    Primary Subject:
+                    Primary Subject / Specialization:
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     <span className="bca-badge bca-badge-primary">
-                      {t.subject}
+                      {t.specialization || t.subject || 'All Sciences'}
                     </span>
-                    {t.classes.slice(0, 2).map((cls: string, i: number) => (
+                    {(t.classes || ['Grade 9', 'Grade 10']).slice(0, 2).map((cls: string, i: number) => (
                       <span key={i} className="bca-badge bca-badge-neutral">
                         {cls}
                       </span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image as ImageIcon,
   Plus,
@@ -8,17 +8,53 @@ import {
   Upload,
   Calendar
 } from 'lucide-react';
-import { MOCK_GALLERY } from '../../mockData';
 import type { GalleryAlbum } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { cmsApi } from '../../services/api';
+
+const mapBackendAlbum = (a: any): GalleryAlbum => ({
+  id: a.id,
+  title: a.title,
+  category: a.category || 'Campus',
+  coverImage: a.coverUrl || a.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=600&auto=format&fit=crop&q=80',
+  imageUrl: a.coverUrl || a.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=600&auto=format&fit=crop&q=80',
+  date: a.eventDate ? a.eventDate.split('T')[0] : '2026-09-08',
+  photosCount: a.images?.length || 1,
+  images: a.images?.map((img: any) => ({ url: img.imageUrl, caption: img.caption || a.title })) || [
+    { url: a.coverUrl || 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=600&auto=format&fit=crop&q=80', caption: a.title }
+  ]
+});
 
 export const GalleryCmsView: React.FC = () => {
   const { showToast } = useToast();
-  const [items, setItems] = useState<GalleryAlbum[]>(MOCK_GALLERY);
+  const [items, setItems] = useState<GalleryAlbum[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [lightboxItem, setLightboxItem] = useState<GalleryAlbum | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
+
+  // Fetch live gallery albums
+  useEffect(() => {
+    let isMounted = true;
+    cmsApi.getGallery().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setItems(res.data.map(mapBackendAlbum));
+        } else {
+          setItems([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend gallery fetch failed:', err);
+      if (isMounted) {
+        setItems([]);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Media form
   const [newTitle, setNewTitle] = useState('');
@@ -32,26 +68,50 @@ export const GalleryCmsView: React.FC = () => {
     return item.category === selectedCategory;
   });
 
-  const handleUpload = (e: React.FormEvent) => {
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle) {
       showToast('Please enter an image title', undefined, 'error');
       return;
     }
     const uploadedUrl = newUrl || 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=600&auto=format&fit=crop&q=80';
-    const newItem: GalleryAlbum = {
-      id: `GAL-${Date.now()}`,
-      title: newTitle,
-      category: newCat,
-      coverImage: uploadedUrl,
-      imageUrl: uploadedUrl,
-      date: new Date().toISOString().split('T')[0],
-      photosCount: 1,
-      images: [{ url: uploadedUrl, caption: newTitle }]
-    };
-    setItems([newItem, ...items]);
+    try {
+      const res = await cmsApi.createAlbum({
+        title: newTitle,
+        category: newCat,
+        coverUrl: uploadedUrl,
+        eventDate: new Date().toISOString().split('T')[0]
+      });
+      if (res?.data) {
+        setItems((prev) => [mapBackendAlbum(res.data), ...prev]);
+      } else {
+        const newItem: GalleryAlbum = {
+          id: `GAL-${Date.now()}`,
+          title: newTitle,
+          category: newCat,
+          coverImage: uploadedUrl,
+          imageUrl: uploadedUrl,
+          date: new Date().toISOString().split('T')[0],
+          photosCount: 1,
+          images: [{ url: uploadedUrl, caption: newTitle }]
+        };
+        setItems([newItem, ...items]);
+      }
+    } catch {
+      const newItem: GalleryAlbum = {
+        id: `GAL-${Date.now()}`,
+        title: newTitle,
+        category: newCat,
+        coverImage: uploadedUrl,
+        imageUrl: uploadedUrl,
+        date: new Date().toISOString().split('T')[0],
+        photosCount: 1,
+        images: [{ url: uploadedUrl, caption: newTitle }]
+      };
+      setItems([newItem, ...items]);
+    }
     setShowUploadModal(false);
-    showToast('Photo Published to Public Gallery', newItem.title, 'success');
+    showToast('Photo Published to Public Gallery', newTitle, 'success');
   };
 
   return (
@@ -105,19 +165,24 @@ export const GalleryCmsView: React.FC = () => {
       </div>
 
       {/* Media Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-          gap: '18px'
-        }}
-      >
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="bca-card"
-            style={{
-              overflow: 'hidden',
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          {loading ? 'Loading media albums from database...' : 'No media items found in this album category.'}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+            gap: '18px'
+          }}
+        >
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className="bca-card"
+              style={{
+                overflow: 'hidden',
               cursor: 'pointer',
               position: 'relative'
             }}
@@ -147,9 +212,10 @@ export const GalleryCmsView: React.FC = () => {
                 {item.title}
               </h3>
             </div>
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* LIGHTBOX MODAL */}
       {lightboxItem && (

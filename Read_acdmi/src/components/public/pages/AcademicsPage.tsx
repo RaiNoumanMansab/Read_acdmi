@@ -16,7 +16,7 @@ interface AcademicsPageProps {
 
 export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => {
   const { showToast } = useToast();
-  const [activeWing, setActiveWing] = useState<'early' | 'primary' | 'middle' | 'senior'>('senior');
+  const [activeWing, setActiveWing] = useState<'early' | 'primary' | 'middle' | 'senior' | 'college'>('senior');
 
   const wingDetails = {
     early: {
@@ -46,6 +46,13 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
       description: 'Rigorous preparation for Matriculation / SSC (Part I & II) under BISE Sahiwal benchmarks, integrated with dedicated physics, chemistry, biology, and computer science laboratories.',
       coreSubjects: ['Physics (Theory & Practical)', 'Chemistry (Theory & Practical)', 'Biology / Computer Science', 'Mathematics (Science Group)', 'English Language & Composition', 'Urdu Compulsory', 'Pakistan Studies', 'Islamic Studies / Ethics'],
       hours: '07:45 AM – 02:15 PM (Mon - Fri)'
+    },
+    college: {
+      title: 'Higher Secondary College (FA, FSC, ICS, I.Com & D.Com)',
+      grades: 'FA, FSC, ICS, I.Com & D.Com (Ages 16 - 18+)',
+      description: 'Comprehensive intermediate college education providing top-tier academic coaching for BISE Sahiwal board positions, modern laboratory experiments, and university entrance test readiness across Science, IT, Commerce, Arts, and Business diplomas.',
+      coreSubjects: ['FSC Pre-Medical (Physics, Chemistry, Biology)', 'FSC Pre-Engineering (Physics, Chemistry, Mathematics)', 'ICS (Computer Science, Math, Physics / Statistics)', 'I.Com (Principles of Accounting, Commerce, Economics, Banking)', 'D.Com (Diploma in Commerce - Business Accounting, IT, Office Practice)', 'FA (Civics, Islamic Studies, Education, English Elective)'],
+      hours: '07:45 AM – 01:45 PM (Mon - Sat)'
     }
   };
 
@@ -71,7 +78,7 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
             Curriculum Engineered for Intellectual Distinction
           </h1>
           <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-            Integrating modern STEM, inquiry-based learning, and BISE Sahiwal Matriculation standards (Grades Playgroup to 10th), enriched by cutting-edge science laboratories and character mentorship.
+            Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com — integrating modern STEM, inquiry-based learning, BISE Sahiwal board standards, cutting-edge science and IT laboratories, and character mentorship.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
@@ -99,10 +106,11 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '40px' }}>
             {[
-              { id: 'early', label: 'Early Years (Playgroup - KG)' },
+              { id: 'early', label: 'Early Years (Nursery - KG)' },
               { id: 'primary', label: 'Primary Wing (Grades 1 - 5)' },
               { id: 'middle', label: 'Middle Wing (Grades 6 - 8)' },
-              { id: 'senior', label: 'Senior Matriculation (Grades 9 & 10)' }
+              { id: 'senior', label: 'Matriculation (Grades 9 & 10)' },
+              { id: 'college', label: 'College (FA, FSC, ICS, I.Com & D.Com)' }
             ].map((tab) => (
               <button
                 key={tab.id}

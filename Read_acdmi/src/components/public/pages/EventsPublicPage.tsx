@@ -1,17 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Clock,
   MapPin,
   Users
 } from 'lucide-react';
-import { MOCK_EVENTS } from '../../../mockData';
 import type { SchoolEvent } from '../../../types';
 import { Modal } from '../../common/Modal';
 import { useToast } from '../../common/Toast';
+import { cmsApi } from '../../../services/api';
 
 export const EventsPublicPage: React.FC = () => {
   const { showToast } = useToast();
-  const [selectedEventForRsvp, setSelectedEventForRsvp] = useState<SchoolEvent | null>(null);
+  const [events, setEvents] = useState<any[]>([]);
+  const [selectedEventForRsvp, setSelectedEventForRsvp] = useState<any | null>(null);
+
+  useEffect(() => {
+    cmsApi.getEvents().then((res) => {
+      if (res?.data) setEvents(res.data);
+    }).catch(() => {});
+  }, []);
 
   // RSVP Form
   const [guestName, setGuestName] = useState('');
@@ -64,8 +71,8 @@ export const EventsPublicPage: React.FC = () => {
       {/* Events List */}
       <section style={{ padding: '60px 24px 80px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {MOCK_EVENTS.map((evt) => {
-            const d = new Date(evt.date);
+          {events.map((evt) => {
+            const d = new Date(evt.eventDate || evt.date || new Date());
             const monthStr = d.toLocaleDateString('en-US', { month: 'short' });
             const dayNum = d.getDate();
 

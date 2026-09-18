@@ -26,6 +26,7 @@ import { PayrollView } from './components/admin/PayrollView';
 import { AccountsView } from './components/admin/AccountsView';
 import { ReportsView } from './components/admin/ReportsView';
 import { SettingsView } from './components/admin/SettingsView';
+import { RolesView } from './components/admin/RolesView';
 
 import type { AppMode, AdminTab } from './types';
 import { Globe, LayoutDashboard, Sparkles } from 'lucide-react';
@@ -177,6 +178,7 @@ const AppContent: React.FC = () => {
               {adminTab === 'payroll' && <PayrollView />}
               {adminTab === 'accounts' && <AccountsView />}
               {adminTab === 'reports' && <ReportsView />}
+              {adminTab === 'roles' && <RolesView />}
               {adminTab === 'settings' && <SettingsView />}
             </main>
           </div>

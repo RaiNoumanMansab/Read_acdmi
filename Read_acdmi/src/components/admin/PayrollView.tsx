@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DollarSign,
   CheckCircle,
@@ -11,16 +11,66 @@ import {
   School,
   FileCheck
 } from 'lucide-react';
-import { MOCK_PAYROLL, SCHOOL_INFO } from '../../mockData';
+import { SCHOOL_INFO } from '../../mockData';
 import type { PayrollRecord } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { teachersApi } from '../../services/api';
+
+const mapBackendPayroll = (t: any): PayrollRecord => {
+  const basic = Number(t.basicSalary) || 85000;
+  const allowances = 15000;
+  const deductions = 5000;
+  const net = basic + allowances - deductions;
+  return {
+    id: `PAY-${t.id}`,
+    empId: t.empId || `EMP-${t.id}`,
+    teacherName: t.fullName || t.name || 'Faculty Member',
+    employeeName: t.fullName || t.name || 'Faculty Member',
+    role: t.department || 'Faculty',
+    designation: t.department || 'Faculty',
+    avatar: t.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    month: 'September 2026',
+    basicSalary: basic,
+    allowances,
+    deductions,
+    tax: 0,
+    netSalary: net,
+    netPay: net,
+    status: 'Paid',
+    paymentDate: '2026-09-01',
+    accountNo: t.bankAccountNo || 'PK78BAHL100293849102'
+  };
+};
 
 export const PayrollView: React.FC = () => {
   const { showToast } = useToast();
-  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>(MOCK_PAYROLL);
+  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedSlip, setSelectedSlip] = useState<PayrollRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch faculty members from live API
+  useEffect(() => {
+    let isMounted = true;
+    teachersApi.getTeachers().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setPayrollRecords(res.data.map(mapBackendPayroll));
+        } else {
+          setPayrollRecords([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend payroll fetch failed:', err);
+      if (isMounted) {
+        setPayrollRecords([]);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   const totalPayroll = payrollRecords.reduce((acc, curr) => acc + (curr.netPay ?? curr.netSalary ?? 0), 0);
   const totalDeductions = payrollRecords.reduce((acc, curr) => acc + curr.deductions, 0);
@@ -143,10 +193,17 @@ export const PayrollView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((pay) => (
-              <tr key={pay.id}>
-                <td><code>{pay.empId}</code></td>
-                <td><strong style={{ color: '#0f172a' }}>{pay.teacherName}</strong></td>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={10} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                  {loading ? 'Loading payroll records from database...' : 'No payroll records found.'}
+                </td>
+              </tr>
+            ) : (
+              filtered.map((pay) => (
+                <tr key={pay.id}>
+                  <td><code>{pay.empId}</code></td>
+                  <td><strong style={{ color: '#0f172a' }}>{pay.teacherName}</strong></td>
                 <td>{pay.designation || pay.role}</td>
                 <td>{pay.month}</td>
                 <td>Rs. {pay.basicSalary.toLocaleString()}</td>
@@ -172,7 +229,7 @@ export const PayrollView: React.FC = () => {
                   </button>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>

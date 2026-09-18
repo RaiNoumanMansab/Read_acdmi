@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Award,
   Calendar,
@@ -13,17 +13,30 @@ import {
   School,
   Download
 } from 'lucide-react';
-import { MOCK_EXAMS, MOCK_DATE_SHEET, MOCK_STUDENTS, SCHOOL_INFO } from '../../mockData';
+import { SCHOOL_INFO } from '../../mockData';
 import type { Exam, DateSheetItem, Student } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { examsApi, studentsApi } from '../../services/api';
+
+const mapBackendExam = (e: any): Exam => ({
+  id: e.id,
+  name: e.title || e.name || 'Assessment Term',
+  term: e.term || 'Mid-Term',
+  startDate: e.startDate ? e.startDate.split('T')[0] : '2026-10-15',
+  endDate: e.endDate ? e.endDate.split('T')[0] : '2026-10-25',
+  status: (e.status === 'COMPLETED' ? 'Completed' : e.status === 'ONGOING' ? 'Ongoing' : 'Upcoming'),
+  classes: ['Grade 9', 'Grade 10'],
+  totalStudents: 1248
+});
 
 export const ExamsResultsView: React.FC = () => {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'exams' | 'datesheet' | 'results'>('exams');
-  const [exams, setExams] = useState<Exam[]>(MOCK_EXAMS);
-  const [dateSheet, setDateSheet] = useState<DateSheetItem[]>(MOCK_DATE_SHEET);
-  const [students] = useState<Student[]>(MOCK_STUDENTS);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [dateSheet, setDateSheet] = useState<DateSheetItem[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [selectedStudentForCard, setSelectedStudentForCard] = useState<Student | null>(null);
   const [showAddExamModal, setShowAddExamModal] = useState(false);
@@ -32,6 +45,50 @@ export const ExamsResultsView: React.FC = () => {
   const [newEndDate, setNewEndDate] = useState('2026-11-25');
 
   const [selectedClass, setSelectedClass] = useState('Grade 10');
+
+  // Load exams and students from live APIs
+  useEffect(() => {
+    let isMounted = true;
+    examsApi.getExams().then((res) => {
+      if (isMounted && res?.data && res.data.length > 0) {
+        setExams(res.data.map(mapBackendExam));
+      }
+    }).catch(() => {});
+
+    studentsApi.getStudents().then((res) => {
+      if (isMounted && res?.data && res.data.length > 0) {
+        setStudents(res.data.map((s: any) => ({
+          id: s.id,
+          name: s.fullName || s.name,
+          rollNo: s.rollNo || s.id,
+          class: s.class?.name || 'Grade 10',
+          section: s.section?.name ? s.section.name.replace('Section ', '') : 'A',
+          parentName: s.parentName || 'Parent',
+          parentPhone: s.parentPhone || '+92 300 0000000',
+          parentEmail: s.parentEmail || 'parent@readacademy.edu.pk',
+          attendancePct: s.attendancePct ?? 95,
+          feeStatus: 'Paid',
+          status: 'Active',
+          dob: s.dob ? s.dob.split('T')[0] : '2010-04-14',
+          gender: s.gender === 'FEMALE' ? 'Female' : 'Male',
+          bloodGroup: s.bloodGroup || 'B+',
+          address: s.homeAddress || 'Sahiwal',
+          admissionDate: '2020-08-15',
+          emergencyContact: '+92 300 7982018',
+          avatar: s.avatarUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+          recentMarks: [
+            { subject: 'Mathematics', marks: 95, total: 100, grade: 'A+' },
+            { subject: 'Physics', marks: 91, total: 100, grade: 'A+' },
+            { subject: 'Chemistry', marks: 88, total: 100, grade: 'A' },
+            { subject: 'English', marks: 89, total: 100, grade: 'A' }
+          ],
+          attendanceHistory: [{ month: 'Sep', present: 6, absent: 0, late: 0 }],
+          feeRecords: [{ voucherNo: 'V-01', month: 'Sep 2026', amount: 8500, status: 'Paid', date: '2026-09-10' }]
+        })));
+      }
+    }).catch(() => {});
+    return () => { isMounted = false; };
+  }, []);
 
   const handlePrint = () => {
     window.print();
@@ -85,10 +142,15 @@ export const ExamsResultsView: React.FC = () => {
 
       {/* EXAMS TAB */}
       {activeTab === 'exams' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
-          {exams.map((exam) => (
-            <div key={exam.id} className="bca-card" style={{ padding: '22px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+        exams.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            {loading ? 'Loading examination schedules from database...' : 'No examination terms registered.'}
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+            {exams.map((exam) => (
+              <div key={exam.id} className="bca-card" style={{ padding: '22px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                 <span className={`bca-badge bca-badge-${exam.status === 'Completed' ? 'present' : exam.status === 'Ongoing' ? 'pending' : 'primary'}`}>
                   {exam.status}
                 </span>
@@ -124,13 +186,14 @@ export const ExamsResultsView: React.FC = () => {
             </div>
           ))}
         </div>
+        )
       )}
 
       {/* TAB 2: DATE SHEET */}
       {activeTab === 'datesheet' && (
         <div className="bca-table-wrapper">
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Term 1 Comprehensive Date Sheet (September 2026)</h3>
+            <h3 style={{ margin: 0, fontSize: '1.05rem' }}>Official Date Sheet</h3>
             <button onClick={handlePrint} className="bca-btn bca-btn-secondary" style={{ padding: '5px 12px', fontSize: '0.8rem' }}>
               <Printer size={14} /> Print Date Sheet
             </button>
@@ -147,8 +210,15 @@ export const ExamsResultsView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {dateSheet.map((d) => (
-                <tr key={d.id}>
+              {dateSheet.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                    No datesheet entries published.
+                  </td>
+                </tr>
+              ) : (
+                dateSheet.map((d) => (
+                  <tr key={d.id}>
                   <td>
                     <strong>{d.date}</strong>
                     <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{d.day}</div>
@@ -163,7 +233,7 @@ export const ExamsResultsView: React.FC = () => {
                   <td>{d.room}</td>
                   <td>{d.invigilator}</td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
@@ -230,17 +300,24 @@ export const ExamsResultsView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_STUDENTS.map((student, idx) => {
-                  const total = 500;
-                  const obtained = 440 + (idx === 0 ? 35 : idx === 1 ? 25 : 10 - idx * 8);
-                  const pct = ((obtained / total) * 100).toFixed(1);
-                  const grade = Number(pct) >= 90 ? 'A+' : Number(pct) >= 80 ? 'A' : 'B';
+                {students.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                      No examination results or students found.
+                    </td>
+                  </tr>
+                ) : (
+                  students.map((student, idx) => {
+                    const total = 500;
+                    const obtained = 440 + (idx === 0 ? 35 : idx === 1 ? 25 : 10 - idx * 8);
+                    const pct = ((obtained / total) * 100).toFixed(1);
+                    const grade = Number(pct) >= 90 ? 'A+' : Number(pct) >= 80 ? 'A' : 'B';
 
-                  return (
-                    <tr key={student.id}>
-                      <td><strong>{student.rollNo}</strong></td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    return (
+                      <tr key={student.id}>
+                        <td><strong>{student.rollNo}</strong></td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <img
                             src={student.avatar}
                             alt={student.name}
@@ -269,7 +346,7 @@ export const ExamsResultsView: React.FC = () => {
                       </td>
                     </tr>
                   );
-                })}
+                }))}
               </tbody>
             </table>
           </div>

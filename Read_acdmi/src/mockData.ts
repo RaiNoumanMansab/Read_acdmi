@@ -23,6 +23,7 @@ export const SCHOOL_INFO = {
   acronym: 'RA',
   tagline: 'Read To Lead',
   motto: 'Read To Lead',
+  levels: 'Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com',
   code: 'RAS-SWL-2018',
   established: '2018',
   affiliation: 'BISE Sahiwal & Federal Board Curriculum',
@@ -33,8 +34,7 @@ export const SCHOOL_INFO = {
   hours: 'Mon - Fri: 07:30 AM - 02:30 PM | Sat: 08:00 AM - 12:30 PM',
   principal: 'Chaudhry Muhammad Aslam, M.Sc., M.Ed.',
   vicePrincipal: 'Mrs. Tahira Naeem, M.A. English',
-  studentCount: 1248,
-  teacherCount: 86,
+  
   campusArea: '6 Acres',
   studentTeacherRatio: '15:1',
   logo: '/logo.png'
@@ -1288,7 +1288,7 @@ export interface Testimonial {
   rating: number;
 }
 
-export const MOCK_TESTIMONIALS: Testimonial[] = [
+export const PARENT_TESTIMONIALS: Testimonial[] = [
   {
     id: 'test-1',
     name: 'Dr. Kamran Qureshi',

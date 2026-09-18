@@ -32,6 +32,7 @@ export type AdminTab =
   | 'payroll'
   | 'accounts'
   | 'reports'
+  | 'roles'
   | 'settings';
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT';
