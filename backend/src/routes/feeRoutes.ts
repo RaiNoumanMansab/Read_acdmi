@@ -69,6 +69,78 @@ router.get('/vouchers/:idOrVoucher', async (req: Request, res: Response): Promis
   }
 });
 
+// POST /api/fees/vouchers - Create individual voucher with custom fees
+router.post('/vouchers', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+      studentId,
+      billingMonth,
+      tuitionFee,
+      admissionFee = 0,
+      examFee = 0,
+      labFee = 0,
+      utilityCharges = 0,
+      lateFine = 0,
+      dueDate,
+    } = req.body;
+
+    if (!studentId || tuitionFee === undefined) {
+      res.status(400).json({ status: 'error', message: 'Student ID and tuition fee are required' });
+      return;
+    }
+
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { id: studentId },
+          { rollNo: studentId },
+          { fullName: studentId },
+        ],
+      },
+    });
+
+    if (!student) {
+      res.status(404).json({ status: 'error', message: 'Student not found' });
+      return;
+    }
+
+    const month = billingMonth || new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const countVouchers = await prisma.feeVoucher.count();
+    const voucherNo = `VCH-${new Date().getFullYear()}-${String(countVouchers + 1).padStart(3, '0')}`;
+    const dateDue = dueDate ? new Date(dueDate) : new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+    const totalAmount = Number(tuitionFee) + Number(admissionFee) + Number(examFee) + Number(labFee) + Number(utilityCharges) + Number(lateFine);
+
+    const voucher = await prisma.feeVoucher.create({
+      data: {
+        voucherNo,
+        studentId: student.id,
+        billingMonth: month,
+        tuitionFee: Number(tuitionFee),
+        examFee: Number(examFee),
+        labFee: Number(labFee),
+        utilityCharges: Number(utilityCharges),
+        lateFine: Number(lateFine),
+        totalAmount,
+        dueDate: dateDue,
+        status: 'PENDING',
+      },
+      include: {
+        student: {
+          include: {
+            class: true,
+            section: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({ status: 'success', message: 'Fee voucher created successfully', data: voucher });
+  } catch (error) {
+    console.error('Create single voucher error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to create fee voucher' });
+  }
+});
+
 // POST /api/fees/vouchers/generate - Bulk generate vouchers for class
 router.post('/vouchers/generate', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -140,8 +212,22 @@ router.patch('/vouchers/:id/pay', async (req: Request, res: Response): Promise<v
     const { id } = req.params;
     const { paymentMethod = 'Cash Counter', paidDate } = req.body;
 
+    const existing = await prisma.feeVoucher.findFirst({
+      where: {
+        OR: [
+          { id },
+          { voucherNo: id },
+        ],
+      },
+    });
+
+    if (!existing) {
+      res.status(404).json({ status: 'error', message: 'Fee voucher not found' });
+      return;
+    }
+
     const voucher = await prisma.feeVoucher.update({
-      where: { id },
+      where: { id: existing.id },
       data: {
         status: 'PAID',
         paidDate: paidDate ? new Date(paidDate) : new Date(),

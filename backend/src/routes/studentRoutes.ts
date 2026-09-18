@@ -30,6 +30,20 @@ router.get('/', async (req: Request, res: Response) => {
       include: {
         class: true,
         section: true,
+        feeVouchers: {
+          orderBy: { createdAt: 'desc' },
+        },
+        attendance: {
+          orderBy: { date: 'desc' },
+          take: 30,
+        },
+        marksEntries: {
+          include: {
+            subject: true,
+            exam: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
       },
       orderBy: { rollNo: 'asc' },
     });
@@ -82,41 +96,96 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       rollNo,
       admissionNo,
       fullName,
-      gender,
-      dob,
-      bloodGroup,
+      gender = 'MALE',
+      dob = '2011-01-01',
+      bloodGroup = 'B+',
       classId,
       sectionId,
       parentName,
       parentPhone,
-      parentEmail,
+      parentEmail = 'parent@readacademy.edu.pk',
       emergencyContact,
-      homeAddress,
+      homeAddress = 'Sahiwal, Punjab',
       feeStatus = 'PENDING',
       previousSchool,
     } = req.body;
 
-    if (!rollNo || !fullName || !gender || !dob || !classId || !sectionId || !parentName || !parentPhone || !homeAddress) {
-      res.status(400).json({ status: 'error', message: 'Missing required student fields' });
+    if (!fullName || !parentName) {
+      res.status(400).json({ status: 'error', message: 'Full name and parent name are required' });
       return;
     }
 
+    // 1. Resolve Class
+    let targetClass = null;
+    if (classId) {
+      targetClass = await prisma.class.findFirst({
+        where: {
+          OR: [
+            { id: classId },
+            { name: { equals: classId, mode: 'insensitive' } },
+            { name: { contains: classId, mode: 'insensitive' } },
+          ],
+        },
+      });
+    }
+    if (!targetClass) {
+      targetClass = await prisma.class.findFirst();
+      if (!targetClass) {
+        targetClass = await prisma.class.create({
+          data: { name: 'Grade 9', numericLevel: 9, capacity: 40 },
+        });
+      }
+    }
+
+    // 2. Resolve Section
+    let targetSection = null;
+    if (sectionId) {
+      targetSection = await prisma.section.findFirst({
+        where: {
+          classId: targetClass.id,
+          OR: [
+            { id: sectionId },
+            { name: { contains: sectionId, mode: 'insensitive' } },
+          ],
+        },
+      });
+    }
+    if (!targetSection) {
+      targetSection = await prisma.section.findFirst({
+        where: { classId: targetClass.id },
+      });
+      if (!targetSection) {
+        targetSection = await prisma.section.create({
+          data: {
+            classId: targetClass.id,
+            name: 'Section A - Jinnah',
+            roomNumber: 'Room 201',
+          },
+        });
+      }
+    }
+
+    // 3. Roll No and Admission No
+    const studentCount = await prisma.student.count();
+    const finalRollNo = rollNo || `RAS-2026-${String(studentCount + 10).padStart(2, '0')}`;
+    const finalAdmissionNo = admissionNo || `ADM-2026-${Date.now().toString().slice(-4)}`;
+
     const newStudent = await prisma.student.create({
       data: {
-        rollNo,
-        admissionNo,
+        rollNo: finalRollNo,
+        admissionNo: finalAdmissionNo,
         fullName,
-        gender: gender.toUpperCase(),
+        gender: String(gender).toUpperCase() === 'FEMALE' ? 'FEMALE' : 'MALE',
         dob: new Date(dob),
         bloodGroup,
-        classId,
-        sectionId,
+        classId: targetClass.id,
+        sectionId: targetSection.id,
         parentName,
-        parentPhone,
+        parentPhone: parentPhone || '+92 300 0000000',
         parentEmail,
-        emergencyContact,
+        emergencyContact: emergencyContact || parentPhone || '+92 300 0000000',
         homeAddress,
-        feeStatus: feeStatus.toUpperCase(),
+        feeStatus: feeStatus.toUpperCase() as FeeStatus,
         previousSchool,
       },
       include: {
@@ -125,7 +194,35 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    res.status(201).json({ status: 'success', message: 'Student enrolled successfully', data: newStudent });
+    // 4. Create initial fee voucher
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const countVouchers = await prisma.feeVoucher.count();
+    const voucherNo = `VCH-2026-${String(countVouchers + 1).padStart(3, '0')}`;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 15);
+
+    const voucher = await prisma.feeVoucher.create({
+      data: {
+        voucherNo,
+        studentId: newStudent.id,
+        billingMonth: currentMonth,
+        tuitionFee: 18000,
+        examFee: 500,
+        labFee: 500,
+        utilityCharges: 500,
+        lateFine: 0,
+        totalAmount: 19500,
+        dueDate,
+        status: 'PENDING',
+      },
+    });
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Student enrolled successfully and fee voucher generated',
+      data: newStudent,
+      voucher,
+    });
   } catch (error: unknown) {
     console.error('Create student error:', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

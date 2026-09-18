@@ -36,18 +36,36 @@ async function main() {
   });
   console.log('✅ Created Super Admin & Admin Profile:', adminUser.email);
 
-  // 2. Create Classes
-  const grade9 = await prisma.class.upsert({
-    where: { name: 'Grade 9' },
-    update: {},
-    create: { name: 'Grade 9', numericLevel: 9, capacity: 45 },
-  });
+  // 2. Create Classes (Full Academic Sequence)
+  const defaultClasses = [
+    { id: 'cls-nursery', name: 'Nursery', numericLevel: 0 },
+    { id: 'cls-01', name: 'Grade 1', numericLevel: 1 },
+    { id: 'cls-02', name: 'Grade 2', numericLevel: 2 },
+    { id: 'cls-03', name: 'Grade 3', numericLevel: 3 },
+    { id: 'cls-04', name: 'Grade 4', numericLevel: 4 },
+    { id: 'cls-05', name: 'Grade 5', numericLevel: 5 },
+    { id: 'cls-06', name: 'Grade 6', numericLevel: 6 },
+    { id: 'cls-07', name: 'Grade 7', numericLevel: 7 },
+    { id: 'cls-08', name: 'Grade 8', numericLevel: 8 },
+    { id: 'cls-09', name: 'Grade 9 (Matric)', numericLevel: 9 },
+    { id: 'cls-10', name: 'Grade 10 (Matric)', numericLevel: 10 },
+    { id: 'cls-fsc-med', name: 'FSC Pre-Medical', numericLevel: 11 },
+    { id: 'cls-fsc-eng', name: 'FSC Pre-Engineering', numericLevel: 12 },
+    { id: 'cls-ics', name: 'ICS', numericLevel: 13 },
+    { id: 'cls-icom', name: 'I.Com', numericLevel: 14 },
+    { id: 'cls-fa', name: 'FA', numericLevel: 15 },
+    { id: 'cls-dcom', name: 'D.Com', numericLevel: 16 },
+  ];
 
-  const grade10 = await prisma.class.upsert({
-    where: { name: 'Grade 10 (Matric)' },
-    update: {},
-    create: { name: 'Grade 10 (Matric)', numericLevel: 10, capacity: 45 },
-  });
+  for (const c of defaultClasses) {
+    await prisma.class.upsert({
+      where: { name: c.name },
+      update: { numericLevel: c.numericLevel },
+      create: { id: c.id, name: c.name, numericLevel: c.numericLevel, capacity: 45 },
+    });
+  }
+
+  const grade9 = await prisma.class.findFirst({ where: { name: 'Grade 9 (Matric)' } });
 
   // 3. Create Sections
   const sec9A = await prisma.section.upsert({
