@@ -16,6 +16,8 @@ import homeworkRoutes from './routes/homeworkRoutes.js';
 import feeRoutes from './routes/feeRoutes.js';
 import cmsRoutes from './routes/cmsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import careerRoutes from './routes/careerRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 
 dotenv.config();
 
@@ -68,6 +70,8 @@ app.use('/api/homework', homeworkRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/cms', cmsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/jobs', careerRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Root redirect to docs
 app.get('/', (_req: Request, res: Response) => {

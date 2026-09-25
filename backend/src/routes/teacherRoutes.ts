@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -98,22 +99,45 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       bankAccountNo,
     } = req.body;
 
-    if (!empId || !fullName || !department || !qualification || !phone || !email) {
-      res.status(400).json({ status: 'error', message: 'Missing required teacher fields' });
+    if (!fullName || !department || !phone || !email) {
+      res.status(400).json({ status: 'error', message: 'Missing required teacher fields (Full Name, Department, Phone, Email)' });
       return;
+    }
+
+    const teacherCount = await prisma.teacher.count();
+    const finalEmpId = empId || `TEA-${String(teacherCount + 101).padStart(3, '0')}`;
+
+    const teacherEmail = email.trim();
+    let teacherUser = await prisma.user.findFirst({
+      where: { email: { equals: teacherEmail, mode: 'insensitive' } },
+    });
+
+    if (!teacherUser) {
+      const passwordHash = await bcrypt.hash('teacher123', 10);
+      teacherUser = await prisma.user.create({
+        data: {
+          email: teacherEmail,
+          fullName: fullName.trim(),
+          phone: phone ? phone.trim() : null,
+          passwordHash,
+          role: 'TEACHER',
+          status: 'ACTIVE',
+        },
+      });
     }
 
     const newTeacher = await prisma.teacher.create({
       data: {
-        empId,
+        userId: teacherUser.id,
+        empId: finalEmpId,
         fullName,
         avatarUrl,
         department,
         specialization: specialization || department,
-        qualification,
-        experienceYears: Number(experienceYears),
+        qualification: qualification || 'Master Degree',
+        experienceYears: Number(experienceYears || 1),
         phone,
-        email,
+        email: teacherEmail,
         joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
         basicSalary: Number(basicSalary),
         bankAccountNo,

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Prisma, FeeStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -170,8 +171,44 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const finalRollNo = rollNo || `RAS-2026-${String(studentCount + 10).padStart(2, '0')}`;
     const finalAdmissionNo = admissionNo || `ADM-2026-${Date.now().toString().slice(-4)}`;
 
+    // Create or find User login account for student
+    let studentUser = null;
+    if (parentEmail && parentEmail !== 'parent@readacademy.edu.pk') {
+      const candidate = await prisma.user.findFirst({
+        where: { email: { equals: parentEmail.trim(), mode: 'insensitive' } },
+        include: { studentProfile: true },
+      });
+      if (candidate && !candidate.studentProfile) {
+        studentUser = candidate;
+      }
+    }
+
+    if (!studentUser) {
+      const cleanRoll = finalRollNo.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const studentEmail = `${cleanRoll}@readacademy.edu.pk`;
+      const existingAccount = await prisma.user.findFirst({
+        where: { email: { equals: studentEmail, mode: 'insensitive' } },
+      });
+      if (existingAccount) {
+        studentUser = existingAccount;
+      } else {
+        const passwordHash = await bcrypt.hash('student123', 10);
+        studentUser = await prisma.user.create({
+          data: {
+            email: studentEmail,
+            fullName: fullName.trim(),
+            phone: parentPhone || null,
+            passwordHash,
+            role: 'STUDENT',
+            status: 'ACTIVE',
+          },
+        });
+      }
+    }
+
     const newStudent = await prisma.student.create({
       data: {
+        userId: studentUser.id,
         rollNo: finalRollNo,
         admissionNo: finalAdmissionNo,
         fullName,

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Prisma, ApplicationStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../db/prisma.js';
 
 const router = Router();
@@ -195,9 +196,38 @@ router.patch('/:id/status', async (req: Request, res: Response): Promise<void> =
         const totalStudents = await prisma.student.count();
         const rollNo = `RAS-2026-${String(totalStudents + 10).padStart(2, '0')}`;
 
-        // 3. Create Student record in PostgreSQL
+        // 3. Create or find User login account for student
+        let studentUser = null;
+        if (existing.parentEmail) {
+          const candidate = await prisma.user.findFirst({
+            where: { email: { equals: existing.parentEmail.trim(), mode: 'insensitive' } },
+            include: { studentProfile: true },
+          });
+          if (candidate && !candidate.studentProfile) {
+            studentUser = candidate;
+          }
+        }
+
+        if (!studentUser) {
+          const cleanRoll = rollNo.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const studentEmail = `${cleanRoll}@readacademy.edu.pk`;
+          const passwordHash = await bcrypt.hash('student123', 10);
+          studentUser = await prisma.user.create({
+            data: {
+              email: studentEmail,
+              fullName: existing.studentName,
+              phone: existing.parentPhone,
+              passwordHash,
+              role: 'STUDENT',
+              status: 'ACTIVE',
+            },
+          });
+        }
+
+        // 4. Create Student record in PostgreSQL
         enrolledStudent = await prisma.student.create({
           data: {
+            userId: studentUser.id,
             rollNo,
             admissionNo: existing.applicationNo,
             fullName: existing.studentName,

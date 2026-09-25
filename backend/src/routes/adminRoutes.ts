@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../db/prisma.js';
+import { authenticateJWT } from '../middleware/auth.js';
+import { getMe, updateProfile } from '../controllers/authController.js';
 
 const router = Router();
 
@@ -22,7 +24,7 @@ router.get('/dashboard', async (_req: Request, res: Response): Promise<void> => 
       where: { date: today },
     });
     const presentCount = todayAttendance.filter((a) => a.status === 'PRESENT' || a.status === 'LATE').length;
-    const todayAttendancePct = todayAttendance.length > 0 ? Math.round((presentCount / todayAttendance.length) * 100) : 94; // fallback to 94% demo
+    const todayAttendancePct = todayAttendance.length > 0 ? Math.round((presentCount / todayAttendance.length) * 100) : 0;
 
     // 3. Fee summary for current month
     const currentMonthYear = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
@@ -40,7 +42,7 @@ router.get('/dashboard', async (_req: Request, res: Response): Promise<void> => 
     });
 
     const totalPending = totalBilled - totalCollected;
-    const feeCollectionPct = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 85;
+    const feeCollectionPct = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
 
     // 4. Recent applications & notices
     const [recentAdmissions, recentNotices] = await Promise.all([
@@ -57,21 +59,21 @@ router.get('/dashboard', async (_req: Request, res: Response): Promise<void> => 
 
     // 5. Chart data trends
     const attendanceTrends = [
-      { month: 'Apr', rate: 93 },
-      { month: 'May', rate: 91 },
-      { month: 'Jun', rate: 95 },
-      { month: 'Jul', rate: 92 },
-      { month: 'Aug', rate: 94 },
+      { month: 'Apr', rate: 0 },
+      { month: 'May', rate: 0 },
+      { month: 'Jun', rate: 0 },
+      { month: 'Jul', rate: 0 },
+      { month: 'Aug', rate: 0 },
       { month: 'Sep', rate: todayAttendancePct },
     ];
 
     const feeTrends = [
-      { month: 'Apr', collected: 780000, pending: 45000 },
-      { month: 'May', collected: 810000, pending: 35000 },
-      { month: 'Jun', collected: 830000, pending: 50000 },
-      { month: 'Jul', collected: 820000, pending: 40000 },
-      { month: 'Aug', collected: 850000, pending: 30000 },
-      { month: 'Sep', collected: totalCollected || 890000, pending: totalPending || 45000 },
+      { month: 'Apr', collected: 0, pending: 0 },
+      { month: 'May', collected: 0, pending: 0 },
+      { month: 'Jun', collected: 0, pending: 0 },
+      { month: 'Jul', collected: 0, pending: 0 },
+      { month: 'Aug', collected: 0, pending: 0 },
+      { month: 'Sep', collected: totalCollected, pending: totalPending },
     ];
 
     res.json({
@@ -83,9 +85,9 @@ router.get('/dashboard', async (_req: Request, res: Response): Promise<void> => 
           totalClasses,
           todayAttendancePct,
           feeCollection: {
-            billed: totalBilled || 935000,
-            collected: totalCollected || 890000,
-            pending: totalPending || 45000,
+            billed: totalBilled,
+            collected: totalCollected,
+            pending: totalPending,
             pct: feeCollectionPct,
           },
           pendingAdmissions,
@@ -159,4 +161,9 @@ router.get('/reports', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
+// Profile endpoints for Admin
+router.get('/profile', authenticateJWT, getMe);
+router.put('/profile', authenticateJWT, updateProfile);
+
 export default router;
+

@@ -214,8 +214,35 @@ router.get('/timetable', async (req: Request, res: Response) => {
   try {
     const { classId, sectionId, dayOfWeek } = req.query;
     const whereClause: Prisma.TimetableSlotWhereInput = {};
-    if (classId) whereClause.classId = String(classId);
-    if (sectionId) whereClause.sectionId = String(sectionId);
+
+    if (classId) {
+      const cls = await prisma.class.findFirst({
+        where: { OR: [{ id: String(classId) }, { name: String(classId) }] },
+      });
+      if (cls) {
+        whereClause.classId = cls.id;
+      } else {
+        whereClause.classId = String(classId);
+      }
+    }
+
+    if (sectionId) {
+      const sec = await prisma.section.findFirst({
+        where: {
+          OR: [
+            { id: String(sectionId) },
+            { name: String(sectionId) },
+            { name: `Section ${sectionId}` },
+          ],
+        },
+      });
+      if (sec) {
+        whereClause.sectionId = sec.id;
+      } else {
+        whereClause.sectionId = String(sectionId);
+      }
+    }
+
     if (dayOfWeek) whereClause.dayOfWeek = String(dayOfWeek);
 
     const slots = await prisma.timetableSlot.findMany({
@@ -237,38 +264,152 @@ router.get('/timetable', async (req: Request, res: Response) => {
 
 router.post('/timetable', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { classId, sectionId, dayOfWeek, periodNumber, startTime, endTime, subjectId, teacherId, roomNumber } = req.body;
-    if (!classId || !sectionId || !dayOfWeek || periodNumber === undefined || !startTime || !endTime || !subjectId || !teacherId || !roomNumber) {
-      res.status(400).json({ status: 'error', message: 'Missing required timetable slot fields' });
+    const {
+      classId,
+      sectionId,
+      dayOfWeek,
+      periodNumber,
+      startTime,
+      endTime,
+      subjectId,
+      teacherId,
+      roomNumber,
+      subjectName,
+      teacherName,
+      className,
+      sectionName,
+    } = req.body;
+
+    if (!dayOfWeek || periodNumber === undefined) {
+      res.status(400).json({ status: 'error', message: 'Day of week and period number are required' });
       return;
     }
 
+    // 1. Resolve or Create Class
+    let targetClass = null;
+    const lookupClass = className || classId;
+    if (lookupClass) {
+      targetClass = await prisma.class.findFirst({
+        where: { OR: [{ id: lookupClass }, { name: lookupClass }] },
+      });
+    }
+    if (!targetClass) {
+      targetClass = await prisma.class.create({
+        data: {
+          name: lookupClass || 'Grade 10',
+          numericLevel: 10,
+          capacity: 45,
+        },
+      });
+    }
+
+    // 2. Resolve or Create Section
+    let targetSection = null;
+    const rawSecName = sectionName || sectionId || 'A';
+    const formattedSecName = rawSecName.startsWith('Section') ? rawSecName : `Section ${rawSecName}`;
+    targetSection = await prisma.section.findFirst({
+      where: {
+        classId: targetClass.id,
+        OR: [
+          { id: rawSecName },
+          { name: rawSecName },
+          { name: formattedSecName },
+        ],
+      },
+    });
+    if (!targetSection) {
+      targetSection = await prisma.section.create({
+        data: {
+          classId: targetClass.id,
+          name: formattedSecName,
+          roomNumber: roomNumber || 'Room 201',
+        },
+      });
+    }
+
+    // 3. Resolve or Create Subject
+    const targetSubName = subjectName || subjectId || 'General Subject';
+    let targetSubject = null;
+    if (subjectId) {
+      targetSubject = await prisma.subject.findFirst({
+        where: { OR: [{ id: subjectId }, { name: subjectId }, { code: subjectId }] },
+      });
+    }
+    if (!targetSubject && targetSubName) {
+      targetSubject = await prisma.subject.findFirst({
+        where: { name: { equals: targetSubName, mode: 'insensitive' } },
+      });
+    }
+    if (!targetSubject) {
+      const code = targetSubName.substring(0, 3).toUpperCase() + '-' + Math.floor(100 + Math.random() * 900);
+      targetSubject = await prisma.subject.create({
+        data: {
+          name: targetSubName,
+          code,
+          department: 'General Academics',
+          weeklyPeriods: 5,
+        },
+      });
+    }
+
+    // 4. Resolve or Create Teacher
+    const targetTName = teacherName || teacherId || 'Assigned Faculty';
+    let targetTeacher = null;
+    if (teacherId) {
+      targetTeacher = await prisma.teacher.findFirst({
+        where: { OR: [{ id: teacherId }, { fullName: teacherId }] },
+      });
+    }
+    if (!targetTeacher && targetTName) {
+      targetTeacher = await prisma.teacher.findFirst({
+        where: { fullName: { equals: targetTName, mode: 'insensitive' } },
+      });
+    }
+    if (!targetTeacher) {
+      const empId = 'T-' + Math.floor(1000 + Math.random() * 9000);
+      targetTeacher = await prisma.teacher.create({
+        data: {
+          fullName: targetTName,
+          empId,
+          department: targetSubject.department || 'Academics',
+          specialization: targetSubject.name || 'Education',
+          qualification: 'Master of Education',
+          phone: '+92 300 0000000',
+          email: `faculty.${empId.toLowerCase()}@readacademy.edu.pk`,
+          joiningDate: new Date(),
+          basicSalary: 50000,
+          status: 'Active',
+        },
+      });
+    }
+
+    // 5. Upsert Timetable Slot in DB
     const slot = await prisma.timetableSlot.upsert({
       where: {
         classId_sectionId_dayOfWeek_periodNumber: {
-          classId,
-          sectionId,
-          dayOfWeek,
+          classId: targetClass.id,
+          sectionId: targetSection.id,
+          dayOfWeek: String(dayOfWeek),
           periodNumber: Number(periodNumber),
         },
       },
       update: {
-        startTime,
-        endTime,
-        subjectId,
-        teacherId,
-        roomNumber,
+        startTime: startTime || '08:00',
+        endTime: endTime || '08:45',
+        subjectId: targetSubject.id,
+        teacherId: targetTeacher.id,
+        roomNumber: roomNumber || targetSection.roomNumber || 'Room 101',
       },
       create: {
-        classId,
-        sectionId,
-        dayOfWeek,
+        classId: targetClass.id,
+        sectionId: targetSection.id,
+        dayOfWeek: String(dayOfWeek),
         periodNumber: Number(periodNumber),
-        startTime,
-        endTime,
-        subjectId,
-        teacherId,
-        roomNumber,
+        startTime: startTime || '08:00',
+        endTime: endTime || '08:45',
+        subjectId: targetSubject.id,
+        teacherId: targetTeacher.id,
+        roomNumber: roomNumber || targetSection.roomNumber || 'Room 101',
       },
       include: {
         class: true,
@@ -278,10 +419,10 @@ router.post('/timetable', async (req: Request, res: Response): Promise<void> => 
       },
     });
 
-    res.status(201).json({ status: 'success', message: 'Timetable slot saved', data: slot });
+    res.status(201).json({ status: 'success', message: 'Timetable slot saved successfully to database', data: slot });
   } catch (error) {
     console.error('Save timetable slot error:', error);
-    res.status(500).json({ status: 'error', message: 'Failed to save timetable slot' });
+    res.status(500).json({ status: 'error', message: 'Failed to save timetable slot to database' });
   }
 });
 
@@ -289,7 +430,7 @@ router.delete('/timetable/:id', async (req: Request, res: Response): Promise<voi
   try {
     const { id } = req.params;
     await prisma.timetableSlot.delete({ where: { id } });
-    res.json({ status: 'success', message: 'Timetable slot deleted' });
+    res.json({ status: 'success', message: 'Timetable slot deleted from database' });
   } catch (error) {
     console.error('Delete timetable slot error:', error);
     res.status(500).json({ status: 'error', message: 'Failed to delete timetable slot' });

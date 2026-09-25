@@ -38,7 +38,9 @@ async function main() {
 
   // 2. Create Classes (Full Academic Sequence)
   const defaultClasses = [
-    { id: 'cls-nursery', name: 'Nursery', numericLevel: 0 },
+    { id: 'cls-pg', name: 'Playgroup', numericLevel: -2 },
+    { id: 'cls-nursery', name: 'Nursery', numericLevel: -1 },
+    { id: 'cls-prep', name: 'Prep / KG', numericLevel: 0 },
     { id: 'cls-01', name: 'Grade 1', numericLevel: 1 },
     { id: 'cls-02', name: 'Grade 2', numericLevel: 2 },
     { id: 'cls-03', name: 'Grade 3', numericLevel: 3 },

@@ -637,3 +637,86 @@ model ContactInquiry {
 
   @@map("contact_inquiries")
 }
+
+// -------------------------------------------------------------
+// 12. CAREERS & TEACHER RECRUITMENT
+// -------------------------------------------------------------
+
+model JobPosting {
+  id               String           @id @default(uuid())
+  title            String
+  department       String
+  primarySubject   String?          @map("primary_subject")
+  jobType          String           @default("Full Time") @map("job_type")
+  qualification    String
+  experienceYears  Int              @default(2) @map("experience_years")
+  salaryRange      String?          @map("salary_range")
+  location         String           @default("Main Campus, Sahiwal")
+  openings         Int              @default(1)
+  description      String
+  requirements     String[]         @default([])
+  responsibilities String[]         @default([])
+  deadline         DateTime?        @db.Date
+  status           String           @default("OPEN") // "OPEN", "CLOSED"
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  applications     JobApplication[]
+
+  @@map("job_postings")
+}
+
+model JobApplication {
+  id              String       @id @default(uuid())
+  applicationNo   String       @unique @map("application_no")
+  jobId           String?      @map("job_id")
+  fullName        String       @map("full_name")
+  email           String
+  phone           String
+  gender          Gender       @default(MALE)
+  dob             DateTime?    @db.Date
+  highestDegree   String       @map("highest_degree")
+  institute       String?
+  experienceYears Int          @default(0) @map("experience_years")
+  currentOrg      String?      @map("current_org")
+  currentSalary   Decimal?     @map("current_salary") @db.Decimal(10, 2)
+  expectedSalary  Decimal?     @map("expected_salary") @db.Decimal(10, 2)
+  noticePeriod    String?      @map("notice_period")
+  coverLetter     String?      @map("cover_letter")
+  cvFileName      String?      @map("cv_file_name")
+  cvDataUrl       String?      @map("cv_data_url")
+  status          String       @default("PENDING") // "PENDING", "SHORTLISTED", "INTERVIEW_SCHEDULED", "HIRED", "REJECTED"
+  interviewDate   DateTime?    @map("interview_date")
+  adminNotes      String?      @map("admin_notes")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  job             JobPosting?  @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@map("job_applications")
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  group     String   @default("general")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  role      String
+  content   String
+  avatar    String?
+  rating    Int      @default(5)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("testimonials")
+}
