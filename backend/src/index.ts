@@ -124,4 +124,20 @@ app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`📖 Swagger API Docs: http://0.0.0.0:${PORT}/api/docs`);
   console.log(`📚 Read Academy Sahiwal [Node.js + PostgreSQL + Prisma]`);
   console.log(`====================================================`);
+
+  // Auto-sync database tables and seed defaults
+  import('child_process').then(({ exec }) => {
+    console.log('🔄 Checking database tables with Prisma schema...');
+    exec('npx prisma db push --skip-generate --accept-data-loss', (err, stdout, stderr) => {
+      if (err) {
+        console.warn('⚠️ Schema sync note:', stderr || err.message);
+      } else {
+        console.log('✅ Database schema tables synchronized successfully.');
+        exec('node dist/seed_neon.js', (sErr, _sOut) => {
+          if (!sErr) console.log('✅ Default users & seed records verified.');
+          else console.warn('Seed note:', sErr.message);
+        });
+      }
+    });
+  }).catch(() => {});
 });
