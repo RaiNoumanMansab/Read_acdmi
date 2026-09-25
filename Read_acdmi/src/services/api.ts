@@ -4,7 +4,17 @@
 // Base URL: http://localhost:5000/api
 // ==============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const getApiBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('onrender.com'))) {
+    return 'https://read-acdmi.onrender.com/api';
+  }
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const getToken = (): string | null => {
   return localStorage.getItem('read_academy_token');
