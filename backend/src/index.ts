@@ -87,10 +87,10 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`====================================================`);
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📖 Swagger API Docs: http://localhost:${PORT}/api/docs`);
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+  console.log(`📖 Swagger API Docs: http://0.0.0.0:${PORT}/api/docs`);
   console.log(`📚 Read Academy Sahiwal [Node.js + PostgreSQL + Prisma]`);
   console.log(`====================================================`);
 });
