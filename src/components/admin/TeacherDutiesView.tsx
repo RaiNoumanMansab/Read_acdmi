@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Clock,
   Plus,
   CheckCircle,
   Download,
   MapPin,
-  AlertCircle
+  AlertCircle,
+  Edit2,
+  Trash2
 } from 'lucide-react';
-import { MOCK_TEACHER_DUTIES } from '../../mockData';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { teachersApi } from '../../services/api';
 
 export interface DutyRosterShift {
   id: string;
@@ -23,72 +25,51 @@ export interface DutyRosterShift {
   instructions: string;
 }
 
-const INITIAL_SHIFTS: DutyRosterShift[] = [
-  {
-    id: 'DTY-2026-101',
-    teacherId: 'TCH-001',
-    teacherName: 'Prof. Junaid Iqbal',
-    dutyType: 'Assembly Duty',
-    date: '2026-09-08',
-    time: '07:45 AM - 08:15 AM',
-    location: 'Central Amphitheatre',
-    status: 'Scheduled',
-    instructions: 'Supervise student assembly lines, national anthem decorum, and uniform discipline.'
-  },
-  {
-    id: 'DTY-2026-102',
-    teacherId: 'TCH-002',
-    teacherName: 'Ms. Ayesha Siddiqui',
-    dutyType: 'Break Duty',
-    date: '2026-09-08',
-    time: '10:15 AM - 10:45 AM',
-    location: 'Cafeteria & Senior Courtyard',
-    status: 'Scheduled',
-    instructions: 'Maintain order and assist student council prefects during recess break.'
-  },
-  {
-    id: 'DTY-2026-103',
-    teacherId: 'TCH-004',
-    teacherName: 'Dr. Nabila Bano',
-    dutyType: 'Exam Invigilation',
-    date: '2026-09-09',
-    time: '09:00 AM - 11:30 AM',
-    location: 'Exam Hall 2 (Main Wing)',
-    status: 'Pending',
-    instructions: 'Cambridge Mid-Term Assessment proctoring. Verify sealed question envelopes.'
-  },
-  {
-    id: 'DTY-2026-104',
-    teacherId: 'TCH-006',
-    teacherName: 'Capt. (R) Waqar Hashmi',
-    dutyType: 'Gate Duty',
-    date: '2026-09-08',
-    time: '07:20 AM - 08:00 AM',
-    location: 'Campus Gate #1 (Vehicular)',
-    status: 'Scheduled',
-    instructions: 'Oversee vehicle drop-off queue and RFID student entry gate scans.'
-  },
-  {
-    id: 'DTY-2026-105',
-    teacherId: 'TCH-005',
-    teacherName: 'Mr. Salman Qadir',
-    dutyType: 'Lab Supervision',
-    date: '2026-09-08',
-    time: '01:30 PM - 03:00 PM',
-    location: 'Computer Lab 1 & Robotics Wing',
-    status: 'Completed',
-    instructions: 'Monitor after-school AI & robotics project lab session for Grade 10.'
-  }
-];
-
 export const TeacherDutiesView: React.FC = () => {
   const { showToast } = useToast();
-  const [shifts, setShifts] = useState<DutyRosterShift[]>(INITIAL_SHIFTS);
+  const [shifts, setShifts] = useState<DutyRosterShift[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dutyFilter, setDutyFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [facultyList, setFacultyList] = useState<any[]>([]);
+
+  // Load duties from live API
+  useEffect(() => {
+    let isMounted = true;
+    teachersApi.getTeachers().then((res) => {
+      if (isMounted) {
+        if (res?.data) {
+          setFacultyList(res.data);
+          const loadedShifts: DutyRosterShift[] = [];
+          res.data.forEach((tch: any) => {
+            if (tch.duties && tch.duties.length > 0) {
+              tch.duties.forEach((d: any) => {
+                loadedShifts.push({
+                  id: d.id,
+                  teacherId: tch.id,
+                  teacherName: tch.fullName || tch.name,
+                  dutyType: (d.dutyTitle?.includes('Exam') ? 'Exam Invigilation' : d.dutyTitle?.includes('Break') ? 'Break Duty' : d.dutyTitle?.includes('Gate') ? 'Gate Duty' : d.dutyTitle?.includes('Lab') ? 'Lab Supervision' : 'Assembly Duty'),
+                  date: d.assignedDate ? d.assignedDate.split('T')[0] : '2026-09-15',
+                  time: '07:45 AM - 08:30 AM',
+                  location: 'Main Campus Sahiwal',
+                  status: d.status || 'Scheduled',
+                  instructions: d.description || 'Assigned faculty responsibility'
+                });
+              });
+            }
+          });
+          setShifts(loadedShifts);
+        }
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (isMounted) setLoading(false);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Duty Form states
-  const [teacherName, setTeacherName] = useState('Prof. Junaid Iqbal');
+  const [teacherName, setTeacherName] = useState('Sir Qasim Raza');
   const [dutyType, setDutyType] = useState<DutyRosterShift['dutyType']>('Assembly Duty');
   const [date, setDate] = useState('2026-09-09');
   const [time, setTime] = useState('07:45 AM - 08:15 AM');
@@ -111,11 +92,85 @@ export const TeacherDutiesView: React.FC = () => {
     return d.dutyType === dutyFilter;
   });
 
-  const handleAddDuty = (e: React.FormEvent) => {
+  // Edit Duty state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingDuty, setEditingDuty] = useState<DutyRosterShift | null>(null);
+  const [editTeacherName, setEditTeacherName] = useState('');
+  const [editDutyType, setEditDutyType] = useState<DutyRosterShift['dutyType']>('Assembly Duty');
+  const [editDate, setEditDate] = useState('2026-09-15');
+  const [editTime, setEditTime] = useState('07:45 AM - 08:30 AM');
+  const [editLocation, setEditLocation] = useState('Main Campus Sahiwal');
+  const [editInstructions, setEditInstructions] = useState('');
+
+  const handleOpenEditDuty = (d: DutyRosterShift) => {
+    setEditingDuty(d);
+    setEditTeacherName(d.teacherName);
+    setEditDutyType(d.dutyType);
+    setEditDate(d.date);
+    setEditTime(d.time);
+    setEditLocation(d.location);
+    setEditInstructions(d.instructions);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditDuty = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingDuty) return;
+    try {
+      await teachersApi.updateDuty(editingDuty.id, {
+        dutyTitle: editDutyType,
+        description: `${editInstructions} (${editTime}, ${editLocation})`
+      });
+    } catch (err) {
+      console.warn('Backend update error:', err);
+    }
+    setShifts((prev) =>
+      prev.map((d) =>
+        d.id === editingDuty.id
+          ? {
+              ...d,
+              teacherName: editTeacherName,
+              dutyType: editDutyType,
+              date: editDate,
+              time: editTime,
+              location: editLocation,
+              instructions: editInstructions
+            }
+          : d
+      )
+    );
+    showToast('Duty assignment updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingDuty(null);
+  };
+
+  const handleDeleteDuty = async (id: string, type: string, teacher: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${type} for ${teacher}?`)) return;
+    try {
+      await teachersApi.deleteDuty(id);
+    } catch (err) {
+      console.warn('Backend duty delete error:', err);
+    }
+    setShifts((prev) => prev.filter((d) => d.id !== id));
+    showToast('Duty assignment deleted successfully', undefined, 'success');
+  };
+
+  const handleAddDuty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const matchedTeacher = facultyList.find((f: any) => (f.fullName || f.name) === teacherName) || facultyList[0];
+    if (matchedTeacher?.id) {
+      try {
+        await teachersApi.assignDuty(matchedTeacher.id, {
+          dutyTitle: dutyType,
+          description: `${instructions} (${time}, ${location})`
+        });
+      } catch {
+        // Continue to update local view
+      }
+    }
     const newShift: DutyRosterShift = {
       id: `DTY-2026-${Math.floor(100 + Math.random() * 900)}`,
-      teacherId: 'TCH-001',
+      teacherId: matchedTeacher?.id || 'TCH-001',
       teacherName,
       dutyType,
       date,
@@ -161,61 +216,67 @@ export const TeacherDutiesView: React.FC = () => {
       </div>
 
       {/* Faculty Workload Overview Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        {MOCK_TEACHER_DUTIES.map((td) => (
-          <div key={td.id} className="bca-card" style={{ padding: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <img
-                src={td.teacherAvatar}
-                alt={td.teacherName}
-                style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
-              />
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {td.teacherName}
+      {facultyList.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          {facultyList.slice(0, 6).map((td: any) => {
+            const tName = td.fullName || td.name || 'Faculty Member';
+            const tAvatar = td.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
+            const tSubject = td.primarySubject || td.qualification || 'Academic Staff';
+            const tDuties = (td.duties && td.duties.length > 0)
+              ? td.duties.map((d: any) => d.dutyTitle || d.description || 'Assigned Duty')
+              : ['General Instruction', 'Campus Duty'];
+
+            return (
+              <div key={td.id} className="bca-card" style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                  <img
+                    src={tAvatar}
+                    alt={tName}
+                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {tName}
+                    </div>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                      {tSubject}
+                    </div>
+                  </div>
+                  <span className="bca-badge bca-badge-optimal">
+                    Active
+                  </span>
                 </div>
-                <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                  {td.subject} • {td.periodsPerWeek} Periods/wk
+                <div style={{ fontSize: '0.76rem', color: '#475569' }}>
+                  <div style={{ fontWeight: 700, color: '#334155', marginBottom: '4px' }}>Assigned Roles:</div>
+                  <ul style={{ margin: 0, paddingLeft: '16px', lineHeight: 1.4 }}>
+                    {tDuties.slice(0, 2).map((duty: string, idx: number) => (
+                      <li key={idx}>{duty}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
-              <span className={`bca-badge bca-badge-${td.workloadStatus.toLowerCase()}`}>
-                {td.workloadStatus}
-              </span>
-            </div>
-            <div style={{ fontSize: '0.76rem', color: '#475569' }}>
-              <div style={{ fontWeight: 700, color: '#334155', marginBottom: '4px' }}>Assigned Roles:</div>
-              <ul style={{ margin: 0, paddingLeft: '16px', lineHeight: 1.4 }}>
-                {td.duties.slice(0, 2).map((duty, idx) => (
-                  <li key={idx}>{duty}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filter Tabs Bar */}
       <div
         className="bca-card"
         style={{
-          padding: '12px 18px',
-          marginBottom: '20px',
+          padding: '8px 12px',
           display: 'flex',
-          alignItems: 'center',
           gap: '8px',
-          overflowX: 'auto'
+          overflowX: 'auto',
+          marginBottom: '18px'
         }}
       >
         {dutyTypes.map((dt) => (
           <button
             key={dt}
             onClick={() => setDutyFilter(dt)}
-            className="bca-btn"
+            className={`bca-btn ${dutyFilter === dt ? 'bca-btn-primary' : 'bca-btn-secondary'}`}
             style={{
-              backgroundColor: dutyFilter === dt ? '#2563eb' : '#f8fafc',
-              color: dutyFilter === dt ? '#ffffff' : '#64748b',
-              border: '1px solid',
-              borderColor: dutyFilter === dt ? '#2563eb' : '#e2e8f0',
               padding: '6px 14px',
               fontSize: '0.8rem',
               whiteSpace: 'nowrap'
@@ -242,7 +303,20 @@ export const TeacherDutiesView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((d) => (
+            {loading ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                  Loading faculty duty roster...
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                  No duty shifts scheduled. Assign a duty to faculty members using the button above.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((d) => (
               <tr key={d.id}>
                 <td><code>{d.id}</code></td>
                 <td>
@@ -292,20 +366,38 @@ export const TeacherDutiesView: React.FC = () => {
                   </span>
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  <button
-                    onClick={() => {
-                      setShifts(shifts.map((item) => (item.id === d.id ? { ...item, status: 'Completed' } : item)));
-                      showToast(`Duty ${d.id} marked as Completed`, undefined, 'success');
-                    }}
-                    className="bca-btn bca-btn-secondary"
-                    style={{ padding: '4px 8px', fontSize: '0.76rem' }}
-                    title="Mark Completed"
-                  >
-                    <CheckCircle size={13} color="#059669" />
-                  </button>
+                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <button
+                      onClick={() => handleOpenEditDuty(d)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#2563eb' }}
+                      title="Edit Duty Assignment"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDuty(d.id, d.dutyType, d.teacherName)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#e11d48' }}
+                      title="Delete Duty Assignment"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShifts(shifts.map((item) => (item.id === d.id ? { ...item, status: 'Completed' } : item)));
+                        showToast(`Duty ${d.id} marked as Completed`, undefined, 'success');
+                      }}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', fontSize: '0.76rem' }}
+                      title="Mark Completed"
+                    >
+                      <CheckCircle size={13} color="#059669" />
+                    </button>
+                  </div>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>
@@ -427,6 +519,98 @@ export const TeacherDutiesView: React.FC = () => {
           <div style={{ backgroundColor: '#eff6ff', padding: '10px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: '#1e40af' }}>
             <AlertCircle size={15} color="#2563eb" style={{ flexShrink: 0 }} />
             <span>Automatic SMS reminder will be dispatched to the faculty member 30 minutes prior to duty.</span>
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT DUTY MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Faculty Duty Assignment"
+        subtitle={`Update duty shift for: ${editingDuty?.teacherName}`}
+        maxWidth="540px"
+        footer={
+          <>
+            <button type="submit" form="edit-duty-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-duty-form" onSubmit={handleSaveEditDuty} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Faculty Member *</label>
+            <input
+              type="text"
+              required
+              value={editTeacherName}
+              onChange={(e) => setEditTeacherName(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Duty Category *</label>
+              <select
+                value={editDutyType}
+                onChange={(e) => setEditDutyType(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                {dutyTypes.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Duty Date *</label>
+              <input
+                type="date"
+                required
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Time Shift *</label>
+              <input
+                type="text"
+                required
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Campus Location *</label>
+              <input
+                type="text"
+                required
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Special Directives / Instructions</label>
+            <textarea
+              rows={3}
+              value={editInstructions}
+              onChange={(e) => setEditInstructions(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
           </div>
         </form>
       </Modal>

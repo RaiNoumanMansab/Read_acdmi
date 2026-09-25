@@ -4,7 +4,7 @@ import {
   Target,
   Eye
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../../mockData';
+import { SCHOOL_INFO } from '../../../constants/schoolConfig';
 
 export const AboutPage: React.FC = () => {
   return (
@@ -37,7 +37,7 @@ export const AboutPage: React.FC = () => {
             Read Academy Sahiwal
           </h1>
           <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-            Founded in 2018 in Sahiwal under the timeless philosophy "Read To Lead", Read Academy is committed to academic mastery, ethical discipline, and empowering students to excel in modern academia.
+            Founded in 2018 in Sahiwal under the timeless philosophy "Read To Lead", Read Academy provides comprehensive education from Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com, committed to academic mastery, ethical discipline, and empowering students to excel in modern academia.
           </p>
         </div>
       </section>

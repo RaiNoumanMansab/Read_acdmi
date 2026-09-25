@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Maximize2 } from 'lucide-react';
-import { MOCK_GALLERY } from '../../../mockData';
 import type { GalleryAlbum } from '../../../types';
 import { Modal } from '../../common/Modal';
+import { cmsApi } from '../../../services/api';
 
 export const GalleryPublicPage: React.FC = () => {
+  const [gallery, setGallery] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [activeItem, setActiveItem] = useState<GalleryAlbum | null>(null);
+  const [activeItem, setActiveItem] = useState<any | null>(null);
+
+  useEffect(() => {
+    cmsApi.getGallery().then((res) => {
+      if (res?.data) setGallery(res.data);
+    }).catch(() => {});
+  }, []);
 
   const categories = ['All', 'Campus', 'Science & Innovation', 'Sports', 'Arts & Culture', 'Events'];
 
-  const filtered = MOCK_GALLERY.filter((item) => {
+  const filtered = gallery.filter((item) => {
     if (selectedCategory === 'All') return true;
     return item.category === selectedCategory;
   });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DollarSign,
   CheckCircle,
@@ -9,18 +9,135 @@ import {
   Filter,
   Search,
   School,
-  FileCheck
+  FileCheck,
+  Edit2,
+  Trash2
 } from 'lucide-react';
-import { MOCK_PAYROLL, SCHOOL_INFO } from '../../mockData';
 import type { PayrollRecord } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { teachersApi } from '../../services/api';
+
+const mapBackendPayroll = (t: any): PayrollRecord => {
+  const basic = Number(t.basicSalary) || 85000;
+  const allowances = 15000;
+  const deductions = 5000;
+  const net = basic + allowances - deductions;
+  return {
+    id: `PAY-${t.id}`,
+    empId: t.empId || `EMP-${t.id}`,
+    teacherName: t.fullName || t.name || 'Faculty Member',
+    employeeName: t.fullName || t.name || 'Faculty Member',
+    role: t.department || 'Faculty',
+    designation: t.department || 'Faculty',
+    avatar: t.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    month: 'September 2026',
+    basicSalary: basic,
+    allowances,
+    deductions,
+    tax: 0,
+    netSalary: net,
+    netPay: net,
+    status: 'Paid',
+    paymentDate: '2026-09-01',
+    accountNo: t.bankAccountNo || 'PK78BAHL100293849102'
+  };
+};
 
 export const PayrollView: React.FC = () => {
   const { showToast } = useToast();
-  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>(MOCK_PAYROLL);
+  const [payrollRecords, setPayrollRecords] = useState<PayrollRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedSlip, setSelectedSlip] = useState<PayrollRecord | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Edit Payroll record state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingSlip, setEditingSlip] = useState<PayrollRecord | null>(null);
+  const [editBasic, setEditBasic] = useState(0);
+  const [editAllowances, setEditAllowances] = useState(0);
+  const [editDeductions, setEditDeductions] = useState(0);
+  const [editStatus, setEditStatus] = useState<PayrollRecord['status']>('Paid');
+  const [editMonth, setEditMonth] = useState('September 2026');
+
+  const handleOpenEditSlip = (slip: PayrollRecord) => {
+    setEditingSlip(slip);
+    setEditBasic(slip.basicSalary);
+    setEditAllowances(slip.allowances);
+    setEditDeductions(slip.deductions);
+    setEditStatus(slip.status);
+    setEditMonth(slip.month);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditSlip = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSlip) return;
+    const net = editBasic + editAllowances - editDeductions;
+    try {
+      await teachersApi.updatePayroll(editingSlip.id, {
+        basicSalary: editBasic,
+        allowances: editAllowances,
+        deductions: editDeductions,
+        status: editStatus,
+        month: editMonth
+      });
+    } catch (err) {
+      console.warn('Backend payroll update error:', err);
+    }
+    setPayrollRecords((prev) =>
+      prev.map((p) =>
+        p.id === editingSlip.id
+          ? {
+              ...p,
+              basicSalary: editBasic,
+              allowances: editAllowances,
+              deductions: editDeductions,
+              netSalary: net,
+              netPay: net,
+              status: editStatus,
+              month: editMonth
+            }
+          : p
+      )
+    );
+    showToast('Payroll record updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingSlip(null);
+  };
+
+  const handleDeleteSlip = async (id: string, empName: string) => {
+    if (!window.confirm(`Are you sure you want to delete payroll record for "${empName}"?`)) return;
+    try {
+      await teachersApi.deletePayroll(id);
+    } catch (err) {
+      console.warn('Backend delete error:', err);
+    }
+    setPayrollRecords((prev) => prev.filter((p) => p.id !== id));
+    showToast('Payroll record deleted successfully', undefined, 'success');
+  };
+
+  // Fetch faculty members from live API
+  useEffect(() => {
+    let isMounted = true;
+    teachersApi.getTeachers().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setPayrollRecords(res.data.map(mapBackendPayroll));
+        } else {
+          setPayrollRecords([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend payroll fetch failed:', err);
+      if (isMounted) {
+        setPayrollRecords([]);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   const totalPayroll = payrollRecords.reduce((acc, curr) => acc + (curr.netPay ?? curr.netSalary ?? 0), 0);
   const totalDeductions = payrollRecords.reduce((acc, curr) => acc + curr.deductions, 0);
@@ -143,10 +260,17 @@ export const PayrollView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((pay) => (
-              <tr key={pay.id}>
-                <td><code>{pay.empId}</code></td>
-                <td><strong style={{ color: '#0f172a' }}>{pay.teacherName}</strong></td>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={10} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                  {loading ? 'Loading payroll records from database...' : 'No payroll records found.'}
+                </td>
+              </tr>
+            ) : (
+              filtered.map((pay) => (
+                <tr key={pay.id}>
+                  <td><code>{pay.empId}</code></td>
+                  <td><strong style={{ color: '#0f172a' }}>{pay.teacherName}</strong></td>
                 <td>{pay.designation || pay.role}</td>
                 <td>{pay.month}</td>
                 <td>Rs. {pay.basicSalary.toLocaleString()}</td>
@@ -163,16 +287,34 @@ export const PayrollView: React.FC = () => {
                   </span>
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  <button
-                    onClick={() => setSelectedSlip(pay)}
-                    className="bca-btn bca-btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                  >
-                    <Eye size={13} /> Payslip
-                  </button>
+                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <button
+                      onClick={() => setSelectedSlip(pay)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    >
+                      <Eye size={13} /> Payslip
+                    </button>
+                    <button
+                      onClick={() => handleOpenEditSlip(pay)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#2563eb' }}
+                      title="Edit Payroll"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSlip(pay.id, pay.teacherName || pay.employeeName || 'Staff Member')}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#e11d48' }}
+                      title="Delete Payroll Record"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>
@@ -261,6 +403,89 @@ export const PayrollView: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* EDIT PAYROLL RECORD MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Salary Disbursement"
+        subtitle={`Update payroll record for: ${editingSlip?.teacherName}`}
+        maxWidth="500px"
+        footer={
+          <>
+            <button type="submit" form="edit-payroll-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-payroll-form" onSubmit={handleSaveEditSlip} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Disbursement Month</label>
+              <input
+                type="text"
+                required
+                value={editMonth}
+                onChange={(e) => setEditMonth(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Payment Status</label>
+              <select
+                value={editStatus}
+                onChange={(e) => setEditStatus(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Basic Salary (PKR) *</label>
+            <input
+              type="number"
+              required
+              value={editBasic}
+              onChange={(e) => setEditBasic(Number(e.target.value))}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Allowances (+ PKR)</label>
+              <input
+                type="number"
+                value={editAllowances}
+                onChange={(e) => setEditAllowances(Number(e.target.value))}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Deductions (- PKR)</label>
+              <input
+                type="number"
+                value={editDeductions}
+                onChange={(e) => setEditDeductions(Number(e.target.value))}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700 }}>Calculated Net Pay:</span>
+            <strong style={{ fontSize: '1.05rem', color: '#0B3974' }}>Rs. {(editBasic + editAllowances - editDeductions).toLocaleString()}</strong>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

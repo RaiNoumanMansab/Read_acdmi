@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bell,
   Plus,
@@ -8,19 +8,57 @@ import {
   AlertCircle,
   Users,
   Eye,
+  Edit2,
   Trash2
 } from 'lucide-react';
-import { MOCK_NOTICES } from '../../mockData';
 import type { Notice } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { cmsApi } from '../../services/api';
+
+const mapBackendNotice = (n: any): Notice => ({
+  id: n.id,
+  title: n.title,
+  category: n.category || 'Academic',
+  date: n.publishedDate ? n.publishedDate.split('T')[0] : '2026-09-08',
+  priority: (n.priority === 'HIGH' || n.priority === 'URGENT' ? 'High' : 'Normal'),
+  audience: n.audience || 'All',
+  targetAudience: n.audience || 'All',
+  content: n.content,
+  pinned: n.pinned ?? false,
+  publishedBy: 'Principal Office',
+  author: 'Principal Office'
+});
 
 export const NoticesView: React.FC = () => {
   const { showToast } = useToast();
-  const [notices, setNotices] = useState<Notice[]>(MOCK_NOTICES);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeNotice, setActiveNotice] = useState<Notice | null>(null);
+
+  // Load notices from live API
+  useEffect(() => {
+    let isMounted = true;
+    cmsApi.getNotices().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setNotices(res.data.map(mapBackendNotice));
+        } else {
+          setNotices([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend notices fetch failed:', err);
+      if (isMounted) {
+        setNotices([]);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Notice form
   const [newTitle, setNewTitle] = useState('');
@@ -29,6 +67,70 @@ export const NoticesView: React.FC = () => {
   const [newAudience, setNewAudience] = useState<Notice['audience']>('All');
   const [newContent, setNewContent] = useState('');
 
+  // Edit Notice state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState<Notice['category']>('Academic');
+  const [editPriority, setEditPriority] = useState<Notice['priority']>('Normal');
+  const [editAudience, setEditAudience] = useState<Notice['audience']>('All');
+  const [editContent, setEditContent] = useState('');
+
+  const handleOpenEditNotice = (n: Notice) => {
+    setEditingNotice(n);
+    setEditTitle(n.title);
+    setEditCategory(n.category);
+    setEditPriority(n.priority);
+    setEditAudience(n.audience || n.targetAudience || 'All');
+    setEditContent(n.content);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditNotice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingNotice) return;
+    try {
+      await cmsApi.updateNotice(editingNotice.id, {
+        title: editTitle,
+        content: editContent,
+        category: editCategory,
+        priority: editPriority === 'High' ? 'HIGH' : 'NORMAL',
+        audience: editAudience
+      });
+    } catch (err) {
+      console.warn('Backend update error:', err);
+    }
+    setNotices((prev) =>
+      prev.map((n) =>
+        n.id === editingNotice.id
+          ? {
+              ...n,
+              title: editTitle,
+              category: editCategory,
+              priority: editPriority,
+              audience: editAudience,
+              targetAudience: editAudience,
+              content: editContent
+            }
+          : n
+      )
+    );
+    showToast('Notice updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingNotice(null);
+  };
+
+  const handleDeleteNotice = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete notice "${title}"?`)) return;
+    try {
+      await cmsApi.deleteNotice(id);
+    } catch (err) {
+      console.warn('Backend delete error:', err);
+    }
+    setNotices((prev) => prev.filter((n) => n.id !== id));
+    showToast('Notice deleted successfully', undefined, 'success');
+  };
+
   const categories = ['All', 'Academic', 'Fee', 'Events', 'Holiday', 'Administrative'];
 
   const filtered = notices.filter((n) => {
@@ -36,26 +138,54 @@ export const NoticesView: React.FC = () => {
     return n.category === categoryFilter;
   });
 
-  const handleCreateNotice = (e: React.FormEvent) => {
+  const handleCreateNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newContent) {
       showToast('Please provide notice title and message body', undefined, 'error');
       return;
     }
-    const newNotice: Notice = {
-      id: `NOT-${Date.now()}`,
-      title: newTitle,
-      category: newCategory,
-      date: new Date().toISOString().split('T')[0],
-      priority: newPriority,
-      audience: newAudience || 'All',
-      targetAudience: newAudience,
-      content: newContent,
-      pinned: false,
-      publishedBy: 'Super Admin Office',
-      author: 'Super Admin Office'
-    };
-    setNotices([newNotice, ...notices]);
+    try {
+      const res = await cmsApi.publishNotice({
+        title: newTitle,
+        content: newContent,
+        category: newCategory,
+        priority: newPriority === 'High' ? 'HIGH' : 'NORMAL',
+        audience: newAudience
+      });
+      if (res?.data) {
+        setNotices((prev) => [mapBackendNotice(res.data), ...prev]);
+      } else {
+        const newNotice: Notice = {
+          id: `NOT-${Date.now()}`,
+          title: newTitle,
+          category: newCategory,
+          date: new Date().toISOString().split('T')[0],
+          priority: newPriority,
+          audience: newAudience || 'All',
+          targetAudience: newAudience,
+          content: newContent,
+          pinned: false,
+          publishedBy: 'Super Admin Office',
+          author: 'Super Admin Office'
+        };
+        setNotices([newNotice, ...notices]);
+      }
+    } catch {
+      const newNotice: Notice = {
+        id: `NOT-${Date.now()}`,
+        title: newTitle,
+        category: newCategory,
+        date: new Date().toISOString().split('T')[0],
+        priority: newPriority,
+        audience: newAudience || 'All',
+        targetAudience: newAudience,
+        content: newContent,
+        pinned: false,
+        publishedBy: 'Super Admin Office',
+        author: 'Super Admin Office'
+      };
+      setNotices([newNotice, ...notices]);
+    }
     setShowAddModal(false);
     showToast('Notice Published & Broadcasted', `Dispatched to ${newAudience}`, 'success');
   };
@@ -114,17 +244,22 @@ export const NoticesView: React.FC = () => {
       </div>
 
       {/* Notices Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '18px'
-        }}
-      >
-        {filtered.map((notice) => (
-          <div
-            key={notice.id}
-            className="bca-card"
+      {filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          {loading ? 'Loading circulars & notices from database...' : 'No circular notices found in this category.'}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: '18px'
+          }}
+        >
+          {filtered.map((notice) => (
+            <div
+              key={notice.id}
+              className="bca-card"
             style={{
               padding: '20px',
               display: 'flex',
@@ -166,17 +301,36 @@ export const NoticesView: React.FC = () => {
                 <Users size={13} />
                 <span>Target: <strong>{notice.targetAudience || notice.audience}</strong></span>
               </div>
-              <button
-                onClick={() => setActiveNotice(notice)}
-                className="bca-btn bca-btn-secondary"
-                style={{ padding: '3px 8px', fontSize: '0.74rem' }}
-              >
-                <Eye size={12} /> View
-              </button>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <button
+                  onClick={() => setActiveNotice(notice)}
+                  className="bca-btn bca-btn-secondary"
+                  style={{ padding: '3px 8px', fontSize: '0.74rem' }}
+                >
+                  <Eye size={12} /> View
+                </button>
+                <button
+                  onClick={() => handleOpenEditNotice(notice)}
+                  className="bca-btn bca-btn-secondary"
+                  title="Edit Notice"
+                  style={{ padding: '3px 8px', color: '#2563eb' }}
+                >
+                  <Edit2 size={12} />
+                </button>
+                <button
+                  onClick={() => handleDeleteNotice(notice.id, notice.title)}
+                  className="bca-btn bca-btn-secondary"
+                  title="Delete Notice"
+                  style={{ padding: '3px 8px', color: '#e11d48' }}
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* NOTICE DETAIL MODAL */}
       {activeNotice && (
@@ -290,6 +444,93 @@ export const NoticesView: React.FC = () => {
               placeholder="Write the full circular announcement..."
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT NOTICE MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Notice Circular"
+        subtitle={`Update announcement: ${editingNotice?.title}`}
+        maxWidth="540px"
+        footer={
+          <>
+            <button type="submit" form="edit-notice-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-notice-form" onSubmit={handleSaveEditNotice} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Notice Heading / Title *</label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Category</label>
+              <select
+                value={editCategory}
+                onChange={(e) => setEditCategory(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+              >
+                <option value="Academic">Academic</option>
+                <option value="Fee">Fee</option>
+                <option value="Events">Events</option>
+                <option value="Holiday">Holiday</option>
+                <option value="Administrative">Administrative</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Priority</label>
+              <select
+                value={editPriority}
+                onChange={(e) => setNewPriority(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+              >
+                <option value="Normal">Normal</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Target Audience</label>
+              <select
+                value={editAudience}
+                onChange={(e) => setEditAudience(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+              >
+                <option value="All">All School</option>
+                <option value="Parents">Parents Only</option>
+                <option value="Students">Students Only</option>
+                <option value="Teachers">Teachers Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Notice Text Body *</label>
+            <textarea
+              rows={4}
+              required
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
             />
           </div>

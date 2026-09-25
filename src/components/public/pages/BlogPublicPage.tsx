@@ -1,28 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   ArrowRight,
   Share2
 } from 'lucide-react';
-import { MOCK_BLOGS } from '../../../mockData';
 import type { BlogPost } from '../../../types';
 import { Modal } from '../../common/Modal';
 import { useToast } from '../../common/Toast';
+import { cmsApi } from '../../../services/api';
 
 export const BlogPublicPage: React.FC = () => {
   const { showToast } = useToast();
+  const [blogs, setBlogs] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activePost, setActivePost] = useState<BlogPost | null>(null);
+  const [activePost, setActivePost] = useState<any | null>(null);
+
+  useEffect(() => {
+    cmsApi.getBlogs().then((res) => {
+      if (res?.data) setBlogs(res.data);
+    }).catch(() => {});
+  }, []);
 
   const categories = ['All', 'Academics', 'STEM & Innovation', 'Sports & Wellness', 'Campus Milestones'];
 
-  const filtered = MOCK_BLOGS.filter((post) => {
-    const matchesCat = selectedCategory === 'All' || post.category.toLowerCase().includes(selectedCategory.toLowerCase());
+  const filtered = blogs.filter((post) => {
+    const authorName = post.author?.fullName || post.author || '';
+    const matchesCat = selectedCategory === 'All' || (post.category && post.category.toLowerCase().includes(selectedCategory.toLowerCase()));
     const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.author.toLowerCase().includes(searchQuery.toLowerCase());
+      (post.title && post.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (post.excerpt && post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      authorName.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCat && matchesSearch;
   });
 

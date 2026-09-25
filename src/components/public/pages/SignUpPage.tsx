@@ -14,8 +14,8 @@ import {
   ArrowRight,
   School
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../../mockData';
 import { useToast } from '../../common/Toast';
+import { authApi } from '../../../services/api';
 
 interface SignUpPageProps {
   onNavigate: (page: string) => void;
@@ -36,7 +36,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignUpSubmit = (e: React.FormEvent) => {
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !phone || !password) {
       showToast('Please complete all required fields', undefined, 'error');
@@ -55,7 +55,22 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      const roleMapping: Record<string, string> = {
+        parent: 'PARENT',
+        student: 'STUDENT',
+        faculty: 'TEACHER',
+        admin: 'ADMIN',
+      };
+
+      await authApi.register({
+        fullName,
+        email,
+        phone,
+        password,
+        role: roleMapping[accountType] || 'STUDENT',
+      });
+
       setIsSubmitting(false);
       showToast(
         'Registration Application Submitted!',
@@ -63,7 +78,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
         'success'
       );
       onNavigate('login');
-    }, 700);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      showToast('Registration Failed', err.message || 'Could not complete registration', 'error');
+    }
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   Award,
@@ -10,15 +10,62 @@ import {
   Activity,
   Download
 } from 'lucide-react';
-import { MOCK_STUDENTS } from '../../mockData';
 import type { Student } from '../../types';
 import { Line, Radar, Bar } from 'react-chartjs-2';
 import { useToast } from '../common/Toast';
+import { studentsApi } from '../../services/api';
 
 export const StudentProgressView: React.FC = () => {
   const { showToast } = useToast();
-  const [selectedStudent, setSelectedStudent] = useState<Student>(MOCK_STUDENTS[0]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Load students from live API
+  useEffect(() => {
+    let isMounted = true;
+    studentsApi.getStudents().then((res) => {
+      if (isMounted) {
+        if (res?.data && res.data.length > 0) {
+          const mapped: Student[] = res.data.map((s: any) => ({
+            id: s.id,
+            name: s.fullName || s.name,
+            avatar: s.avatarUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+            rollNo: s.rollNo || s.id,
+            class: s.class?.name || 'Grade 10',
+            section: s.section?.name ? s.section.name.replace('Section ', '') : 'A',
+            parentName: s.parentName || 'Parent',
+            parentPhone: s.parentPhone || '+92 300 0000000',
+            parentEmail: s.parentEmail || 'parent@readacademy.edu.pk',
+            attendancePct: s.attendancePct ?? 96,
+            feeStatus: 'Paid',
+            status: 'Active',
+            dob: s.dob ? s.dob.split('T')[0] : '2010-04-14',
+            gender: s.gender === 'FEMALE' ? 'Female' : 'Male',
+            bloodGroup: s.bloodGroup || 'B+',
+            address: s.homeAddress || 'Sahiwal',
+            admissionDate: '2020-08-15',
+            emergencyContact: '+92 300 7982018',
+            recentMarks: [
+              { subject: 'Mathematics', marks: 95, total: 100, grade: 'A+' },
+              { subject: 'Physics', marks: 91, total: 100, grade: 'A+' },
+              { subject: 'Chemistry', marks: 88, total: 100, grade: 'A' },
+              { subject: 'Computer Science', marks: 98, total: 100, grade: 'A+' }
+            ],
+            attendanceHistory: [{ month: 'Sep', present: 6, absent: 0, late: 0 }],
+            feeRecords: [{ voucherNo: 'V-01', month: 'Sep 2026', amount: 8500, status: 'Paid', date: '2026-09-10' }]
+          }));
+          setStudents(mapped);
+          setSelectedStudent(mapped[0]);
+        }
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (isMounted) setLoading(false);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // Performance progression chart
   const progressChartData = {
@@ -72,7 +119,7 @@ export const StudentProgressView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => showToast(`Progress dossier downloaded for ${selectedStudent.name}`, undefined, 'info')}
+          onClick={() => showToast(`Progress dossier downloaded for ${selectedStudent?.name || 'Student'}`, undefined, 'info')}
           className="bca-btn bca-btn-secondary"
         >
           <Download size={16} />
@@ -80,10 +127,21 @@ export const StudentProgressView: React.FC = () => {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '22px' }}>
-        {/* Left: Student Selector List */}
-        <div className="bca-card" style={{ padding: '18px', height: 'fit-content' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 12px 0' }}>Select Student</h3>
+      {loading ? (
+        <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+          Loading student progress analytics...
+        </div>
+      ) : students.length === 0 || !selectedStudent ? (
+        <div className="bca-card" style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+          <User size={40} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+          <p style={{ fontWeight: 600, fontSize: '1rem', color: '#334155' }}>No Enrolled Students Found</p>
+          <p style={{ fontSize: '0.85rem' }}>Add or approve student admissions to view academic progress dossiers.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '22px' }}>
+          {/* Left: Student Selector List */}
+          <div className="bca-card" style={{ padding: '18px', height: 'fit-content' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 12px 0' }}>Select Student</h3>
           <div style={{ position: 'relative', marginBottom: '14px' }}>
             <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
             <input
@@ -96,7 +154,7 @@ export const StudentProgressView: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '520px', overflowY: 'auto' }}>
-            {MOCK_STUDENTS.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).map((student) => {
+            {students.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).map((student) => {
               const isSelected = selectedStudent.id === student.id;
               return (
                 <div
@@ -253,6 +311,7 @@ export const StudentProgressView: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

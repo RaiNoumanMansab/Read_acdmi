@@ -1,4 +1,4 @@
-export type AppMode = 'public' | 'admin';
+export type AppMode = 'public' | 'admin' | 'teacher' | 'student';
 
 export type PublicPage =
   | 'home'
@@ -32,6 +32,8 @@ export type AdminTab =
   | 'payroll'
   | 'accounts'
   | 'reports'
+  | 'roles'
+  | 'careers'
   | 'settings';
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT';
@@ -86,6 +88,16 @@ export interface Student {
   feeRecords: { voucherNo: string; month: string; amount: number; status: string; date: string }[];
 }
 
+export interface AttachedDocument {
+  id?: string;
+  name: string;
+  docType?: string;
+  fileSize?: string;
+  fileType?: string;
+  dataUrl?: string;
+  uploadedAt?: string;
+}
+
 export interface AdmissionApplication {
   id: string;
   studentName: string;
@@ -100,7 +112,7 @@ export interface AdmissionApplication {
   previousSchool: string;
   previousPercentage: string;
   address: string;
-  documentsSubmitted: string[];
+  documentsSubmitted: (string | AttachedDocument)[];
   notes?: string;
 }
 
@@ -136,6 +148,7 @@ export interface TeacherDuty {
 }
 
 export interface TimetableSlot {
+  id?: string;
   period: number;
   time: string;
   subject: string;
@@ -151,6 +164,8 @@ export interface FeeVoucher {
   voucherNo: string;
   studentId: string;
   studentName: string;
+  parentPhone?: string;
+  parentName?: string;
   class: string;
   section: string;
   month: string;

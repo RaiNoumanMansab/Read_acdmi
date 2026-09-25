@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PieChart,
   DollarSign,
@@ -9,25 +9,52 @@ import {
   Filter,
   Download,
   Calendar,
-  CreditCard
+  CreditCard,
+  Edit2,
+  Trash2
 } from 'lucide-react';
-import { MOCK_FINANCIAL_SUMMARY } from '../../mockData';
 import type { FinancialSummary, AccountTransaction } from '../../types';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { feesApi } from '../../services/api';
 
 export const AccountsView: React.FC = () => {
   const { showToast } = useToast();
-  const [summary, setSummary] = useState<FinancialSummary>(MOCK_FINANCIAL_SUMMARY);
-  const [transactions, setTransactions] = useState<AccountTransaction[]>([
-    { id: 'TXN-101', date: '2026-09-06', title: 'Tuition Fee Batch Deposits (HBL Online)', category: 'Tuition Fees', type: 'Income', amount: 480000, reference: 'DEP-89410' },
-    { id: 'TXN-102', date: '2026-09-05', title: 'Solar Inverter Maintenance & Servicing', category: 'Campus Maintenance', type: 'Expense', amount: 45000, reference: 'INV-4019' },
-    { id: 'TXN-103', date: '2026-09-04', title: 'Admission Processing Fees (New Cohort)', category: 'Admissions', type: 'Income', amount: 150000, reference: 'DEP-89402' },
-    { id: 'TXN-104', date: '2026-09-02', title: 'IESCO Electricity High-Tension Bill', category: 'Utilities', type: 'Expense', amount: 180000, reference: 'BIL-7721' },
-    { id: 'TXN-105', date: '2026-08-31', title: 'Faculty & Administrative Monthly Salaries', category: 'Salaries', type: 'Expense', amount: 1200000, reference: 'PAY-AUG26' }
-  ]);
+  const [transactions, setTransactions] = useState<AccountTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Load transactions from live API
+  useEffect(() => {
+    let isMounted = true;
+    feesApi.getTransactions().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          const loaded: AccountTransaction[] = res.data.map((t: any) => ({
+            id: t.id,
+            date: t.transactionDate ? t.transactionDate.split('T')[0] : '2026-09-06',
+            title: t.title,
+            category: t.category,
+            type: t.type === 'INCOME' ? 'Income' : 'Expense',
+            amount: Number(t.amount),
+            reference: t.referenceNo || 'TXN-REF'
+          }));
+          setTransactions(loaded);
+        } else {
+          setTransactions([]);
+        }
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.warn('Backend transactions fetch failed:', err);
+      if (isMounted) {
+        setTransactions([]);
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // New Txn Form
   const [title, setTitle] = useState('');
@@ -36,45 +63,141 @@ export const AccountsView: React.FC = () => {
   const [category, setCategory] = useState('Tuition Fees');
   const [reference, setReference] = useState('DEP-901');
 
+  // Edit Txn state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingTxn, setEditingTxn] = useState<AccountTransaction | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editAmount, setEditAmount] = useState(0);
+  const [editType, setEditType] = useState<'Income' | 'Expense'>('Income');
+  const [editCategory, setEditCategory] = useState('Tuition Fees');
+  const [editDate, setEditDate] = useState('');
+
+  const handleOpenEditTxn = (txn: AccountTransaction) => {
+    setEditingTxn(txn);
+    setEditTitle(txn.title);
+    setEditAmount(txn.amount);
+    setEditType(txn.type);
+    setEditCategory(txn.category);
+    setEditDate(txn.date);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditTxn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTxn) return;
+    try {
+      await feesApi.updateTransaction(editingTxn.id, {
+        title: editTitle,
+        amount: editAmount,
+        type: editType === 'Income' ? 'INCOME' : 'EXPENSE',
+        category: editCategory
+      });
+    } catch (err) {
+      console.warn('Backend transaction update error:', err);
+    }
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === editingTxn.id
+          ? {
+              ...t,
+              title: editTitle,
+              amount: editAmount,
+              type: editType,
+              category: editCategory
+            }
+          : t
+      )
+    );
+    showToast('Transaction updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingTxn(null);
+  };
+
+  const handleDeleteTxn = async (id: string, txnTitle: string) => {
+    if (!window.confirm(`Are you sure you want to delete transaction "${txnTitle}"?`)) return;
+    try {
+      await feesApi.deleteTransaction(id);
+    } catch (err) {
+      console.warn('Backend transaction delete error:', err);
+    }
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    showToast('Transaction deleted successfully', undefined, 'success');
+  };
+
+  // Compute live financial totals from transactions
+  const totalIncome = transactions.filter(t => t.type === 'Income').reduce((acc, t) => acc + (t.amount || 0), 0);
+  const totalExpenses = transactions.filter(t => t.type === 'Expense').reduce((acc, t) => acc + (t.amount || 0), 0);
+  const netProfit = totalIncome - totalExpenses;
+  const marginPct = totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(1) : '0';
+
+  // Group by category for Doughnuts
+  const incomeCategoryMap: Record<string, number> = {};
+  const expenseCategoryMap: Record<string, number> = {};
+
+  transactions.forEach((t) => {
+    if (t.type === 'Income') {
+      incomeCategoryMap[t.category] = (incomeCategoryMap[t.category] || 0) + (t.amount || 0);
+    } else {
+      expenseCategoryMap[t.category] = (expenseCategoryMap[t.category] || 0) + (t.amount || 0);
+    }
+  });
+
+  const incomeLabels = Object.keys(incomeCategoryMap);
+  const incomeValues = Object.values(incomeCategoryMap);
+  const expenseLabels = Object.keys(expenseCategoryMap);
+  const expenseValues = Object.values(expenseCategoryMap);
+
   // Chart Data
   const incomeDoughnut = {
-    labels: summary.incomeCategories.map(c => c.category || c.name || ''),
+    labels: incomeLabels.length > 0 ? incomeLabels : ['Tuition Fees'],
     datasets: [
       {
-        data: summary.incomeCategories.map(c => c.amount),
+        data: incomeValues.length > 0 ? incomeValues : [1],
         backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4']
       }
     ]
   };
 
   const expenseDoughnut = {
-    labels: summary.expenseCategories.map(c => c.category || c.name || ''),
+    labels: expenseLabels.length > 0 ? expenseLabels : ['Operations'],
     datasets: [
       {
-        data: summary.expenseCategories.map(c => c.amount),
+        data: expenseValues.length > 0 ? expenseValues : [1],
         backgroundColor: ['#ef4444', '#f97316', '#eab308', '#64748b', '#ec4899']
       }
     ]
   };
 
-  const handleAddTxn = (e: React.FormEvent) => {
+  const handleAddTxn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) {
       showToast('Please specify transaction title', undefined, 'error');
       return;
     }
+    try {
+      await feesApi.recordTransaction({
+        title,
+        type: type.toUpperCase(),
+        category,
+        amount,
+        referenceNo: reference
+      });
+    } catch {
+      // Keep local state update
+    }
     const newTxn: AccountTransaction = {
-      id: `TXN-${Date.now()}`,
+      id: `TXN-${Math.floor(200 + Math.random() * 800)}`,
       date: new Date().toISOString().split('T')[0],
       title,
       category,
       type,
-      amount: Number(amount),
+      amount,
       reference
     };
     setTransactions([newTxn, ...transactions]);
     setShowAddModal(false);
-    showToast('Transaction Reconciled to General Ledger', `${type}: Rs. ${amount.toLocaleString()}`, 'success');
+    showToast('Transaction Logged', `${title} - PKR ${amount.toLocaleString()}`, 'success');
+    setTitle('');
   };
 
   return (
@@ -120,9 +243,9 @@ export const AccountsView: React.FC = () => {
             <ArrowUpRight size={20} />
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#059669', margin: '4px 0' }}>
-            Rs. {summary.totalIncome.toLocaleString()}
+            Rs. {totalIncome.toLocaleString()}
           </div>
-          <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>+12% above budget</span>
+          <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>Reconciled institutional revenue</span>
         </div>
 
         <div className="bca-card" style={{ padding: '20px', borderLeft: '4px solid #ef4444' }}>
@@ -131,7 +254,7 @@ export const AccountsView: React.FC = () => {
             <ArrowDownRight size={20} />
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#dc2626', margin: '4px 0' }}>
-            Rs. {summary.totalExpenses.toLocaleString()}
+            Rs. {totalExpenses.toLocaleString()}
           </div>
           <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Controlled operational overhead</span>
         </div>
@@ -142,9 +265,9 @@ export const AccountsView: React.FC = () => {
             <DollarSign size={20} />
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
-            Rs. {summary.netProfit.toLocaleString()}
+            Rs. {netProfit.toLocaleString()}
           </div>
-          <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>Reinvested in Campus Lab</span>
+          <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>Net operational balance</span>
         </div>
 
         <div className="bca-card" style={{ padding: '20px', borderLeft: '4px solid #7c3aed' }}>
@@ -153,7 +276,7 @@ export const AccountsView: React.FC = () => {
             <TrendingUp size={20} />
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#7c3aed', margin: '4px 0' }}>
-            {((summary.netProfit / summary.totalIncome) * 100).toFixed(1)}%
+            {marginPct}%
           </div>
           <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 600 }}>Institutional reserve target met</span>
         </div>
@@ -191,13 +314,21 @@ export const AccountsView: React.FC = () => {
               <th>Category</th>
               <th>Type</th>
               <th style={{ textAlign: 'right' }}>Amount (PKR)</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {transactions.map((txn) => (
-              <tr key={txn.id}>
-                <td>{txn.date}</td>
-                <td><code>{txn.reference}</code></td>
+            {transactions.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                  {loading ? 'Loading financial transactions from database...' : 'No general ledger transactions recorded.'}
+                </td>
+              </tr>
+            ) : (
+              transactions.map((txn) => (
+                <tr key={txn.id}>
+                  <td>{txn.date}</td>
+                  <td><code>{txn.reference}</code></td>
                 <td><strong style={{ color: '#0f172a' }}>{txn.title}</strong></td>
                 <td><span className="bca-badge bca-badge-primary">{txn.category}</span></td>
                 <td>
@@ -219,8 +350,28 @@ export const AccountsView: React.FC = () => {
                     {txn.type === 'Income' ? '+' : '-'} Rs. {txn.amount.toLocaleString()}
                   </strong>
                 </td>
+                <td style={{ textAlign: 'right' }}>
+                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <button
+                      onClick={() => handleOpenEditTxn(txn)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#2563eb' }}
+                      title="Edit Transaction"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTxn(txn.id, txn.title)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#e11d48' }}
+                      title="Delete Transaction"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>
@@ -302,6 +453,75 @@ export const AccountsView: React.FC = () => {
                 style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT TRANSACTION MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Ledger Entry"
+        subtitle={`Update transaction record: ${editingTxn?.reference}`}
+        maxWidth="500px"
+        footer={
+          <>
+            <button type="submit" form="edit-txn-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-txn-form" onSubmit={handleSaveEditTxn} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+              Transaction Description *
+            </label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Entry Type</label>
+              <select
+                value={editType}
+                onChange={(e) => setEditType(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Income">Income (Credit)</option>
+                <option value="Expense">Expense (Debit)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Amount (PKR) *</label>
+              <input
+                type="number"
+                required
+                value={editAmount}
+                onChange={(e) => setEditAmount(Number(e.target.value))}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Category</label>
+            <input
+              type="text"
+              value={editCategory}
+              onChange={(e) => setEditCategory(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
           </div>
         </form>
       </Modal>

@@ -5,6 +5,7 @@ import {
   Plus,
   Eye,
   Edit2,
+  Trash2,
   FileText,
   UserCheck,
   CheckCircle,
@@ -21,22 +22,99 @@ import {
   BookOpen,
   AlertTriangle,
   Send,
-  Droplet,
   RotateCcw,
   Users,
   LayoutGrid,
   Table as TableIcon,
   Bell
 } from 'lucide-react';
-import { MOCK_STUDENTS } from '../../mockData';
 import type { Student } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { studentsApi, academicsApi } from '../../services/api';
+import { WhatsAppButton } from '../common/WhatsAppButton';
 import './StudentsView.css';
+
+export const ALL_CLASSES = [
+  'Playgroup',
+  'Nursery',
+  'Prep / KG',
+  'Grade 1',
+  'Grade 2',
+  'Grade 3',
+  'Grade 4',
+  'Grade 5',
+  'Grade 6',
+  'Grade 7',
+  'Grade 8',
+  'Grade 9',
+  'Grade 10',
+  'FSC Pre-Medical',
+  'FSC Pre-Engineering',
+  'ICS (Computer Science)',
+  'I.Com (Commerce)',
+  'FA (Arts/Humanities)',
+  'D.Com'
+];
+
+const mapBackendStudent = (s: any): Student => ({
+  id: s.id || s.rollNo,
+  name: s.fullName || s.name || 'Unnamed Student',
+  avatar: s.avatarUrl || s.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+  rollNo: s.rollNo || s.id,
+  class: s.class?.name || (typeof s.class === 'string' ? s.class : '—'),
+  section: s.section?.name ? s.section.name.replace('Section ', '') : (s.section || '—'),
+  parentName: s.parentName || 'Not Provided',
+  parentPhone: s.parentPhone || 'Not Provided',
+  parentEmail: s.parentEmail || 'Not Provided',
+  attendancePct: s.attendancePct ?? null,
+  feeStatus: (s.feeStatus === 'PAID' ? 'Paid' : s.feeStatus === 'OVERDUE' ? 'Overdue' : 'Pending'),
+  status: s.status || 'Active',
+  dob: s.dob ? (typeof s.dob === 'string' ? s.dob.split('T')[0] : null) : null,
+  gender: s.gender === 'FEMALE' ? 'Female' : 'Male',
+  bloodGroup: s.bloodGroup || null,
+  address: s.homeAddress || s.address || null,
+  admissionDate: s.admissionDate ? (typeof s.admissionDate === 'string' ? s.admissionDate.split('T')[0] : null) : null,
+  emergencyContact: s.emergencyContact || null,
+  previousSchool: s.previousSchool || null,
+  recentMarks: s.marksEntries?.map((m: any) => ({
+    subject: m.subject?.name || 'Subject',
+    marks: Number(m.obtainedMarks) || 0,
+    total: Number(m.totalMarks) || 100,
+    grade: m.grade || 'A'
+  })) || [],
+  attendanceHistory: s.attendance && s.attendance.length > 0 ? [
+    {
+      month: 'Recent',
+      present: s.attendance.filter((a: any) => a.status === 'PRESENT').length,
+      absent: s.attendance.filter((a: any) => a.status === 'ABSENT').length,
+      late: s.attendance.filter((a: any) => a.status === 'LATE').length
+    }
+  ] : [],
+  feeRecords: (s.feeVouchers && s.feeVouchers.length > 0)
+    ? s.feeVouchers.map((v: any) => {
+        const isPaid = v.status === 'PAID';
+        const isOverdue = v.status === 'OVERDUE' || (!isPaid && v.dueDate && new Date(v.dueDate).getTime() < Date.now());
+        const statusStr = isPaid ? 'Paid' : (isOverdue ? 'Overdue' : 'Pending');
+        const displayDate = isPaid
+          ? (v.paidDate ? v.paidDate.split('T')[0] : 'Paid')
+          : (v.dueDate ? `Due: ${v.dueDate.split('T')[0]}` : 'Pending');
+
+        return {
+          voucherNo: v.voucherNo || 'VCH-001',
+          month: v.billingMonth || 'September 2026',
+          amount: Number(v.totalAmount) || 0,
+          status: statusStr,
+          date: displayDate,
+        };
+      })
+    : []
+});
 
 export const StudentsView: React.FC = () => {
   const { showToast } = useToast();
-  const [students, setStudents] = useState<Student[]>(MOCK_STUDENTS);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState('All');
   const [selectedSection, setSelectedSection] = useState('All');
@@ -47,7 +125,41 @@ export const StudentsView: React.FC = () => {
   const [profileActiveTab, setProfileActiveTab] = useState<
     'Overview' | 'Personal Information' | 'Parent Information' | 'Attendance' | 'Fees' | 'Results' | 'Progress' | 'Documents'
   >('Overview');
+  const [classesList, setClassesList] = useState<string[]>(ALL_CLASSES);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Load students and classes from REST API
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    studentsApi.getStudents().then((res) => {
+      if (isMounted) {
+        if (res?.data && Array.isArray(res.data)) {
+          setStudents(res.data.map(mapBackendStudent));
+        } else {
+          setStudents([]);
+        }
+      }
+    }).catch((err) => {
+      console.warn('Backend students fetch failed:', err);
+      if (isMounted) {
+        setStudents([]);
+      }
+    }).finally(() => {
+      if (isMounted) setLoading(false);
+    });
+
+    academicsApi.getClasses().then((res) => {
+      if (isMounted && res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        const names = res.data.map((c: any) => c.name);
+        setClassesList(Array.from(new Set([...ALL_CLASSES, ...names])));
+      }
+    }).catch((err) => {
+      console.warn('Academics getClasses error in StudentsView:', err);
+    });
+
+    return () => { isMounted = false; };
+  }, []);
 
   // Responsive view detection
   useEffect(() => {
@@ -67,6 +179,73 @@ export const StudentsView: React.FC = () => {
   const [newStudentSection, setNewStudentSection] = useState('A');
   const [newParentName, setNewParentName] = useState('');
   const [newParentPhone, setNewParentPhone] = useState('');
+
+  // Edit Student State
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editClass, setEditClass] = useState('');
+  const [editSection, setEditSection] = useState('');
+  const [editParentName, setEditParentName] = useState('');
+  const [editParentPhone, setEditParentPhone] = useState('');
+  const [editFeeStatus, setEditFeeStatus] = useState<'Paid' | 'Pending' | 'Overdue'>('Pending');
+
+  const handleOpenEdit = (student: Student) => {
+    setEditingStudent(student);
+    setEditName(student.name);
+    setEditClass(student.class);
+    setEditSection(student.section);
+    setEditParentName(student.parentName);
+    setEditParentPhone(student.parentPhone);
+    setEditFeeStatus(student.feeStatus);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    try {
+      await studentsApi.updateStudent(editingStudent.id, {
+        fullName: editName,
+        parentName: editParentName,
+        parentPhone: editParentPhone,
+        feeStatus: editFeeStatus
+      });
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.id === editingStudent.id
+            ? {
+                ...s,
+                name: editName,
+                class: editClass,
+                section: editSection,
+                parentName: editParentName,
+                parentPhone: editParentPhone,
+                feeStatus: editFeeStatus
+              }
+            : s
+        )
+      );
+      showToast('Student Updated', `${editName} updated successfully`, 'success');
+      setShowEditModal(false);
+    } catch (err: any) {
+      showToast('Update Failed', err?.message || 'Could not update student in database', 'error');
+    }
+  };
+
+  const handleDeleteStudent = async (student: Student) => {
+    if (!window.confirm(`Are you sure you want to delete student "${student.name}" (Roll: ${student.rollNo})?`)) {
+      return;
+    }
+    try {
+      await studentsApi.deleteStudent(student.id);
+      setStudents((prev) => prev.filter((s) => s.id !== student.id));
+      if (selectedStudent?.id === student.id) setSelectedStudent(null);
+      showToast('Student Deleted', `${student.name} was removed from database`, 'success');
+    } catch (err: any) {
+      showToast('Delete Failed', err?.message || 'Could not delete student from database', 'error');
+    }
+  };
 
   // Key KPI metrics calculations
   const totalStudents = students.length;
@@ -110,47 +289,37 @@ export const StudentsView: React.FC = () => {
     );
   };
 
-  const handleCreateStudent = (e: React.FormEvent) => {
+  const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStudentName || !newParentName) {
       showToast('Please fill in required fields', undefined, 'error');
       return;
     }
-    const newStudent: Student = {
-      id: `RAS-2026-${Math.floor(100 + Math.random() * 900)}`,
-      name: newStudentName,
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-      rollNo: `${newStudentClass.replace('Grade ', '')}-${newStudentSection}-99`,
-      class: newStudentClass,
-      section: newStudentSection,
-      parentName: newParentName,
-      parentPhone: newParentPhone || '+92 300 1234567',
-      parentEmail: 'parent@readacademy.edu.pk',
-      attendancePct: 98.0,
-      feeStatus: 'Paid',
-      status: 'Active',
-      dob: '2011-05-12',
-      gender: 'Male',
-      bloodGroup: 'O+',
-      address: 'Main Campus Area, Sahiwal, Punjab',
-      admissionDate: '2026-09-10',
-      emergencyContact: '+92 300 7982018',
-      recentMarks: [
-        { subject: 'Mathematics', marks: 88, total: 100, grade: 'A' },
-        { subject: 'Science', marks: 91, total: 100, grade: 'A+' }
-      ],
-      attendanceHistory: [{ month: 'Sep', present: 6, absent: 0, late: 0 }],
-      feeRecords: [
-        { voucherNo: 'V-2026-NEW', month: 'September 2026', amount: 32000, status: 'Paid', date: '2026-09-10' }
-      ]
-    };
-
-    setStudents([newStudent, ...students]);
-    setShowAddModal(false);
-    setNewStudentName('');
-    setNewParentName('');
-    setNewParentPhone('');
-    showToast('Student Enrolled Successfully', `${newStudent.name} added to ${newStudent.class}`, 'success');
+    try {
+      const res = await studentsApi.createStudent({
+        fullName: newStudentName,
+        classId: newStudentClass,
+        sectionId: newStudentSection,
+        parentName: newParentName,
+        parentPhone: newParentPhone || '+92 300 1234567',
+        parentEmail: 'parent@readacademy.edu.pk',
+        gender: 'MALE',
+        dob: '2011-05-12',
+        bloodGroup: 'O+',
+        homeAddress: 'Main Campus Area, Sahiwal, Punjab',
+        emergencyContact: '+92 300 7982018'
+      });
+      if (res?.data) {
+        setStudents((prev) => [mapBackendStudent(res.data), ...prev]);
+        setShowAddModal(false);
+        setNewStudentName('');
+        setNewParentName('');
+        setNewParentPhone('');
+        showToast('Student Enrolled Successfully', `${newStudentName} added into database`, 'success');
+      }
+    } catch (err: any) {
+      showToast('Enrollment Error', err.message || 'Failed to enroll student', 'error');
+    }
   };
 
   return (
@@ -287,7 +456,7 @@ export const StudentsView: React.FC = () => {
               {paidCount}
             </div>
             <div className="kpi-subtext" style={{ color: '#2e7d32' }}>
-              {Math.round((paidCount / totalStudents) * 100)}% clearance rate
+              {totalStudents > 0 ? Math.round((paidCount / totalStudents) * 100) : 0}% clearance rate
             </div>
           </div>
         </div>
@@ -363,19 +532,11 @@ export const StudentsView: React.FC = () => {
                 onChange={(e) => setSelectedClass(e.target.value)}
               >
                 <option value="All">All Classes</option>
-                <option value="Playgroup">Playgroup</option>
-                <option value="Nursery">Nursery</option>
-                <option value="Prep / KG">Prep / KG</option>
-                <option value="Grade 1">Grade 1</option>
-                <option value="Grade 2">Grade 2</option>
-                <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9 (SSC-I)</option>
-                <option value="Grade 10">Grade 10 (SSC-II)</option>
+                {classesList.map((cls) => (
+                  <option key={cls} value={cls}>
+                    {cls}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -517,11 +678,6 @@ export const StudentsView: React.FC = () => {
                           <div style={{ fontWeight: 700, color: '#0f172a' }}>{student.name}</div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                             <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{student.gender}</span>
-                            {/* Medical Blood Group Red Badge */}
-                            <span className="blood-badge" title="Blood Group">
-                              <Droplet size={9} fill="#E62929" />
-                              {student.bloodGroup}
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -537,21 +693,30 @@ export const StudentsView: React.FC = () => {
                     </td>
 
                     <td>
-                      <a
-                        href={`tel:${student.parentPhone}`}
-                        style={{
-                          fontSize: '0.82rem',
-                          color: '#0B3974',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          textDecoration: 'none'
-                        }}
-                        title="Click to call parent"
-                      >
-                        <Phone size={13} color="#0B3974" />
-                        <span>{student.parentPhone}</span>
-                      </a>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <a
+                          href={`tel:${student.parentPhone}`}
+                          style={{
+                            fontSize: '0.82rem',
+                            color: '#0B3974',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            textDecoration: 'none'
+                          }}
+                          title="Click to call parent"
+                        >
+                          <Phone size={13} color="#0B3974" />
+                          <span>{student.parentPhone}</span>
+                        </a>
+                        <WhatsAppButton
+                          phone={student.parentPhone}
+                          compact
+                          size="xs"
+                          message={`Assalam-o-Alaikum ${student.parentName}! This is Read Academy Administration regarding student ${student.name} (Roll No: ${student.rollNo}, Class: ${student.class}).`}
+                          title="Chat with Parent on WhatsApp"
+                        />
+                      </div>
                     </td>
 
                     <td>
@@ -625,31 +790,58 @@ export const StudentsView: React.FC = () => {
                       <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
                         {/* Red SMS button for Overdue fee reminder */}
                         {isOverdue && (
-                          <button
-                            onClick={() =>
-                              showToast(
-                                `SMS Notice Sent to ${student.parentName}`,
-                                `Overdue notice dispatched to ${student.parentPhone}`,
-                                'error'
-                              )
-                            }
-                            className="bca-btn bca-btn-red"
-                            style={{ padding: '6px 9px', fontSize: '0.75rem' }}
-                            title="Send Fee Alert SMS"
-                          >
-                            <Send size={13} />
-                            <span>SMS</span>
-                          </button>
+                          <>
+                            <WhatsAppButton
+                              phone={student.parentPhone}
+                              size="xs"
+                              label="WhatsApp Alert"
+                              message={`Assalam-o-Alaikum ${student.parentName}! This is Read Academy Administration. Please be informed that fee dues for ${student.name} (Roll: ${student.rollNo}, Class: ${student.class}) are currently OVERDUE. Kindly deposit the outstanding voucher at your earliest. JazakAllah.`}
+                              title="Send Fee Alert on WhatsApp"
+                            />
+                            <button
+                              onClick={() =>
+                                showToast(
+                                  `SMS Notice Sent to ${student.parentName}`,
+                                  `Overdue notice dispatched to ${student.parentPhone}`,
+                                  'error'
+                                )
+                              }
+                              className="bca-btn bca-btn-red"
+                              style={{ padding: '6px 9px', fontSize: '0.75rem' }}
+                              title="Send Fee Alert SMS"
+                            >
+                              <Send size={13} />
+                              <span>SMS</span>
+                            </button>
+                          </>
                         )}
 
                         <button
                           onClick={() => setSelectedStudent(student)}
                           className="bca-btn bca-btn-secondary"
-                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+                          style={{ padding: '6px 9px', fontSize: '0.78rem' }}
                           title="View Full Profile"
                         >
                           <Eye size={14} />
                           <span>Profile</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenEdit(student)}
+                          className="bca-btn bca-btn-secondary"
+                          style={{ padding: '6px 8px', color: '#2563eb' }}
+                          title="Edit Student Record"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteStudent(student)}
+                          className="bca-btn bca-btn-secondary"
+                          style={{ padding: '6px 8px', color: '#e11d48' }}
+                          title="Delete Student Record"
+                        >
+                          <Trash2 size={14} />
                         </button>
 
                         <button
@@ -695,11 +887,6 @@ export const StudentsView: React.FC = () => {
                   <div className="student-card-info">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
                       <div className="student-card-name">{student.name}</div>
-                      {/* Blood Group Red Badge */}
-                      <span className="blood-badge">
-                        <Droplet size={9} fill="#E62929" />
-                        {student.bloodGroup}
-                      </span>
                     </div>
 
                     <div className="student-card-meta">
@@ -755,22 +942,30 @@ export const StudentsView: React.FC = () => {
                   <div>
                     <div className="card-stat-label">Guardian</div>
                     <div className="card-stat-value">{student.parentName}</div>
-                    <a
-                      href={`tel:${student.parentPhone}`}
-                      style={{
-                        fontSize: '0.78rem',
-                        color: '#0B3974',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '3px',
-                        textDecoration: 'none',
-                        fontWeight: 600
-                      }}
-                    >
-                      <PhoneCall size={12} color="#0B3974" />
-                      <span>{student.parentPhone}</span>
-                    </a>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+                      <a
+                        href={`tel:${student.parentPhone}`}
+                        style={{
+                          fontSize: '0.78rem',
+                          color: '#0B3974',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          textDecoration: 'none',
+                          fontWeight: 600
+                        }}
+                      >
+                        <PhoneCall size={12} color="#0B3974" />
+                        <span>{student.parentPhone}</span>
+                      </a>
+                      <WhatsAppButton
+                        phone={student.parentPhone}
+                        compact
+                        size="xs"
+                        message={`Assalam-o-Alaikum ${student.parentName}! This is Read Academy Administration regarding student ${student.name} (Roll No: ${student.rollNo}, Class: ${student.class}).`}
+                        title="Chat with Parent on WhatsApp"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -816,7 +1011,25 @@ export const StudentsView: React.FC = () => {
                     className="bca-btn bca-btn-secondary"
                   >
                     <Eye size={14} />
-                    <span>View Profile</span>
+                    <span>Profile</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenEdit(student)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ flex: '0 0 auto', padding: '7px 10px', color: '#2563eb' }}
+                    title="Edit Student"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteStudent(student)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ flex: '0 0 auto', padding: '7px 10px', color: '#e11d48' }}
+                    title="Delete Student"
+                  >
+                    <Trash2 size={14} />
                   </button>
 
                   <button
@@ -862,20 +1075,28 @@ export const StudentsView: React.FC = () => {
           footer={
             <>
               {selectedStudent.feeStatus === 'Overdue' && (
-                <button
-                  onClick={() =>
-                    showToast(
-                      `Fee Reminder SMS sent to ${selectedStudent.parentName}`,
-                      `Contact: ${selectedStudent.parentPhone}`,
-                      'error'
-                    )
-                  }
-                  className="bca-btn bca-btn-red"
-                  style={{ marginRight: 'auto' }}
-                >
-                  <Send size={14} />
-                  <span>Send Fee Reminder SMS</span>
-                </button>
+                <div style={{ display: 'flex', gap: '6px', marginRight: 'auto' }}>
+                  <WhatsAppButton
+                    phone={selectedStudent.parentPhone}
+                    size="sm"
+                    label="WhatsApp Fee Alert"
+                    message={`Assalam-o-Alaikum ${selectedStudent.parentName}! This is Read Academy Administration. Please be informed that fee dues for ${selectedStudent.name} (Roll: ${selectedStudent.rollNo}, Class: ${selectedStudent.class}) are currently OVERDUE. Kindly deposit the outstanding voucher at your earliest. JazakAllah.`}
+                    title="Send Fee Alert on WhatsApp"
+                  />
+                  <button
+                    onClick={() =>
+                      showToast(
+                        `Fee Reminder SMS sent to ${selectedStudent.parentName}`,
+                        `Contact: ${selectedStudent.parentPhone}`,
+                        'error'
+                      )
+                    }
+                    className="bca-btn bca-btn-red"
+                  >
+                    <Send size={14} />
+                    <span>Send SMS</span>
+                  </button>
+                </div>
               )}
               <button
                 onClick={() => showToast(`Student record for ${selectedStudent.name} saved`, undefined, 'success')}
@@ -913,12 +1134,6 @@ export const StudentsView: React.FC = () => {
               <div style={{ flex: 1 }}>
                 <div className="student-badges-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h3 style={{ margin: 0, fontSize: '1.3rem', color: '#0B3974' }}>{selectedStudent.name}</h3>
-
-                  {/* Blood Group Red Badge */}
-                  <span className="blood-badge">
-                    <Droplet size={10} fill="#E62929" />
-                    Blood Group: {selectedStudent.bloodGroup}
-                  </span>
 
                   {selectedStudent.feeStatus === 'Overdue' ? (
                     <span
@@ -963,20 +1178,24 @@ export const StudentsView: React.FC = () => {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#E62929', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Emergency Medical & Campus Contact
+                  Emergency Medical &amp; Campus Contact
                 </div>
                 <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a' }}>
-                  {selectedStudent.emergencyContact} (Parent Hotline)
+                  {selectedStudent.emergencyContact
+                    ? `${selectedStudent.emergencyContact} (Parent Hotline)`
+                    : <span style={{ color: '#94a3b8', fontStyle: 'italic', fontWeight: 500 }}>Not Provided</span>}
                 </div>
               </div>
-              <a
-                href={`tel:${selectedStudent.emergencyContact}`}
-                className="bca-btn bca-btn-red"
-                style={{ padding: '6px 12px', fontSize: '0.78rem' }}
-              >
-                <PhoneCall size={13} />
-                <span>Call Now</span>
-              </a>
+              {selectedStudent.emergencyContact && (
+                <a
+                  href={`tel:${selectedStudent.emergencyContact}`}
+                  className="bca-btn bca-btn-red"
+                  style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                >
+                  <PhoneCall size={13} />
+                  <span>Call Now</span>
+                </a>
+              )}
             </div>
 
             {/* 8 Tabs Bar (Horizontally scrollable with touch) */}
@@ -1029,15 +1248,17 @@ export const StudentsView: React.FC = () => {
             {/* Tab 1: Overview */}
             {profileActiveTab === 'Overview' && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-                <div className="bca-card" style={{ padding: '16px', borderLeft: '4px solid #4CAF50' }}>
+                <div className="bca-card" style={{ padding: '16px', borderLeft: `4px solid ${selectedStudent.recentMarks.length > 0 ? '#4CAF50' : '#cbd5e1'}` }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                    Academic Standing
+                    Academic Results
                   </span>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#2e7d32', margin: '6px 0' }}>
-                    Grade A+ (94%)
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#2e7d32', margin: '6px 0' }}>
+                    {selectedStudent.recentMarks.length > 0
+                      ? `${selectedStudent.recentMarks.length} Subject(s) Recorded`
+                      : <span style={{ color: '#94a3b8', fontSize: '0.9rem', fontStyle: 'italic' }}>No Results Yet</span>}
                   </div>
                   <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
-                    Top 5% in {selectedStudent.class}
+                    Class: {selectedStudent.class}
                   </p>
                 </div>
 
@@ -1045,7 +1266,7 @@ export const StudentsView: React.FC = () => {
                   className="bca-card"
                   style={{
                     padding: '16px',
-                    borderLeft: selectedStudent.attendancePct < 85 ? '4px solid #E62929' : '4px solid #0B3974'
+                    borderLeft: selectedStudent.attendancePct !== null && selectedStudent.attendancePct < 85 ? '4px solid #E62929' : '4px solid #0B3974'
                   }}
                 >
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
@@ -1055,14 +1276,16 @@ export const StudentsView: React.FC = () => {
                     style={{
                       fontSize: '1.4rem',
                       fontWeight: 800,
-                      color: selectedStudent.attendancePct < 85 ? '#E62929' : '#0B3974',
+                      color: selectedStudent.attendancePct !== null && selectedStudent.attendancePct < 85 ? '#E62929' : '#0B3974',
                       margin: '6px 0'
                     }}
                   >
-                    {selectedStudent.attendancePct}%
+                    {selectedStudent.attendancePct !== null ? `${selectedStudent.attendancePct}%` : <span style={{ color: '#94a3b8', fontSize: '0.9rem', fontStyle: 'italic' }}>Not Available</span>}
                   </div>
                   <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
-                    96 days present out of 100
+                    {selectedStudent.attendanceHistory.length > 0
+                      ? `${selectedStudent.attendanceHistory[0].present} days present recorded`
+                      : 'No attendance records yet'}
                   </p>
                 </div>
 
@@ -1088,9 +1311,9 @@ export const StudentsView: React.FC = () => {
                     {selectedStudent.feeStatus}
                   </div>
                   <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
-                    {selectedStudent.feeStatus === 'Overdue'
-                      ? 'Term 1 voucher pending payment'
-                      : 'Term 1 vouchers reconciled'}
+                    {selectedStudent.feeRecords.length > 0
+                      ? `${selectedStudent.feeRecords.length} voucher(s) on record`
+                      : 'No fee vouchers issued yet'}
                   </p>
                 </div>
               </div>
@@ -1100,24 +1323,20 @@ export const StudentsView: React.FC = () => {
             {profileActiveTab === 'Personal Information' && (
               <div className="profile-info-grid">
                 <div><strong>Full Name:</strong> {selectedStudent.name}</div>
-                <div><strong>Date of Birth:</strong> {selectedStudent.dob}</div>
+                <div><strong>Date of Birth:</strong> {selectedStudent.dob || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}</div>
                 <div><strong>Gender:</strong> {selectedStudent.gender}</div>
+                <div><strong>Admission Date:</strong> {selectedStudent.admissionDate || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}</div>
                 <div>
-                  <strong>Blood Group:</strong>{' '}
-                  <span className="blood-badge">
-                    <Droplet size={10} fill="#E62929" />
-                    {selectedStudent.bloodGroup}
-                  </span>
-                </div>
-                <div><strong>Admission Date:</strong> {selectedStudent.admissionDate}</div>
-                <div>
-                  <strong style={{ color: '#E62929' }}>Emergency Contact:</strong> {selectedStudent.emergencyContact}
+                  <strong style={{ color: '#E62929' }}>Emergency Contact:</strong>{' '}
+                  {selectedStudent.emergencyContact || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}
                 </div>
                 <div style={{ gridColumn: 'span 1' }}>
-                  <strong>Residential Address:</strong> {selectedStudent.address}
+                  <strong>Residential Address:</strong>{' '}
+                  {selectedStudent.address || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}
                 </div>
                 <div style={{ gridColumn: 'span 1' }}>
-                  <strong>Previous School:</strong> {selectedStudent.previousSchool || 'Beaconhouse School System'}
+                  <strong>Previous School:</strong>{' '}
+                  {selectedStudent.previousSchool || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}
                 </div>
               </div>
             )}
@@ -1126,16 +1345,26 @@ export const StudentsView: React.FC = () => {
             {profileActiveTab === 'Parent Information' && (
               <div className="profile-info-grid">
                 <div><strong>Father / Guardian Name:</strong> {selectedStudent.parentName}</div>
-                <div><strong>Relationship:</strong> Father</div>
-                <div>
+                <div><strong>Relationship:</strong> Father / Guardian</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <strong>Primary Phone:</strong>{' '}
-                  <a href={`tel:${selectedStudent.parentPhone}`} style={{ color: '#0B3974', fontWeight: 600 }}>
-                    {selectedStudent.parentPhone}
-                  </a>
+                  {selectedStudent.parentPhone !== 'Not Provided' ? (
+                    <>
+                      <a href={`tel:${selectedStudent.parentPhone}`} style={{ color: '#0B3974', fontWeight: 600 }}>
+                        {selectedStudent.parentPhone}
+                      </a>
+                      <WhatsAppButton
+                        phone={selectedStudent.parentPhone}
+                        size="xs"
+                        label="WhatsApp"
+                        message={`Assalam-o-Alaikum ${selectedStudent.parentName}! This is Read Academy Administration regarding student ${selectedStudent.name} (Roll No: ${selectedStudent.rollNo}).`}
+                      />
+                    </>
+                  ) : (
+                    <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>
+                  )}
                 </div>
-                <div><strong>Email Address:</strong> {selectedStudent.parentEmail}</div>
-                <div><strong>CNIC / Identity:</strong> 36501-9482710-3</div>
-                <div><strong>Occupation:</strong> Corporate Professional / Business</div>
+                <div><strong>Email Address:</strong>{' '}{selectedStudent.parentEmail !== 'Not Provided' ? selectedStudent.parentEmail : <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}</div>
               </div>
             )}
 
@@ -1193,9 +1422,17 @@ export const StudentsView: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                   <h4 style={{ margin: 0, color: '#0B3974' }}>Recent Fee Vouchers & Payments</h4>
-                  {selectedStudent.feeStatus === 'Overdue' && (
+                  {selectedStudent.feeStatus === 'Overdue' ? (
                     <span className="bca-badge bca-badge-overdue" style={{ fontWeight: 700 }}>
                       <span className="overdue-pulse-dot" /> Action Required: Overdue Voucher
+                    </span>
+                  ) : selectedStudent.feeStatus === 'Pending' ? (
+                    <span className="bca-badge bca-badge-pending" style={{ fontWeight: 700, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                      Pending Payment
+                    </span>
+                  ) : (
+                    <span className="bca-badge bca-badge-paid" style={{ fontWeight: 700 }}>
+                      All Dues Cleared
                     </span>
                   )}
                 </div>
@@ -1207,47 +1444,73 @@ export const StudentsView: React.FC = () => {
                         <th>Billing Month</th>
                         <th>Total Amount</th>
                         <th>Status</th>
-                        <th>Reconciled Date</th>
+                        <th>Payment / Due Date</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedStudent.feeRecords.map((fee, idx) => {
-                        const isRecordOverdue = fee.status === 'Overdue';
+                      {selectedStudent.feeRecords && selectedStudent.feeRecords.length > 0 ? (
+                        selectedStudent.feeRecords.map((fee, idx) => {
+                          const isRecordOverdue = fee.status === 'Overdue';
+                          const isRecordPaid = fee.status === 'Paid';
 
-                        return (
-                          <tr key={idx} className={isRecordOverdue ? 'row-overdue' : ''}>
-                            <td><code>{fee.voucherNo}</code></td>
-                            <td>{fee.month}</td>
-                            <td>
-                              <strong style={{ color: isRecordOverdue ? '#E62929' : 'inherit' }}>
-                                Rs. {fee.amount.toLocaleString()}
-                              </strong>
-                            </td>
-                            <td>
-                              {isRecordOverdue ? (
-                                <span
-                                  className="bca-badge bca-badge-overdue"
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    fontWeight: 700,
-                                    color: '#E62929',
-                                    backgroundColor: '#feecec',
-                                    borderColor: '#fca5a5'
-                                  }}
-                                >
-                                  <span className="overdue-pulse-dot" />
-                                  Overdue
-                                </span>
-                              ) : (
-                                <span className="bca-badge bca-badge-paid">{fee.status}</span>
-                              )}
-                            </td>
-                            <td>{fee.date}</td>
-                          </tr>
-                        );
-                      })}
+                          return (
+                            <tr key={idx} className={isRecordOverdue ? 'row-overdue' : ''}>
+                              <td><code>{fee.voucherNo}</code></td>
+                              <td>{fee.month}</td>
+                              <td>
+                                <strong style={{ color: isRecordOverdue ? '#E62929' : 'inherit' }}>
+                                  Rs. {fee.amount.toLocaleString()}
+                                </strong>
+                              </td>
+                              <td>
+                                {isRecordOverdue ? (
+                                  <span
+                                    className="bca-badge bca-badge-overdue"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      fontWeight: 700,
+                                      color: '#E62929',
+                                      backgroundColor: '#feecec',
+                                      borderColor: '#fca5a5'
+                                    }}
+                                  >
+                                    <span className="overdue-pulse-dot" />
+                                    Overdue
+                                  </span>
+                                ) : isRecordPaid ? (
+                                  <span className="bca-badge bca-badge-paid">Paid</span>
+                                ) : (
+                                  <span
+                                    className="bca-badge bca-badge-pending"
+                                    style={{
+                                      background: '#fef3c7',
+                                      color: '#92400e',
+                                      border: '1px solid #fde68a',
+                                      fontWeight: 700
+                                    }}
+                                  >
+                                    Pending (Unpaid)
+                                  </span>
+                                )}
+                              </td>
+                              <td>{fee.date}</td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={5} style={{ textAlign: 'center', padding: '30px 15px', color: '#64748b' }}>
+                            <div style={{ fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                              No fee vouchers or payment records found for this student.
+                            </div>
+                            <div style={{ fontSize: '0.78rem' }}>
+                              Fee vouchers issued from Fee Management or Admissions will automatically synchronize here.
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1300,23 +1563,11 @@ export const StudentsView: React.FC = () => {
             {/* Tab 7: Progress */}
             {profileActiveTab === 'Progress' && (
               <div>
-                <h4 style={{ margin: '0 0 12px 0', color: '#0B3974' }}>Teacher Remarks & Growth Index</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #4CAF50' }}>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
-                      Prof. Junaid Iqbal (Physics) • Term Mid-Review
-                    </div>
-                    <p style={{ margin: '6px 0 0', fontSize: '0.88rem', color: '#1e293b' }}>
-                      "Demonstrates rare analytical rigor in mechanics. Participated actively in STEM robotics projects and mentored junior cohort."
-                    </p>
-                  </div>
-                  <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #0B3974' }}>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
-                      Ms. Ayesha Siddiqui (English) • Essay Assessment
-                    </div>
-                    <p style={{ margin: '6px 0 0', fontSize: '0.88rem', color: '#1e293b' }}>
-                      "Expressive writing with strong lexical variety. Recommending for inter-school parliamentary debate council."
-                    </p>
+                <h4 style={{ margin: '0 0 12px 0', color: '#0B3974' }}>Teacher Remarks &amp; Growth Index</h4>
+                <div style={{ textAlign: 'center', padding: '36px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                  <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.92rem' }}>No Remarks Added Yet</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                    No teacher remarks or growth notes have been recorded for {selectedStudent.name}.
                   </div>
                 </div>
               </div>
@@ -1324,34 +1575,12 @@ export const StudentsView: React.FC = () => {
 
             {/* Tab 8: Documents */}
             {profileActiveTab === 'Documents' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                {[
-                  'Birth Certificate (NADRA B-Form).pdf',
-                  'Past School Leaving Certificate.pdf',
-                  'Vaccination Immunization Record.pdf',
-                  'Passport Sized Photo (White BG).jpg'
-                ].map((doc, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: '12px',
-                      borderRadius: '10px',
-                      border: '1px solid #e2e8f0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      background: '#ffffff'
-                    }}
-                  >
-                    <FileText size={20} color="#0B3974" />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {doc}
-                      </div>
-                      <span style={{ fontSize: '0.7rem', color: '#2e7d32', fontWeight: 600 }}>Verified</span>
-                    </div>
-                  </div>
-                ))}
+              <div style={{ textAlign: 'center', padding: '36px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                <FileText size={36} color="#94a3b8" style={{ margin: '0 auto 10px' }} />
+                <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.92rem' }}>No Uploaded Verification Documents</div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                  No digital files (B-Form, leaving certificate, or photos) have been uploaded for {selectedStudent.name}.
+                </div>
               </div>
             )}
           </div>
@@ -1402,19 +1631,11 @@ export const StudentsView: React.FC = () => {
                 onChange={(e) => setNewStudentClass(e.target.value)}
                 style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               >
-                <option value="Playgroup">Playgroup</option>
-                <option value="Nursery">Nursery</option>
-                <option value="Prep / KG">Prep / KG</option>
-                <option value="Grade 1">Grade 1</option>
-                <option value="Grade 2">Grade 2</option>
-                <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9 (SSC-I)</option>
-                <option value="Grade 10">Grade 10 (SSC-II)</option>
+                {classesList.map((cls) => (
+                  <option key={cls} value={cls}>
+                    {cls}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -1484,6 +1705,107 @@ export const StudentsView: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* EDIT STUDENT MODAL */}
+      {showEditModal && editingStudent && (
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title={`Edit Student — ${editingStudent.name}`}
+          subtitle={`Roll No: ${editingStudent.rollNo} • ID: ${editingStudent.id}`}
+          maxWidth="560px"
+          footer={
+            <>
+              <button onClick={() => setShowEditModal(false)} className="bca-btn bca-btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleSaveEdit} className="bca-btn bca-btn-primary">
+                Save Changes
+              </button>
+            </>
+          }
+        >
+          <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Full Student Name
+              </label>
+              <input
+                type="text"
+                required
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Grade / Class
+                </label>
+                <input
+                  type="text"
+                  value={editClass}
+                  onChange={(e) => setEditClass(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Section
+                </label>
+                <input
+                  type="text"
+                  value={editSection}
+                  onChange={(e) => setEditSection(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Parent / Guardian Name
+                </label>
+                <input
+                  type="text"
+                  value={editParentName}
+                  onChange={(e) => setEditParentName(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Guardian Phone
+                </label>
+                <input
+                  type="text"
+                  value={editParentPhone}
+                  onChange={(e) => setEditParentPhone(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Fee Status
+              </label>
+              <select
+                value={editFeeStatus}
+                onChange={(e) => setEditFeeStatus(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };

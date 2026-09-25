@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -24,10 +24,11 @@ import {
   ChevronRight,
   School,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
-import { SCHOOL_INFO } from '../../mockData';
+import { adminApi } from '../../services/api';
 
 interface SidebarProps {
   currentTab: AdminTab;
@@ -43,16 +44,14 @@ interface NavItemConfig {
   id: AdminTab;
   label: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
-  badge?: string;
-  badgeType?: 'primary' | 'emerald' | 'amber' | 'rose';
   category: 'MAIN' | 'ACADEMIC' | 'STAFF' | 'FINANCE' | 'CMS & COMMS' | 'SYSTEM';
 }
 
 const NAV_ITEMS: NavItemConfig[] = [
   // MAIN
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, category: 'MAIN' },
-  { id: 'admissions', label: 'Admissions', icon: UserPlus, badge: '18 New', badgeType: 'rose', category: 'MAIN' },
-  { id: 'students', label: 'Students', icon: Users, badge: '1,248', category: 'MAIN' },
+  { id: 'admissions', label: 'Admissions', icon: UserPlus, category: 'MAIN' },
+  { id: 'students', label: 'Students', icon: Users, category: 'MAIN' },
 
   // ACADEMIC
   { id: 'attendance', label: 'Attendance', icon: CheckSquare, category: 'ACADEMIC' },
@@ -65,20 +64,22 @@ const NAV_ITEMS: NavItemConfig[] = [
   // STAFF
   { id: 'teachers', label: 'Teachers & Staff', icon: GraduationCap, category: 'STAFF' },
   { id: 'teacher-duties', label: 'Teacher Duties', icon: Briefcase, category: 'STAFF' },
+  { id: 'careers', label: 'Careers & Hiring', icon: UserCheck, category: 'STAFF' },
 
   // FINANCE
-  { id: 'fees', label: 'Fees & Vouchers', icon: Receipt, badge: 'Due', badgeType: 'rose', category: 'FINANCE' },
+  { id: 'fees', label: 'Fees & Vouchers', icon: Receipt, category: 'FINANCE' },
   { id: 'payroll', label: 'Payroll', icon: DollarSign, category: 'FINANCE' },
   { id: 'accounts', label: 'Accounts (P&L)', icon: PieChart, category: 'FINANCE' },
   { id: 'reports', label: 'Reports', icon: FileSpreadsheet, category: 'FINANCE' },
 
   // CMS & COMMS
-  { id: 'notices', label: 'Notices', icon: Bell, badge: '4 New', badgeType: 'rose', category: 'CMS & COMMS' },
+  { id: 'notices', label: 'Notices', icon: Bell, category: 'CMS & COMMS' },
   { id: 'blogs', label: 'Blogs CMS', icon: PenTool, category: 'CMS & COMMS' },
   { id: 'gallery', label: 'Gallery CMS', icon: Image, category: 'CMS & COMMS' },
   { id: 'events', label: 'Events CMS', icon: CalendarCheck, category: 'CMS & COMMS' },
 
   // SYSTEM
+  { id: 'roles', label: 'Roles & Permissions', icon: ShieldCheck, category: 'SYSTEM' },
   { id: 'settings', label: 'Settings', icon: Settings, category: 'SYSTEM' }
 ];
 
@@ -92,6 +93,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSwitchToPublic
 }) => {
   const categories = ['MAIN', 'ACADEMIC', 'STAFF', 'FINANCE', 'CMS & COMMS', 'SYSTEM'] as const;
+  const [stats, setStats] = useState<{ pendingAdmissions?: number; totalStudents?: number } | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    adminApi.getDashboard().then((res) => {
+      if (isMounted && res?.data?.stats) {
+        setStats({
+          pendingAdmissions: res.data.stats.pendingAdmissions,
+          totalStudents: res.data.stats.totalStudents
+        });
+      }
+    }).catch(() => {});
+    return () => { isMounted = false; };
+  }, [currentTab]);
+
+  const getDynamicBadge = (itemId: AdminTab) => {
+    if (itemId === 'admissions' && stats?.pendingAdmissions !== undefined && stats.pendingAdmissions > 0) {
+      return { text: `${stats.pendingAdmissions} New`, type: 'rose' as const };
+    }
+    if (itemId === 'students' && stats?.totalStudents !== undefined && stats.totalStudents > 0) {
+      return { text: stats.totalStudents.toLocaleString(), type: 'primary' as const };
+    }
+    return null;
+  };
 
   return (
     <>
@@ -214,27 +239,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {item.label}
                           </span>
-                          {item.badge && (
-                            <span
-                              style={{
-                                fontSize: '0.68rem',
-                                padding: '1px 6px',
-                                borderRadius: '10px',
-                                fontWeight: 800,
-                                background:
-                                  item.badgeType === 'emerald'
-                                    ? '#4CAF50'
-                                    : item.badgeType === 'amber'
-                                    ? '#FFD700'
-                                    : item.badgeType === 'rose'
-                                    ? '#E62929'
-                                    : '#0B3974',
-                                color: item.badgeType === 'amber' ? '#061d3d' : '#ffffff'
-                              }}
-                            >
-                              {item.badge}
-                            </span>
-                          )}
+                          {(() => {
+                            const badge = getDynamicBadge(item.id);
+                            if (!badge) return null;
+                            return (
+                              <span
+                                style={{
+                                  fontSize: '0.68rem',
+                                  padding: '1px 6px',
+                                  borderRadius: '10px',
+                                  fontWeight: 800,
+                                  background: badge.type === 'rose' ? '#E62929' : '#0B3974',
+                                  color: '#ffffff'
+                                }}
+                              >
+                                {badge.text}
+                              </span>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>

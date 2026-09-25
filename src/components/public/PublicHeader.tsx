@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   School,
   Phone,
   Mail,
   LogIn,
+  LogOut,
   Menu,
   X,
   ArrowRight,
   Clock
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../mockData';
+import { useAuth } from '../../context/AuthContext';
 
 interface PublicHeaderProps {
   activePage: string;
@@ -24,7 +26,23 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
   onOpenAdmin,
   onOpenApply
 }) => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handlePortalRedirect = () => {
+    if (!user) {
+      handleNavClick('login');
+      return;
+    }
+    if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+      navigate('/admin/dashboard');
+    } else if (user.role === 'TEACHER') {
+      navigate('/portal/teacher');
+    } else {
+      navigate('/portal/student');
+    }
+  };
 
   const navLinks = [
     { id: 'home', label: 'Home' },
@@ -32,6 +50,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
     { id: 'academics', label: 'Academics' },
     { id: 'admissions', label: 'Admissions' },
     { id: 'teachers', label: 'Faculty' },
+    { id: 'careers', label: 'Careers' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'events', label: 'Events' },
     { id: 'blog', label: 'Insights & News' },
@@ -112,61 +131,99 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
           })}
         </nav>
 
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          {/* Portal Login Button */}
-          <button
-            onClick={() => handleNavClick('login')}
-            className="bca-btn hidden md:inline-flex"
-            style={{
-              padding: '6px 12px',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              backgroundColor: activePage === 'login' ? '#feecec' : '#f8fafc',
-              color: '#E62929',
-              border: '1px solid #fecaca',
-              borderRadius: '8px'
-            }}
-          >
-            <LogIn size={13} color="#E62929" />
-            <span>Portal Login</span>
-          </button>
+        {/* Action Buttons: Only Login and Apply Now */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+          {/* Login or Active Portal Button */}
+          {user ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={handlePortalRedirect}
+                className="bca-btn"
+                style={{
+                  padding: '7px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 800,
+                  backgroundColor: '#eff6ff',
+                  color: '#0B3974',
+                  border: '1.5px solid #bfdbfe',
+                  borderRadius: '8px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer'
+                }}
+                title={`Logged in as ${user.fullName} (${user.role}) - Click to open ERP`}
+              >
+                <LogIn size={14} color="#0B3974" />
+                <span>{user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' ? 'Admin ERP' : `${user.role} Portal`}</span>
+              </button>
 
-          {/* Register / Sign Up Button */}
-          <button
-            onClick={() => handleNavClick('signup')}
-            className="bca-btn hidden xl:inline-flex"
-            style={{
-              padding: '6px 12px',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              backgroundColor: activePage === 'signup' ? '#0B3974' : '#eff6ff',
-              color: activePage === 'signup' ? '#ffffff' : '#0B3974',
-              border: '1px solid #bfdbfe',
-              borderRadius: '8px'
-            }}
-          >
-            <span>Register</span>
-          </button>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="bca-btn"
+                style={{
+                  padding: '7px 12px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  backgroundColor: '#fff1f2',
+                  color: '#e11d48',
+                  border: '1.5px solid #fecdd3',
+                  borderRadius: '8px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  cursor: 'pointer'
+                }}
+                title="Logout from session"
+              >
+                <LogOut size={13} color="#e11d48" />
+                <span>Logout</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => handleNavClick('login')}
+              className="bca-btn"
+              style={{
+                padding: '7px 16px',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                backgroundColor: activePage === 'login' ? '#feecec' : '#ffffff',
+                color: '#E62929',
+                border: '1.5px solid #fecaca',
+                borderRadius: '8px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title="Institutional Login"
+            >
+              <LogIn size={14} color="#E62929" />
+              <span>Login</span>
+            </button>
+          )}
 
           {/* Apply Now button */}
           <button
             onClick={onOpenApply}
-            className="bca-btn bca-btn-gold hidden sm:inline-flex"
-            style={{ padding: '7px 14px', fontSize: '0.8rem' }}
+            className="bca-btn bca-btn-gold"
+            style={{
+              padding: '7px 16px',
+              fontSize: '0.82rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              borderRadius: '8px',
+              fontWeight: 800
+            }}
           >
             <span>Apply Now</span>
             <ArrowRight size={14} />
-          </button>
-
-          {/* Mobile hamburger toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="bca-btn bca-btn-secondary flex lg:hidden items-center p-2"
-            style={{ padding: '6px 10px', width: '36px', height: '36px', justifyContent: 'center' }}
-            aria-label="Toggle navigation"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
@@ -214,39 +271,57 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
             </button>
           ))}
           <div style={{ paddingTop: '10px', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => handleNavClick('login')}
-                className="bca-btn bca-btn-gold"
-                style={{ flex: 1, justifyContent: 'center', fontSize: '0.84rem' }}
-              >
-                <LogIn size={15} /> Portal Login
-              </button>
-              <button
-                onClick={() => handleNavClick('signup')}
-                className="bca-btn bca-btn-secondary"
-                style={{ flex: 1, justifyContent: 'center', fontSize: '0.84rem' }}
-              >
-                Sign Up
-              </button>
-            </div>
-            <button
-              onClick={() => { setMobileMenuOpen(false); onOpenAdmin(); }}
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '8px',
-                border: '1px solid #fecaca',
-                backgroundColor: '#feecec',
-                color: '#E62929',
-                fontWeight: 800,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                textAlign: 'center'
-              }}
-            >
-              🛡️ Enter Super Admin ERP Portal
-            </button>
+            {user ? (
+              <>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handlePortalRedirect();
+                  }}
+                  className="bca-btn bca-btn-primary"
+                  style={{ width: '100%', justifyContent: 'center', fontSize: '0.86rem', padding: '10px' }}
+                >
+                  <LogIn size={15} /> Open {user.role === 'SUPER_ADMIN' || user.role === 'ADMIN' ? 'Admin ERP' : `${user.role} Portal`}
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="bca-btn"
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    fontSize: '0.84rem',
+                    padding: '8px',
+                    color: '#e11d48',
+                    backgroundColor: '#fff1f2',
+                    border: '1px solid #fecdd3',
+                    borderRadius: '8px'
+                  }}
+                >
+                  <LogOut size={14} /> Logout ({user.fullName})
+                </button>
+              </>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => handleNavClick('login')}
+                  className="bca-btn bca-btn-gold"
+                  style={{ flex: 1, justifyContent: 'center', fontSize: '0.84rem' }}
+                >
+                  <LogIn size={15} /> Portal Login
+                </button>
+                <button
+                  onClick={() => handleNavClick('signup')}
+                  className="bca-btn bca-btn-secondary"
+                  style={{ flex: 1, justifyContent: 'center', fontSize: '0.84rem' }}
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
