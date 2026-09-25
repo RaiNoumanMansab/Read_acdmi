@@ -1,0 +1,9 @@
+{
+  "git.repositoryScanMaxDepth": 1,
+  "git.ignoredRepositories": [
+    "d:/Read Acdmi/backend",
+    "d:/Read Acdmi/Read_acdmi",
+    "D:/Read Acdmi/backend",
+    "D:/Read Acdmi/Read_acdmi"
+  ]
+}
