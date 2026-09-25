@@ -72,12 +72,10 @@ async function ensureDefaults() {
       }
     }
   } catch (err) {
-    console.error('ensureDefaults error:', err);
+    console.warn('ensureDefaults warning:', (err as any)?.message || err);
   }
 }
 
-// Auto-seed on route init
-ensureDefaults();
 
 // GET /api/settings - Fetch all settings
 router.get('/', async (_req: Request, res: Response): Promise<void> => {
