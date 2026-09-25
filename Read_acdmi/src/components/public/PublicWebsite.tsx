@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { PublicFooter } from './PublicFooter';
 import { HomePage } from './pages/HomePage';
@@ -12,10 +13,12 @@ import { BlogPublicPage } from './pages/BlogPublicPage';
 import { ContactPage } from './pages/ContactPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
+import { CareersPage } from './pages/CareersPage';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
 import { CheckCircle, Upload, FileText, Paperclip, Trash2 } from 'lucide-react';
 import { admissionsApi, academicsApi } from '../../services/api';
+import { FloatingWhatsApp } from './FloatingWhatsApp';
 
 interface PublicWebsiteProps {
   onOpenAdmin: () => void;
@@ -25,11 +28,33 @@ interface UploadedDoc {
   docType: string;
   fileName: string;
   fileSize: string;
+  fileData?: string;
+  fileType?: string;
 }
 
 export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => {
   const { showToast } = useToast();
-  const [activePage, setActivePage] = useState('home');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getPageFromPath = (path: string): string => {
+    const clean = path.replace(/^\//, '').toLowerCase();
+    if (!clean || clean === '') return 'home';
+    if (clean === 'about' || clean === 'about-us') return 'about';
+    if (clean === 'academics') return 'academics';
+    if (clean === 'admissions' || clean === 'admission') return 'admissions';
+    if (clean === 'teachers' || clean === 'faculty') return 'teachers';
+    if (clean === 'careers' || clean === 'career' || clean === 'jobs' || clean === 'job') return 'careers';
+    if (clean === 'gallery') return 'gallery';
+    if (clean === 'events' || clean === 'event') return 'events';
+    if (clean === 'blog' || clean === 'news' || clean === 'insights') return 'blog';
+    if (clean === 'contact' || clean === 'contact-us') return 'contact';
+    if (clean === 'login' || clean === 'signin') return 'login';
+    if (clean === 'signup' || clean === 'register') return 'signup';
+    return 'home';
+  };
+
+  const activePage = getPageFromPath(location.pathname);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
 
   // Quick Apply Modal Form State
@@ -76,15 +101,20 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
     }
 
     const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-    setUploadedFiles((prev) => {
-      const filtered = prev.filter((f) => f.docType !== docType);
-      return [...filtered, { docType, fileName: file.name, fileSize: sizeStr }];
-    });
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setUploadedFiles((prev) => {
+        const filtered = prev.filter((f) => f.docType !== docType);
+        return [...filtered, { docType, fileName: file.name, fileSize: sizeStr, fileData: dataUrl, fileType: file.type }];
+      });
 
-    if (!selectedDocs.includes(docType)) {
-      setSelectedDocs((prev) => [...prev, docType]);
-    }
-    showToast('Document Attached', `${file.name} attached for ${docType}`, 'success');
+      if (!selectedDocs.includes(docType)) {
+        setSelectedDocs((prev) => [...prev, docType]);
+      }
+      showToast('Document Attached', `${file.name} attached for ${docType}`, 'success');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRemoveUploadedDoc = (docType: string) => {
@@ -117,17 +147,42 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
 
     setIsSubmitting(true);
     try {
-      const finalDocuments = selectedDocs.map((docType) => {
+      const finalDocuments: any[] = [];
+      selectedDocs.forEach((docType) => {
         const attached = uploadedFiles.find((f) => f.docType === docType);
         if (attached) {
-          return `${docType} [Attached: ${attached.fileName} (${attached.fileSize})]`;
+          finalDocuments.push({
+            id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            name: attached.fileName,
+            docType: attached.docType,
+            fileSize: attached.fileSize,
+            fileType: attached.fileType || 'application/octet-stream',
+            dataUrl: attached.fileData,
+            uploadedAt: new Date().toISOString()
+          });
+        } else {
+          finalDocuments.push({
+            id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            name: docType,
+            docType: docType,
+            fileSize: 'Physical Copy / Pending',
+            fileType: 'text/plain',
+            uploadedAt: new Date().toISOString()
+          });
         }
-        return docType;
       });
 
       uploadedFiles.forEach((f) => {
         if (!selectedDocs.includes(f.docType)) {
-          finalDocuments.push(`Additional Document: ${f.fileName} (${f.fileSize})`);
+          finalDocuments.push({
+            id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            name: f.fileName,
+            docType: f.docType,
+            fileSize: f.fileSize,
+            fileType: f.fileType || 'application/octet-stream',
+            dataUrl: f.fileData,
+            uploadedAt: new Date().toISOString()
+          });
         }
       });
 
@@ -175,7 +230,11 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
   };
 
   const handleNavigate = (page: string) => {
-    setActivePage(page);
+    if (page === 'home') {
+      navigate('/');
+    } else {
+      navigate(`/${page}`);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -196,6 +255,7 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
         {activePage === 'academics' && <AcademicsPage onOpenApply={() => setApplyModalOpen(true)} />}
         {activePage === 'admissions' && <AdmissionsPublicPage />}
         {activePage === 'teachers' && <TeachersPublicPage />}
+        {activePage === 'careers' && <CareersPage />}
         {activePage === 'gallery' && <GalleryPublicPage />}
         {activePage === 'events' && <EventsPublicPage />}
         {activePage === 'blog' && <BlogPublicPage />}
@@ -569,10 +629,20 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
                     if (e.target.files && e.target.files.length > 0) {
                       Array.from(e.target.files).forEach((file) => {
                         const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-                        setUploadedFiles((prev) => [
-                          ...prev,
-                          { docType: `Additional (${file.name})`, fileName: file.name, fileSize: sizeStr }
-                        ]);
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setUploadedFiles((prev) => [
+                            ...prev,
+                            {
+                              docType: `Additional (${file.name})`,
+                              fileName: file.name,
+                              fileSize: sizeStr,
+                              fileData: reader.result as string,
+                              fileType: file.type
+                            }
+                          ]);
+                        };
+                        reader.readAsDataURL(file);
                       });
                       showToast('Additional Files Attached', `${e.target.files.length} extra file(s) attached.`, 'success');
                     }
@@ -606,6 +676,9 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
           </form>
         </Modal>
       )}
+
+      {/* Floating WhatsApp Action Widget for Visitor & Parent Inquiries */}
+      <FloatingWhatsApp />
     </div>
   );
 };

@@ -43,6 +43,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     { label: 'Attendance Management', tab: 'attendance', icon: CheckSquare, category: 'Academics' },
     { label: 'Fees & Voucher Billing', tab: 'fees', icon: Receipt, category: 'Finance' },
     { label: 'Teachers & Staff Directory', tab: 'teachers', icon: GraduationCap, category: 'Staff' },
+    { label: 'Careers & Faculty Hiring', tab: 'careers', icon: Briefcase, category: 'Staff' },
     { label: 'Teacher Duties & Workload', tab: 'teacher-duties', icon: Briefcase, category: 'Staff' },
     { label: 'Weekly Timetable Schedules', tab: 'timetable', icon: Calendar, category: 'Academics' },
     { label: 'Classes & Subject Master', tab: 'classes-subjects', icon: BookOpen, category: 'Academics' },

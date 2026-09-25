@@ -31,7 +31,6 @@ import {
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { StatCard } from '../common/StatCard';
-import { SCHOOL_INFO } from '../../mockData';
 import type { AdminTab } from '../../types';
 import { useToast } from '../common/Toast';
 import { adminApi, admissionsApi, feesApi, cmsApi, studentsApi } from '../../services/api';
@@ -144,14 +143,14 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     datasets: [
       {
-        label: 'Income (PKR Millions)',
-        data: [2.6, 2.7, 2.9, 3.4, 2.8, 2.5, 2.6, 3.2, 2.45, 2.8, 3.0, 3.1],
+        label: 'Income (PKR)',
+        data: [0, 0, 0, 0, 0, 0, 0, 0, (dashboardData?.stats?.feeCollection?.collected || 0), 0, 0, 0],
         backgroundColor: '#0B3974',
         borderRadius: 6
       },
       {
-        label: 'Expenses (PKR Millions)',
-        data: [1.6, 1.7, 1.8, 1.9, 1.8, 1.7, 1.65, 1.85, 1.62, 1.7, 1.75, 1.8],
+        label: 'Expenses (PKR)',
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         backgroundColor: '#E62929',
         borderRadius: 6
       }
@@ -165,7 +164,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
       {
         fill: true,
         label: 'Attendance Rate (%)',
-        data: [96.2, 95.8, 94.7, 95.1, 93.4, 88.5],
+        data: [0, 0, 0, 0, 0, dashboardData?.stats?.todayAttendancePct || 0],
         borderColor: '#4CAF50',
         backgroundColor: 'rgba(76, 175, 80, 0.12)',
         tension: 0.35,
@@ -175,18 +174,19 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
     ]
   };
 
+  const feeTrendsFromApi = dashboardData?.charts?.feeTrends;
   const feeCollectionData = {
-    labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+    labels: feeTrendsFromApi ? feeTrendsFromApi.map((t: any) => t.month) : ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
     datasets: [
       {
-        label: 'Target (PKR M)',
-        data: [2.8, 2.8, 2.8, 2.8, 2.8, 2.8],
+        label: 'Target (PKR)',
+        data: feeTrendsFromApi ? feeTrendsFromApi.map((t: any) => (t.collected + t.pending)) : [0, 0, 0, 0, 0, dashboardData?.stats?.feeCollection?.billed || 0],
         backgroundColor: '#e2e8f0',
         borderRadius: 6
       },
       {
-        label: 'Collected (PKR M)',
-        data: [2.72, 2.68, 2.85, 2.79, 2.84, 2.45],
+        label: 'Collected (PKR)',
+        data: feeTrendsFromApi ? feeTrendsFromApi.map((t: any) => t.collected) : [0, 0, 0, 0, 0, dashboardData?.stats?.feeCollection?.collected || 0],
         backgroundColor: '#0B3974',
         borderRadius: 6
       }
@@ -199,7 +199,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
     datasets: [
       {
         label: 'Average Score (%)',
-        data: [86.4, 82.1, 84.8, 88.2, 89.5, 92.4, 87.0],
+        data: [0, 0, 0, 0, 0, 0, 0],
         backgroundColor: [
           '#0B3974',
           '#FFD700',
@@ -269,7 +269,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             Good Morning, Admin 👋
           </h1>
           <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '6px 0 0 0', maxWidth: '640px' }}>
-            Today is <strong style={{ color: '#ffffff' }}>{todayDate}</strong>. All 32 classes are currently in session with 94.7% attendance. Term 1 Assessments begin in 3 weeks.
+            Today is <strong style={{ color: '#ffffff' }}>{todayDate}</strong>. {dashboardData?.stats?.totalClasses ?? 0} active classes registered with {dashboardData?.stats?.todayAttendancePct ?? 0}% student attendance recorded today.
           </p>
         </div>
 
@@ -514,32 +514,38 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {recentAdmissions.slice(0, 4).map((adm) => (
-              <div
-                key={adm.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #f1f5f9'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
-                    {adm.studentName}
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                    Applied: <strong style={{ color: '#2563eb' }}>{adm.appliedClass}</strong> • {adm.applicationDate}
-                  </div>
-                </div>
-                <span className={`bca-badge bca-badge-${(adm.status || 'pending').toLowerCase().replace(' ', '-')}`}>
-                  {adm.status}
-                </span>
+            {recentAdmissions.length === 0 ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.84rem' }}>
+                No admission applications yet
               </div>
-            ))}
+            ) : (
+              recentAdmissions.slice(0, 4).map((adm) => (
+                <div
+                  key={adm.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #f1f5f9'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                      {adm.studentName}
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                      Applied: <strong style={{ color: '#2563eb' }}>{adm.appliedClass}</strong> • {adm.applicationDate}
+                    </div>
+                  </div>
+                  <span className={`bca-badge bca-badge-${(adm.status || 'pending').toLowerCase().replace(' ', '-')}`}>
+                    {adm.status}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -552,35 +558,41 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {recentVouchers.filter(f => f.status === 'Paid').slice(0, 4).map((fee) => (
-              <div
-                key={fee.voucherNo}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #f1f5f9'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
-                    {fee.studentName}
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                    {fee.class} • Paid via {fee.paymentMethod}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#059669' }}>
-                    Rs. {fee.totalAmount.toLocaleString()}
-                  </div>
-                  <span className="bca-badge bca-badge-paid">Paid</span>
-                </div>
+            {recentVouchers.filter(f => f.status === 'Paid').length === 0 ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.84rem' }}>
+                No paid fee vouchers yet
               </div>
-            ))}
+            ) : (
+              recentVouchers.filter(f => f.status === 'Paid').slice(0, 4).map((fee) => (
+                <div
+                  key={fee.voucherNo}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #f1f5f9'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                      {fee.studentName}
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                      {fee.class} • Paid via {fee.paymentMethod}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#059669' }}>
+                      Rs. {fee.totalAmount.toLocaleString()}
+                    </div>
+                    <span className="bca-badge bca-badge-paid">Paid</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -593,37 +605,43 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {recentVouchers.filter(f => f.status !== 'Paid').slice(0, 4).map((fee) => (
-              <div
-                key={fee.voucherNo}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  backgroundColor: '#fffbeb',
-                  border: '1px solid #fef3c7'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#92400e' }}>
-                    {fee.studentName} ({fee.class}-{fee.section})
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#b45309' }}>
-                    Due: {fee.dueDate} • Voucher: {fee.voucherNo}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#b45309' }}>
-                    Rs. {fee.totalAmount.toLocaleString()}
-                  </div>
-                  <span className={`bca-badge bca-badge-${(fee.status || 'pending').toLowerCase()}`}>
-                    {fee.status}
-                  </span>
-                </div>
+            {recentVouchers.filter(f => f.status !== 'Paid').length === 0 ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.84rem' }}>
+                No pending fee dues
               </div>
-            ))}
+            ) : (
+              recentVouchers.filter(f => f.status !== 'Paid').slice(0, 4).map((fee) => (
+                <div
+                  key={fee.voucherNo}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    backgroundColor: '#fffbeb',
+                    border: '1px solid #fef3c7'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#92400e' }}>
+                      {fee.studentName} ({fee.class}-{fee.section})
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#b45309' }}>
+                      Due: {fee.dueDate} • Voucher: {fee.voucherNo}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#b45309' }}>
+                      Rs. {fee.totalAmount.toLocaleString()}
+                    </div>
+                    <span className={`bca-badge bca-badge-${(fee.status || 'pending').toLowerCase()}`}>
+                      {fee.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -636,46 +654,52 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {recentEvents.slice(0, 3).map((evt) => (
-              <div
-                key={evt.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #f1f5f9'
-                }}
-              >
+            {recentEvents.length === 0 ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.84rem' }}>
+                No upcoming events scheduled
+              </div>
+            ) : (
+              recentEvents.slice(0, 3).map((evt) => (
                 <div
+                  key={evt.id}
                   style={{
-                    backgroundColor: '#eff6ff',
-                    color: '#2563eb',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    minWidth: '54px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #f1f5f9'
                   }}
                 >
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                    {new Date(evt.date).toLocaleDateString('en-US', { month: 'short' })}
+                  <div
+                    style={{
+                      backgroundColor: '#eff6ff',
+                      color: '#2563eb',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      minWidth: '54px'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                      {new Date(evt.date).toLocaleDateString('en-US', { month: 'short' })}
+                    </div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>
+                      {new Date(evt.date).getDate()}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>
-                    {new Date(evt.date).getDate()}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {evt.title}
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                      {evt.time} • {evt.location}
+                    </div>
                   </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {evt.title}
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                    {evt.time} • {evt.location}
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -688,27 +712,33 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {recentNotices.slice(0, 3).map((notice) => (
-              <div
-                key={notice.id}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #f1f5f9'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span className={`bca-badge bca-badge-${notice.priority === 'Urgent' ? 'overdue' : notice.priority === 'High' ? 'pending' : 'primary'}`}>
-                    {notice.category} • {notice.priority}
-                  </span>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{notice.date}</span>
-                </div>
-                <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
-                  {notice.title}
-                </div>
+            {recentNotices.length === 0 ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.84rem' }}>
+                No notices published yet
               </div>
-            ))}
+            ) : (
+              recentNotices.slice(0, 3).map((notice) => (
+                <div
+                  key={notice.id}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #f1f5f9'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span className={`bca-badge bca-badge-${notice.priority === 'Urgent' ? 'overdue' : notice.priority === 'High' ? 'pending' : 'primary'}`}>
+                      {notice.category} • {notice.priority}
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{notice.date}</span>
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
+                    {notice.title}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -721,55 +751,61 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
             </button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {topStudents.slice(0, 4).map((student, idx) => (
-              <div
-                key={student.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #f1f5f9'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: idx === 0 ? '#facc15' : idx === 1 ? '#cbd5e1' : '#f97316',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    {idx + 1}
-                  </div>
-                  <img
-                    src={student.avatar}
-                    alt={student.name}
-                    style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#0f172a' }}>
-                      {student.name}
-                    </div>
-                    <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                      {student.class} • Attendance {student.attendancePct}%
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#059669', fontWeight: 700, fontSize: '0.84rem' }}>
-                  <Award size={15} /> Grade A+
-                </div>
+            {topStudents.length === 0 ? (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.84rem' }}>
+                No student rankings recorded yet
               </div>
-            ))}
+            ) : (
+              topStudents.slice(0, 4).map((student, idx) => (
+                <div
+                  key={student.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #f1f5f9'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: idx === 0 ? '#facc15' : idx === 1 ? '#cbd5e1' : '#f97316',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      {idx + 1}
+                    </div>
+                    <img
+                      src={student.avatar}
+                      alt={student.name}
+                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#0f172a' }}>
+                        {student.name}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                        {student.class} • Attendance {student.attendancePct}%
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#059669', fontWeight: 700, fontSize: '0.84rem' }}>
+                    <Award size={15} /> Grade A+
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

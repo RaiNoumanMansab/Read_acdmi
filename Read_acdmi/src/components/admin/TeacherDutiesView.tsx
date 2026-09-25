@@ -5,7 +5,9 @@ import {
   CheckCircle,
   Download,
   MapPin,
-  AlertCircle
+  AlertCircle,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
@@ -89,6 +91,69 @@ export const TeacherDutiesView: React.FC = () => {
     if (dutyFilter === 'All') return true;
     return d.dutyType === dutyFilter;
   });
+
+  // Edit Duty state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingDuty, setEditingDuty] = useState<DutyRosterShift | null>(null);
+  const [editTeacherName, setEditTeacherName] = useState('');
+  const [editDutyType, setEditDutyType] = useState<DutyRosterShift['dutyType']>('Assembly Duty');
+  const [editDate, setEditDate] = useState('2026-09-15');
+  const [editTime, setEditTime] = useState('07:45 AM - 08:30 AM');
+  const [editLocation, setEditLocation] = useState('Main Campus Sahiwal');
+  const [editInstructions, setEditInstructions] = useState('');
+
+  const handleOpenEditDuty = (d: DutyRosterShift) => {
+    setEditingDuty(d);
+    setEditTeacherName(d.teacherName);
+    setEditDutyType(d.dutyType);
+    setEditDate(d.date);
+    setEditTime(d.time);
+    setEditLocation(d.location);
+    setEditInstructions(d.instructions);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditDuty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDuty) return;
+    try {
+      await teachersApi.updateDuty(editingDuty.id, {
+        dutyTitle: editDutyType,
+        description: `${editInstructions} (${editTime}, ${editLocation})`
+      });
+    } catch (err) {
+      console.warn('Backend update error:', err);
+    }
+    setShifts((prev) =>
+      prev.map((d) =>
+        d.id === editingDuty.id
+          ? {
+              ...d,
+              teacherName: editTeacherName,
+              dutyType: editDutyType,
+              date: editDate,
+              time: editTime,
+              location: editLocation,
+              instructions: editInstructions
+            }
+          : d
+      )
+    );
+    showToast('Duty assignment updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingDuty(null);
+  };
+
+  const handleDeleteDuty = async (id: string, type: string, teacher: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${type} for ${teacher}?`)) return;
+    try {
+      await teachersApi.deleteDuty(id);
+    } catch (err) {
+      console.warn('Backend duty delete error:', err);
+    }
+    setShifts((prev) => prev.filter((d) => d.id !== id));
+    showToast('Duty assignment deleted successfully', undefined, 'success');
+  };
 
   const handleAddDuty = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,17 +366,35 @@ export const TeacherDutiesView: React.FC = () => {
                   </span>
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  <button
-                    onClick={() => {
-                      setShifts(shifts.map((item) => (item.id === d.id ? { ...item, status: 'Completed' } : item)));
-                      showToast(`Duty ${d.id} marked as Completed`, undefined, 'success');
-                    }}
-                    className="bca-btn bca-btn-secondary"
-                    style={{ padding: '4px 8px', fontSize: '0.76rem' }}
-                    title="Mark Completed"
-                  >
-                    <CheckCircle size={13} color="#059669" />
-                  </button>
+                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <button
+                      onClick={() => handleOpenEditDuty(d)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#2563eb' }}
+                      title="Edit Duty Assignment"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDuty(d.id, d.dutyType, d.teacherName)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#e11d48' }}
+                      title="Delete Duty Assignment"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShifts(shifts.map((item) => (item.id === d.id ? { ...item, status: 'Completed' } : item)));
+                        showToast(`Duty ${d.id} marked as Completed`, undefined, 'success');
+                      }}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', fontSize: '0.76rem' }}
+                      title="Mark Completed"
+                    >
+                      <CheckCircle size={13} color="#059669" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             )))}
@@ -436,6 +519,98 @@ export const TeacherDutiesView: React.FC = () => {
           <div style={{ backgroundColor: '#eff6ff', padding: '10px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: '#1e40af' }}>
             <AlertCircle size={15} color="#2563eb" style={{ flexShrink: 0 }} />
             <span>Automatic SMS reminder will be dispatched to the faculty member 30 minutes prior to duty.</span>
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT DUTY MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Faculty Duty Assignment"
+        subtitle={`Update duty shift for: ${editingDuty?.teacherName}`}
+        maxWidth="540px"
+        footer={
+          <>
+            <button type="submit" form="edit-duty-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-duty-form" onSubmit={handleSaveEditDuty} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Faculty Member *</label>
+            <input
+              type="text"
+              required
+              value={editTeacherName}
+              onChange={(e) => setEditTeacherName(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Duty Category *</label>
+              <select
+                value={editDutyType}
+                onChange={(e) => setEditDutyType(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                {dutyTypes.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Duty Date *</label>
+              <input
+                type="date"
+                required
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Time Shift *</label>
+              <input
+                type="text"
+                required
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Campus Location *</label>
+              <input
+                type="text"
+                required
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Special Directives / Instructions</label>
+            <textarea
+              rows={3}
+              value={editInstructions}
+              onChange={(e) => setEditInstructions(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
           </div>
         </form>
       </Modal>

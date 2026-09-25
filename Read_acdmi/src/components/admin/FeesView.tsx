@@ -14,18 +14,22 @@ import {
   Building,
   School,
   FileCheck,
+  Edit2,
+  Trash2,
   Plus
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../mockData';
 import type { FeeVoucher } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
 import { feesApi, studentsApi } from '../../services/api';
+import { WhatsAppButton } from '../common/WhatsAppButton';
 
 const mapBackendVoucher = (v: any): FeeVoucher => ({
   voucherNo: v.voucherNo || `VCH-${v.id}`,
   studentId: v.studentId || v.student?.rollNo || 'STU-001',
   studentName: v.student?.fullName || v.studentName || 'Student',
+  parentPhone: v.student?.parentPhone || v.parentPhone || '',
+  parentName: v.student?.parentName || v.parentName || 'Parent',
   class: v.student?.class?.name || v.class || 'Grade 9',
   section: v.student?.section?.name ? v.student.section.name.replace('Section ', '') : (v.section || 'A'),
   month: v.billingMonth || 'September 2026',
@@ -182,6 +186,47 @@ export const FeesView: React.FC = () => {
     } catch (err: any) {
       showToast('Payment Record Failed', err.message || 'Error recording payment', 'error');
     }
+  };
+
+  // Edit Voucher State
+  const [editingVoucher, setEditingVoucher] = useState<FeeVoucher | null>(null);
+  const [showEditVoucherModal, setShowEditVoucherModal] = useState(false);
+  const [editVoucherAmount, setEditVoucherAmount] = useState<number>(0);
+  const [editVoucherDueDate, setEditVoucherDueDate] = useState('');
+  const [editVoucherStatus, setEditVoucherStatus] = useState<'Paid' | 'Pending' | 'Overdue'>('Pending');
+
+  const handleOpenEditVoucher = (v: FeeVoucher) => {
+    setEditingVoucher(v);
+    setEditVoucherAmount(v.totalAmount);
+    setEditVoucherDueDate(v.dueDate);
+    setEditVoucherStatus(v.status);
+    setShowEditVoucherModal(true);
+  };
+
+  const handleSaveEditVoucher = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVoucher) return;
+    setVouchers((prev) =>
+      prev.map((item) =>
+        item.voucherNo === editingVoucher.voucherNo
+          ? {
+              ...item,
+              totalAmount: editVoucherAmount,
+              tuitionFee: editVoucherAmount,
+              dueDate: editVoucherDueDate,
+              status: editVoucherStatus
+            }
+          : item
+      )
+    );
+    showToast('Voucher Updated', `Challan ${editingVoucher.voucherNo} updated successfully`, 'success');
+    setShowEditVoucherModal(false);
+  };
+
+  const handleDeleteVoucher = (v: FeeVoucher) => {
+    if (!window.confirm(`Are you sure you want to delete fee voucher ${v.voucherNo} for ${v.studentName}?`)) return;
+    setVouchers((prev) => prev.filter((item) => item.voucherNo !== v.voucherNo));
+    showToast('Voucher Deleted', `Challan ${v.voucherNo} was deleted`, 'success');
   };
 
   const handlePrint = () => {
@@ -372,7 +417,20 @@ export const FeesView: React.FC = () => {
                     </span>
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                      {voucher.parentPhone && (
+                        <WhatsAppButton
+                          phone={voucher.parentPhone}
+                          compact
+                          size="xs"
+                          message={
+                            voucher.status === 'Paid'
+                              ? `Assalam-o-Alaikum ${voucher.parentName || 'Parent'}! Fee voucher ${voucher.voucherNo} for ${voucher.studentName} (Amount: Rs. ${voucher.totalAmount.toLocaleString()}) has been marked PAID. Read Academy Sahiwal.`
+                              : `Assalam-o-Alaikum ${voucher.parentName || 'Parent'}! Fee voucher ${voucher.voucherNo} for ${voucher.studentName} (${voucher.month}, Amount: Rs. ${voucher.totalAmount.toLocaleString()}, Due: ${voucher.dueDate}) is pending. Please clear your dues at your earliest. Read Academy Sahiwal.`
+                          }
+                          title={voucher.status === 'Paid' ? 'Send WhatsApp Receipt to Parent' : 'Send WhatsApp Fee Notice to Parent'}
+                        />
+                      )}
                       <button
                         onClick={() => setSelectedVoucher(voucher)}
                         className="bca-btn bca-btn-secondary"
@@ -401,6 +459,22 @@ export const FeesView: React.FC = () => {
                           <FileCheck size={13} /> Receipt
                         </button>
                       )}
+                      <button
+                        onClick={() => handleOpenEditVoucher(voucher)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '5px 8px', color: '#2563eb' }}
+                        title="Edit Voucher Details"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteVoucher(voucher)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '5px 8px', color: '#e11d48' }}
+                        title="Delete Fee Voucher"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -806,6 +880,71 @@ export const FeesView: React.FC = () => {
                   Number(lateFineInput)
                 ).toLocaleString()}
               </div>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* EDIT VOUCHER MODAL */}
+      {showEditVoucherModal && editingVoucher && (
+        <Modal
+          isOpen={showEditVoucherModal}
+          onClose={() => setShowEditVoucherModal(false)}
+          title={`Edit Fee Voucher — ${editingVoucher.voucherNo}`}
+          subtitle={`Student: ${editingVoucher.studentName} (${editingVoucher.class})`}
+          maxWidth="480px"
+          footer={
+            <>
+              <button onClick={() => setShowEditVoucherModal(false)} className="bca-btn bca-btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleSaveEditVoucher} className="bca-btn bca-btn-primary">
+                Save Changes
+              </button>
+            </>
+          }
+        >
+          <form onSubmit={handleSaveEditVoucher} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Voucher Amount (PKR) *
+              </label>
+              <input
+                type="number"
+                min="0"
+                required
+                value={editVoucherAmount}
+                onChange={(e) => setEditVoucherAmount(Number(e.target.value))}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Due Date *
+              </label>
+              <input
+                type="date"
+                required
+                value={editVoucherDueDate}
+                onChange={(e) => setEditVoucherDueDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Payment Status
+              </label>
+              <select
+                value={editVoucherStatus}
+                onChange={(e) => setEditVoucherStatus(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+              </select>
             </div>
           </form>
         </Modal>

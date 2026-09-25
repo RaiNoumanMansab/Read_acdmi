@@ -4,7 +4,7 @@ import {
   Target,
   Eye
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../../mockData';
+import { SCHOOL_INFO } from '../../../constants/schoolConfig';
 
 export const AboutPage: React.FC = () => {
   return (

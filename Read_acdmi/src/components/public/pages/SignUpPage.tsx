@@ -14,7 +14,6 @@ import {
   ArrowRight,
   School
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../../mockData';
 import { useToast } from '../../common/Toast';
 import { authApi } from '../../../services/api';
 

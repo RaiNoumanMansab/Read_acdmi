@@ -5,6 +5,7 @@ import {
   Plus,
   Eye,
   Edit2,
+  Trash2,
   FileText,
   UserCheck,
   CheckCircle,
@@ -21,7 +22,6 @@ import {
   BookOpen,
   AlertTriangle,
   Send,
-  Droplet,
   RotateCcw,
   Users,
   LayoutGrid,
@@ -32,6 +32,7 @@ import type { Student } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
 import { studentsApi, academicsApi } from '../../services/api';
+import { WhatsAppButton } from '../common/WhatsAppButton';
 import './StudentsView.css';
 
 export const ALL_CLASSES = [
@@ -178,6 +179,73 @@ export const StudentsView: React.FC = () => {
   const [newStudentSection, setNewStudentSection] = useState('A');
   const [newParentName, setNewParentName] = useState('');
   const [newParentPhone, setNewParentPhone] = useState('');
+
+  // Edit Student State
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editClass, setEditClass] = useState('');
+  const [editSection, setEditSection] = useState('');
+  const [editParentName, setEditParentName] = useState('');
+  const [editParentPhone, setEditParentPhone] = useState('');
+  const [editFeeStatus, setEditFeeStatus] = useState<'Paid' | 'Pending' | 'Overdue'>('Pending');
+
+  const handleOpenEdit = (student: Student) => {
+    setEditingStudent(student);
+    setEditName(student.name);
+    setEditClass(student.class);
+    setEditSection(student.section);
+    setEditParentName(student.parentName);
+    setEditParentPhone(student.parentPhone);
+    setEditFeeStatus(student.feeStatus);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    try {
+      await studentsApi.updateStudent(editingStudent.id, {
+        fullName: editName,
+        parentName: editParentName,
+        parentPhone: editParentPhone,
+        feeStatus: editFeeStatus
+      });
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.id === editingStudent.id
+            ? {
+                ...s,
+                name: editName,
+                class: editClass,
+                section: editSection,
+                parentName: editParentName,
+                parentPhone: editParentPhone,
+                feeStatus: editFeeStatus
+              }
+            : s
+        )
+      );
+      showToast('Student Updated', `${editName} updated successfully`, 'success');
+      setShowEditModal(false);
+    } catch (err: any) {
+      showToast('Update Failed', err?.message || 'Could not update student in database', 'error');
+    }
+  };
+
+  const handleDeleteStudent = async (student: Student) => {
+    if (!window.confirm(`Are you sure you want to delete student "${student.name}" (Roll: ${student.rollNo})?`)) {
+      return;
+    }
+    try {
+      await studentsApi.deleteStudent(student.id);
+      setStudents((prev) => prev.filter((s) => s.id !== student.id));
+      if (selectedStudent?.id === student.id) setSelectedStudent(null);
+      showToast('Student Deleted', `${student.name} was removed from database`, 'success');
+    } catch (err: any) {
+      showToast('Delete Failed', err?.message || 'Could not delete student from database', 'error');
+    }
+  };
 
   // Key KPI metrics calculations
   const totalStudents = students.length;
@@ -610,11 +678,6 @@ export const StudentsView: React.FC = () => {
                           <div style={{ fontWeight: 700, color: '#0f172a' }}>{student.name}</div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                             <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{student.gender}</span>
-                            {/* Medical Blood Group Red Badge */}
-                            <span className="blood-badge" title="Blood Group">
-                              <Droplet size={9} fill="#E62929" />
-                              {student.bloodGroup}
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -630,21 +693,30 @@ export const StudentsView: React.FC = () => {
                     </td>
 
                     <td>
-                      <a
-                        href={`tel:${student.parentPhone}`}
-                        style={{
-                          fontSize: '0.82rem',
-                          color: '#0B3974',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          textDecoration: 'none'
-                        }}
-                        title="Click to call parent"
-                      >
-                        <Phone size={13} color="#0B3974" />
-                        <span>{student.parentPhone}</span>
-                      </a>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <a
+                          href={`tel:${student.parentPhone}`}
+                          style={{
+                            fontSize: '0.82rem',
+                            color: '#0B3974',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            textDecoration: 'none'
+                          }}
+                          title="Click to call parent"
+                        >
+                          <Phone size={13} color="#0B3974" />
+                          <span>{student.parentPhone}</span>
+                        </a>
+                        <WhatsAppButton
+                          phone={student.parentPhone}
+                          compact
+                          size="xs"
+                          message={`Assalam-o-Alaikum ${student.parentName}! This is Read Academy Administration regarding student ${student.name} (Roll No: ${student.rollNo}, Class: ${student.class}).`}
+                          title="Chat with Parent on WhatsApp"
+                        />
+                      </div>
                     </td>
 
                     <td>
@@ -718,31 +790,58 @@ export const StudentsView: React.FC = () => {
                       <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
                         {/* Red SMS button for Overdue fee reminder */}
                         {isOverdue && (
-                          <button
-                            onClick={() =>
-                              showToast(
-                                `SMS Notice Sent to ${student.parentName}`,
-                                `Overdue notice dispatched to ${student.parentPhone}`,
-                                'error'
-                              )
-                            }
-                            className="bca-btn bca-btn-red"
-                            style={{ padding: '6px 9px', fontSize: '0.75rem' }}
-                            title="Send Fee Alert SMS"
-                          >
-                            <Send size={13} />
-                            <span>SMS</span>
-                          </button>
+                          <>
+                            <WhatsAppButton
+                              phone={student.parentPhone}
+                              size="xs"
+                              label="WhatsApp Alert"
+                              message={`Assalam-o-Alaikum ${student.parentName}! This is Read Academy Administration. Please be informed that fee dues for ${student.name} (Roll: ${student.rollNo}, Class: ${student.class}) are currently OVERDUE. Kindly deposit the outstanding voucher at your earliest. JazakAllah.`}
+                              title="Send Fee Alert on WhatsApp"
+                            />
+                            <button
+                              onClick={() =>
+                                showToast(
+                                  `SMS Notice Sent to ${student.parentName}`,
+                                  `Overdue notice dispatched to ${student.parentPhone}`,
+                                  'error'
+                                )
+                              }
+                              className="bca-btn bca-btn-red"
+                              style={{ padding: '6px 9px', fontSize: '0.75rem' }}
+                              title="Send Fee Alert SMS"
+                            >
+                              <Send size={13} />
+                              <span>SMS</span>
+                            </button>
+                          </>
                         )}
 
                         <button
                           onClick={() => setSelectedStudent(student)}
                           className="bca-btn bca-btn-secondary"
-                          style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+                          style={{ padding: '6px 9px', fontSize: '0.78rem' }}
                           title="View Full Profile"
                         >
                           <Eye size={14} />
                           <span>Profile</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenEdit(student)}
+                          className="bca-btn bca-btn-secondary"
+                          style={{ padding: '6px 8px', color: '#2563eb' }}
+                          title="Edit Student Record"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteStudent(student)}
+                          className="bca-btn bca-btn-secondary"
+                          style={{ padding: '6px 8px', color: '#e11d48' }}
+                          title="Delete Student Record"
+                        >
+                          <Trash2 size={14} />
                         </button>
 
                         <button
@@ -788,11 +887,6 @@ export const StudentsView: React.FC = () => {
                   <div className="student-card-info">
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
                       <div className="student-card-name">{student.name}</div>
-                      {/* Blood Group Red Badge */}
-                      <span className="blood-badge">
-                        <Droplet size={9} fill="#E62929" />
-                        {student.bloodGroup}
-                      </span>
                     </div>
 
                     <div className="student-card-meta">
@@ -848,22 +942,30 @@ export const StudentsView: React.FC = () => {
                   <div>
                     <div className="card-stat-label">Guardian</div>
                     <div className="card-stat-value">{student.parentName}</div>
-                    <a
-                      href={`tel:${student.parentPhone}`}
-                      style={{
-                        fontSize: '0.78rem',
-                        color: '#0B3974',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '3px',
-                        textDecoration: 'none',
-                        fontWeight: 600
-                      }}
-                    >
-                      <PhoneCall size={12} color="#0B3974" />
-                      <span>{student.parentPhone}</span>
-                    </a>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+                      <a
+                        href={`tel:${student.parentPhone}`}
+                        style={{
+                          fontSize: '0.78rem',
+                          color: '#0B3974',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          textDecoration: 'none',
+                          fontWeight: 600
+                        }}
+                      >
+                        <PhoneCall size={12} color="#0B3974" />
+                        <span>{student.parentPhone}</span>
+                      </a>
+                      <WhatsAppButton
+                        phone={student.parentPhone}
+                        compact
+                        size="xs"
+                        message={`Assalam-o-Alaikum ${student.parentName}! This is Read Academy Administration regarding student ${student.name} (Roll No: ${student.rollNo}, Class: ${student.class}).`}
+                        title="Chat with Parent on WhatsApp"
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -909,7 +1011,25 @@ export const StudentsView: React.FC = () => {
                     className="bca-btn bca-btn-secondary"
                   >
                     <Eye size={14} />
-                    <span>View Profile</span>
+                    <span>Profile</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenEdit(student)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ flex: '0 0 auto', padding: '7px 10px', color: '#2563eb' }}
+                    title="Edit Student"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteStudent(student)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ flex: '0 0 auto', padding: '7px 10px', color: '#e11d48' }}
+                    title="Delete Student"
+                  >
+                    <Trash2 size={14} />
                   </button>
 
                   <button
@@ -955,20 +1075,28 @@ export const StudentsView: React.FC = () => {
           footer={
             <>
               {selectedStudent.feeStatus === 'Overdue' && (
-                <button
-                  onClick={() =>
-                    showToast(
-                      `Fee Reminder SMS sent to ${selectedStudent.parentName}`,
-                      `Contact: ${selectedStudent.parentPhone}`,
-                      'error'
-                    )
-                  }
-                  className="bca-btn bca-btn-red"
-                  style={{ marginRight: 'auto' }}
-                >
-                  <Send size={14} />
-                  <span>Send Fee Reminder SMS</span>
-                </button>
+                <div style={{ display: 'flex', gap: '6px', marginRight: 'auto' }}>
+                  <WhatsAppButton
+                    phone={selectedStudent.parentPhone}
+                    size="sm"
+                    label="WhatsApp Fee Alert"
+                    message={`Assalam-o-Alaikum ${selectedStudent.parentName}! This is Read Academy Administration. Please be informed that fee dues for ${selectedStudent.name} (Roll: ${selectedStudent.rollNo}, Class: ${selectedStudent.class}) are currently OVERDUE. Kindly deposit the outstanding voucher at your earliest. JazakAllah.`}
+                    title="Send Fee Alert on WhatsApp"
+                  />
+                  <button
+                    onClick={() =>
+                      showToast(
+                        `Fee Reminder SMS sent to ${selectedStudent.parentName}`,
+                        `Contact: ${selectedStudent.parentPhone}`,
+                        'error'
+                      )
+                    }
+                    className="bca-btn bca-btn-red"
+                  >
+                    <Send size={14} />
+                    <span>Send SMS</span>
+                  </button>
+                </div>
               )}
               <button
                 onClick={() => showToast(`Student record for ${selectedStudent.name} saved`, undefined, 'success')}
@@ -1006,12 +1134,6 @@ export const StudentsView: React.FC = () => {
               <div style={{ flex: 1 }}>
                 <div className="student-badges-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h3 style={{ margin: 0, fontSize: '1.3rem', color: '#0B3974' }}>{selectedStudent.name}</h3>
-
-                  {/* Blood Group Red Badge */}
-                  <span className="blood-badge">
-                    <Droplet size={10} fill="#E62929" />
-                    Blood Group: {selectedStudent.bloodGroup}
-                  </span>
 
                   {selectedStudent.feeStatus === 'Overdue' ? (
                     <span
@@ -1203,17 +1325,6 @@ export const StudentsView: React.FC = () => {
                 <div><strong>Full Name:</strong> {selectedStudent.name}</div>
                 <div><strong>Date of Birth:</strong> {selectedStudent.dob || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}</div>
                 <div><strong>Gender:</strong> {selectedStudent.gender}</div>
-                <div>
-                  <strong>Blood Group:</strong>{' '}
-                  {selectedStudent.bloodGroup ? (
-                    <span className="blood-badge">
-                      <Droplet size={10} fill="#E62929" />
-                      {selectedStudent.bloodGroup}
-                    </span>
-                  ) : (
-                    <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>
-                  )}
-                </div>
                 <div><strong>Admission Date:</strong> {selectedStudent.admissionDate || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>}</div>
                 <div>
                   <strong style={{ color: '#E62929' }}>Emergency Contact:</strong>{' '}
@@ -1235,12 +1346,20 @@ export const StudentsView: React.FC = () => {
               <div className="profile-info-grid">
                 <div><strong>Father / Guardian Name:</strong> {selectedStudent.parentName}</div>
                 <div><strong>Relationship:</strong> Father / Guardian</div>
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <strong>Primary Phone:</strong>{' '}
                   {selectedStudent.parentPhone !== 'Not Provided' ? (
-                    <a href={`tel:${selectedStudent.parentPhone}`} style={{ color: '#0B3974', fontWeight: 600 }}>
-                      {selectedStudent.parentPhone}
-                    </a>
+                    <>
+                      <a href={`tel:${selectedStudent.parentPhone}`} style={{ color: '#0B3974', fontWeight: 600 }}>
+                        {selectedStudent.parentPhone}
+                      </a>
+                      <WhatsAppButton
+                        phone={selectedStudent.parentPhone}
+                        size="xs"
+                        label="WhatsApp"
+                        message={`Assalam-o-Alaikum ${selectedStudent.parentName}! This is Read Academy Administration regarding student ${selectedStudent.name} (Roll No: ${selectedStudent.rollNo}).`}
+                      />
+                    </>
                   ) : (
                     <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Provided</span>
                   )}
@@ -1586,6 +1705,107 @@ export const StudentsView: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* EDIT STUDENT MODAL */}
+      {showEditModal && editingStudent && (
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title={`Edit Student — ${editingStudent.name}`}
+          subtitle={`Roll No: ${editingStudent.rollNo} • ID: ${editingStudent.id}`}
+          maxWidth="560px"
+          footer={
+            <>
+              <button onClick={() => setShowEditModal(false)} className="bca-btn bca-btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleSaveEdit} className="bca-btn bca-btn-primary">
+                Save Changes
+              </button>
+            </>
+          }
+        >
+          <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Full Student Name
+              </label>
+              <input
+                type="text"
+                required
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Grade / Class
+                </label>
+                <input
+                  type="text"
+                  value={editClass}
+                  onChange={(e) => setEditClass(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Section
+                </label>
+                <input
+                  type="text"
+                  value={editSection}
+                  onChange={(e) => setEditSection(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Parent / Guardian Name
+                </label>
+                <input
+                  type="text"
+                  value={editParentName}
+                  onChange={(e) => setEditParentName(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Guardian Phone
+                </label>
+                <input
+                  type="text"
+                  value={editParentPhone}
+                  onChange={(e) => setEditParentPhone(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Fee Status
+              </label>
+              <select
+                value={editFeeStatus}
+                onChange={(e) => setEditFeeStatus(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Overdue">Overdue</option>
+              </select>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };

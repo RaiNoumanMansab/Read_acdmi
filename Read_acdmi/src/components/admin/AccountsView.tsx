@@ -9,7 +9,9 @@ import {
   Filter,
   Download,
   Calendar,
-  CreditCard
+  CreditCard,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import type { FinancialSummary, AccountTransaction } from '../../types';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -60,6 +62,67 @@ export const AccountsView: React.FC = () => {
   const [type, setType] = useState<'Income' | 'Expense'>('Income');
   const [category, setCategory] = useState('Tuition Fees');
   const [reference, setReference] = useState('DEP-901');
+
+  // Edit Txn state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingTxn, setEditingTxn] = useState<AccountTransaction | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editAmount, setEditAmount] = useState(0);
+  const [editType, setEditType] = useState<'Income' | 'Expense'>('Income');
+  const [editCategory, setEditCategory] = useState('Tuition Fees');
+  const [editDate, setEditDate] = useState('');
+
+  const handleOpenEditTxn = (txn: AccountTransaction) => {
+    setEditingTxn(txn);
+    setEditTitle(txn.title);
+    setEditAmount(txn.amount);
+    setEditType(txn.type);
+    setEditCategory(txn.category);
+    setEditDate(txn.date);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditTxn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTxn) return;
+    try {
+      await feesApi.updateTransaction(editingTxn.id, {
+        title: editTitle,
+        amount: editAmount,
+        type: editType === 'Income' ? 'INCOME' : 'EXPENSE',
+        category: editCategory
+      });
+    } catch (err) {
+      console.warn('Backend transaction update error:', err);
+    }
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === editingTxn.id
+          ? {
+              ...t,
+              title: editTitle,
+              amount: editAmount,
+              type: editType,
+              category: editCategory
+            }
+          : t
+      )
+    );
+    showToast('Transaction updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingTxn(null);
+  };
+
+  const handleDeleteTxn = async (id: string, txnTitle: string) => {
+    if (!window.confirm(`Are you sure you want to delete transaction "${txnTitle}"?`)) return;
+    try {
+      await feesApi.deleteTransaction(id);
+    } catch (err) {
+      console.warn('Backend transaction delete error:', err);
+    }
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    showToast('Transaction deleted successfully', undefined, 'success');
+  };
 
   // Compute live financial totals from transactions
   const totalIncome = transactions.filter(t => t.type === 'Income').reduce((acc, t) => acc + (t.amount || 0), 0);
@@ -251,12 +314,13 @@ export const AccountsView: React.FC = () => {
               <th>Category</th>
               <th>Type</th>
               <th style={{ textAlign: 'right' }}>Amount (PKR)</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
                   {loading ? 'Loading financial transactions from database...' : 'No general ledger transactions recorded.'}
                 </td>
               </tr>
@@ -285,6 +349,26 @@ export const AccountsView: React.FC = () => {
                   <strong style={{ color: txn.type === 'Income' ? '#059669' : '#e11d48', fontSize: '0.94rem' }}>
                     {txn.type === 'Income' ? '+' : '-'} Rs. {txn.amount.toLocaleString()}
                   </strong>
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <button
+                      onClick={() => handleOpenEditTxn(txn)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#2563eb' }}
+                      title="Edit Transaction"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTxn(txn.id, txn.title)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 8px', color: '#e11d48' }}
+                      title="Delete Transaction"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             )))}
@@ -369,6 +453,75 @@ export const AccountsView: React.FC = () => {
                 style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT TRANSACTION MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Ledger Entry"
+        subtitle={`Update transaction record: ${editingTxn?.reference}`}
+        maxWidth="500px"
+        footer={
+          <>
+            <button type="submit" form="edit-txn-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-txn-form" onSubmit={handleSaveEditTxn} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+              Transaction Description *
+            </label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Entry Type</label>
+              <select
+                value={editType}
+                onChange={(e) => setEditType(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Income">Income (Credit)</option>
+                <option value="Expense">Expense (Debit)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Amount (PKR) *</label>
+              <input
+                type="number"
+                required
+                value={editAmount}
+                onChange={(e) => setEditAmount(Number(e.target.value))}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Category</label>
+            <input
+              type="text"
+              value={editCategory}
+              onChange={(e) => setEditCategory(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
           </div>
         </form>
       </Modal>

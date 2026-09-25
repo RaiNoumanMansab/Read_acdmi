@@ -24,10 +24,10 @@ import {
   ChevronRight,
   School,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
-import { SCHOOL_INFO } from '../../mockData';
 import { adminApi } from '../../services/api';
 
 interface SidebarProps {
@@ -64,6 +64,7 @@ const NAV_ITEMS: NavItemConfig[] = [
   // STAFF
   { id: 'teachers', label: 'Teachers & Staff', icon: GraduationCap, category: 'STAFF' },
   { id: 'teacher-duties', label: 'Teacher Duties', icon: Briefcase, category: 'STAFF' },
+  { id: 'careers', label: 'Careers & Hiring', icon: UserCheck, category: 'STAFF' },
 
   // FINANCE
   { id: 'fees', label: 'Fees & Vouchers', icon: Receipt, category: 'FINANCE' },

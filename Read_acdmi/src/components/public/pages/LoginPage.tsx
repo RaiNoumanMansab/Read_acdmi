@@ -5,262 +5,115 @@ import {
   Lock,
   Eye,
   EyeOff,
-  UserCheck,
-  GraduationCap,
   Shield,
-  User,
-  ArrowRight,
-  CheckCircle,
-  HelpCircle,
-  KeyRound
+  ArrowRight
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../../mockData';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../common/Toast';
-import { authApi } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
+import { getCurrentUser } from '../../../services/api';
 
 interface LoginPageProps {
   onNavigate: (page: string) => void;
   onOpenAdmin: () => void;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onOpenAdmin }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const { showToast } = useToast();
-  const [role, setRole] = useState<'student' | 'teacher' | 'admin'>('student');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('admin@gmail.com');
+  const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      showToast('Please enter both Email/Username and Password', undefined, 'error');
+      showToast('Missing Credentials', 'Please enter your email and password', 'error');
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      const response = await authApi.login({
-        email,
-        password,
-        role: role === 'admin' ? 'SUPER_ADMIN' : role.toUpperCase(),
-      });
-
-      setIsSubmitting(false);
-
-      if (role === 'admin' || response.user.role === 'SUPER_ADMIN' || response.user.role === 'ADMIN') {
-        onOpenAdmin();
-        showToast('Admin Login Successful', `Welcome ${response.user.fullName} to ERP Portal`, 'success');
-      } else {
-        showToast(
-          `Logged in as ${response.user.fullName}`,
-          `Welcome back to Read Academy Sahiwal Portal!`,
-          'success'
-        );
-        onNavigate('home');
+      const success = await login(email, password);
+      if (success) {
+        const currentUser = getCurrentUser();
+        if (currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else if (currentUser?.role === 'TEACHER') {
+          navigate('/portal/teacher');
+        } else if (currentUser?.role === 'STUDENT' || currentUser?.role === 'PARENT') {
+          navigate('/portal/student');
+        } else {
+          navigate('/admin/dashboard');
+        }
       }
-    } catch (err: any) {
+    } finally {
       setIsSubmitting(false);
-      showToast('Login Failed', err.message || 'Invalid email or password', 'error');
-    }
-  };
-
-  const handleQuickDemo = (selectedRole: 'student' | 'teacher' | 'admin') => {
-    setRole(selectedRole);
-    if (selectedRole === 'admin') {
-      setEmail('admin@readacademy.edu.pk');
-      setPassword('admin1234');
-      showToast('Demo Credentials Filled', 'Role set to Administrator. Click "Log In to Portal" to enter Admin ERP.', 'info');
-    } else if (selectedRole === 'teacher') {
-      setEmail('teacher@readacademy.edu.pk');
-      setPassword('teacher1234');
-      showToast('Demo Credentials Filled', 'Role set to Faculty Member.', 'info');
-    } else {
-      setEmail('student@readacademy.edu.pk');
-      setPassword('student1234');
-      showToast('Demo Credentials Filled', 'Role set to Student / Parent.', 'info');
     }
   };
 
   return (
-    <div style={{ minHeight: '85vh', backgroundColor: '#f8fafc', padding: '60px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: '100%', maxWidth: '1000px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '32px', alignItems: 'center' }}>
+    <div style={{ minHeight: '85vh', backgroundColor: '#f8fafc', padding: '48px 16px 72px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '440px' }}>
         
-        {/* Left Info Column */}
-        <div style={{ padding: '20px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#feecec', color: '#E62929', padding: '6px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 800, marginBottom: '20px', border: '1px solid #fecaca' }}>
-            <Shield size={14} />
-            <span>Secure Campus ERP Login</span>
-          </div>
-
-          <h1 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.7rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.15, margin: '0 0 16px 0', letterSpacing: '-0.02em' }}>
-            Welcome Back to <span style={{ color: '#0B3974' }}>Read Academy</span>
-          </h1>
-
-          <p style={{ fontSize: '0.96rem', color: '#475569', lineHeight: 1.65, margin: '0 0 28px 0' }}>
-            Access academic progress reports, daily attendance tracking, fee vouchers, assignment submissions, and staff tools.
-          </p>
-
-          {/* Key Portal Features */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
-            {[
-              { icon: GraduationCap, title: 'Real-time Progress & Marks', desc: 'Track exam scores, report cards & BISE results.' },
-              { icon: CheckCircle, title: 'Smart Attendance & Notices', desc: 'Instant WhatsApp SMS notifications for parents.' },
-              { icon: Shield, title: '256-Bit SSL Encrypted', desc: 'Protected student records and financial ledgers.' }
-            ].map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#eff6ff', color: '#0B3974', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <item.icon size={18} />
-                </div>
-                <div>
-                  <h4 style={{ margin: '0 0 2px 0', fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>{item.title}</h4>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Demo Login Quick Switch Bar */}
-          <div style={{ backgroundColor: '#ffffff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
-              ⚡ 1-Click Demo Login Shortcuts:
-            </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => handleQuickDemo('admin')}
-                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #fecaca', backgroundColor: '#feecec', color: '#E62929', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
-              >
-                🛡️ Super Admin
-              </button>
-              <button
-                onClick={() => handleQuickDemo('teacher')}
-                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #bfdbfe', backgroundColor: '#eff6ff', color: '#0B3974', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
-              >
-                👨‍🏫 Teacher
-              </button>
-              <button
-                onClick={() => handleQuickDemo('student')}
-                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#f1f5f9', color: '#334155', fontSize: '0.76rem', fontWeight: 800, cursor: 'pointer' }}
-              >
-                🎒 Student / Parent
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Form Card */}
+        {/* Main Card */}
         <div
-          className="bca-card"
           style={{
             backgroundColor: '#ffffff',
-            padding: '36px 30px',
-            borderRadius: '18px',
-            borderTop: '4px solid #E62929',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.08)'
+            padding: '38px 32px',
+            borderRadius: '20px',
+            borderTop: '5px solid #0B3974',
+            boxShadow: '0 20px 40px -15px rgba(11, 57, 116, 0.12), 0 1px 3px rgba(0,0,0,0.05)',
+            border: '1px solid #e2e8f0',
+            textAlign: 'center'
           }}
         >
-          {/* Logo Brand Header */}
-          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          {/* Logo & Header */}
+          <div style={{ marginBottom: '26px' }}>
             <img
               src="/logo.png"
               alt="Read Academy Sahiwal"
-              style={{ height: '60px', margin: '0 auto 12px', display: 'block', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.12))' }}
+              style={{ height: '64px', width: 'auto', margin: '0 auto 14px', display: 'block', objectFit: 'contain' }}
             />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0B3974', margin: '0 0 4px 0' }}>
+            <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0B3974', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
               READ ACADEMY SAHIWAL
-            </h2>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#E62929', letterSpacing: '0.08em' }}>
-              PORTAL LOGIN • READ TO LEAD
+            </h1>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#eff6ff', color: '#0B3974', padding: '4px 14px', borderRadius: '20px', fontSize: '0.76rem', fontWeight: 700, marginTop: '4px' }}>
+              <Shield size={13} color="#0B3974" />
+              <span>Institutional Portal Sign In</span>
             </div>
           </div>
 
-          {/* Role Tabs */}
-          <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px', marginBottom: '24px' }}>
-            <button
-              type="button"
-              onClick={() => setRole('student')}
-              style={{
-                flex: 1,
-                padding: '8px 6px',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                backgroundColor: role === 'student' ? '#ffffff' : 'transparent',
-                color: role === 'student' ? '#0B3974' : '#64748b',
-                boxShadow: role === 'student' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.2s'
-              }}
-            >
-              🎓 Student/Parent
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('teacher')}
-              style={{
-                flex: 1,
-                padding: '8px 6px',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                backgroundColor: role === 'teacher' ? '#ffffff' : 'transparent',
-                color: role === 'teacher' ? '#0B3974' : '#64748b',
-                boxShadow: role === 'teacher' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.2s'
-              }}
-            >
-              👨‍🏫 Faculty
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('admin')}
-              style={{
-                flex: 1,
-                padding: '8px 6px',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                backgroundColor: role === 'admin' ? '#ffffff' : 'transparent',
-                color: role === 'admin' ? '#E62929' : '#64748b',
-                boxShadow: role === 'admin' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
-                transition: 'all 0.2s'
-              }}
-            >
-              🛡️ Admin
-            </button>
-          </div>
-
-          <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {/* Username / Email Field */}
+          {/* Login Form */}
+          <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px', textAlign: 'left' }}>
+            {/* Email Field */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                {role === 'student' ? 'Roll No / Registration Email' : 'Institutional Email Address'}
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>
+                Email Address or Username
               </label>
               <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
-                  {role === 'student' ? <User size={18} /> : <Mail size={18} />}
+                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
+                  <Mail size={16} />
                 </div>
                 <input
-                  type={role === 'student' && !email.includes('@') ? 'text' : 'email'}
+                  type="text"
                   required
-                  placeholder={role === 'student' ? 'e.g. RAS-2026-89 or email@domain.com' : 'e.g. name@readacademy.edu.pk'}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter institutional email or roll no"
                   style={{
                     width: '100%',
-                    padding: '12px 14px 12px 40px',
+                    padding: '11px 14px 11px 38px',
                     borderRadius: '10px',
                     border: '1.5px solid #cbd5e1',
                     fontSize: '0.9rem',
+                    fontWeight: 600,
+                    color: '#0f172a',
                     outline: 'none',
-                    transition: 'border-color 0.2s'
+                    transition: 'all 0.15s ease'
                   }}
                   onFocus={(e) => (e.target.style.borderColor = '#0B3974')}
                   onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
@@ -270,39 +123,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onOpenAdmin })
 
             {/* Password Field */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
-                  Password
-                </label>
-                <a
-                  href="#forgot"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    showToast('Password Reset Request Sent', 'Contact campus IT desk or call +92 40 4461001 to reset.', 'info');
-                  }}
-                  style={{ fontSize: '0.78rem', color: '#E62929', fontWeight: 700, textDecoration: 'none' }}
-                >
-                  Forgot password?
-                </a>
-              </div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', marginBottom: '6px' }}>
+                Password
+              </label>
               <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>
-                  <Lock size={18} />
+                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex' }}>
+                  <Lock size={16} />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                   style={{
                     width: '100%',
-                    padding: '12px 40px 12px 40px',
+                    padding: '11px 40px 11px 38px',
                     borderRadius: '10px',
                     border: '1.5px solid #cbd5e1',
                     fontSize: '0.9rem',
+                    fontWeight: 600,
+                    color: '#0f172a',
                     outline: 'none',
-                    transition: 'border-color 0.2s'
+                    transition: 'all 0.15s ease'
                   }}
                   onFocus={(e) => (e.target.style.borderColor = '#0B3974')}
                   onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
@@ -319,26 +162,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onOpenAdmin })
                     border: 'none',
                     color: '#94a3b8',
                     cursor: 'pointer',
-                    padding: '2px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: 0
                   }}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-            </div>
-
-            {/* Remember Me Checkbox */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ width: '16px', height: '16px', accentColor: '#E62929', cursor: 'pointer' }}
-              />
-              <label htmlFor="rememberMe" style={{ fontSize: '0.82rem', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>
-                Remember my login session on this device
-              </label>
             </div>
 
             {/* Submit Button */}
@@ -348,31 +179,47 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onOpenAdmin })
               className="bca-btn bca-btn-gold"
               style={{
                 width: '100%',
-                padding: '13px',
-                fontSize: '0.95rem',
+                padding: '12px',
+                fontSize: '0.92rem',
+                fontWeight: 800,
+                borderRadius: '10px',
                 justifyContent: 'center',
-                backgroundColor: role === 'admin' ? '#E62929' : '#0B3974',
-                color: '#ffffff',
-                border: 'none',
-                marginTop: '4px'
+                gap: '8px',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.8 : 1,
+                marginTop: '6px'
               }}
             >
-              <LogIn size={18} />
-              <span>{isSubmitting ? 'Authenticating...' : `Log In as ${role === 'admin' ? 'Administrator' : role === 'teacher' ? 'Faculty Member' : 'Student / Parent'}`}</span>
+              {isSubmitting ? (
+                <span>Authenticating with Backend...</span>
+              ) : (
+                <>
+                  <LogIn size={16} />
+                  <span>Sign In</span>
+                  <ArrowRight size={16} />
+                </>
+              )}
             </button>
-
-            {/* Toggle to Sign Up */}
-            <div style={{ textAlign: 'center', paddingTop: '14px', borderTop: '1px solid #f1f5f9', marginTop: '6px' }}>
-              <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Don't have a portal account yet? </span>
-              <button
-                type="button"
-                onClick={() => onNavigate('signup')}
-                style={{ background: 'none', border: 'none', color: '#E62929', fontWeight: 800, fontSize: '0.84rem', cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                Register Account
-              </button>
-            </div>
           </form>
+
+          {/* Back to Public Website link */}
+          <div style={{ marginTop: '24px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+            <button
+              onClick={() => onNavigate('home')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748b',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#0B3974')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+            >
+              ← Back to School Public Website
+            </button>
+          </div>
         </div>
 
       </div>

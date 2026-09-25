@@ -8,7 +8,9 @@ import {
   Eye,
   Filter,
   Download,
-  BookOpen
+  BookOpen,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import type { Homework } from '../../types';
 import { Modal } from '../common/Modal';
@@ -76,6 +78,71 @@ export const HomeworkView: React.FC = () => {
   const [newTeacher, setNewTeacher] = useState('Faculty Member');
   const [newDueDate, setNewDueDate] = useState('2026-09-15');
   const [newInstructions, setNewInstructions] = useState('');
+
+  // Edit Homework state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingHw, setEditingHw] = useState<Homework | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editClass, setEditClass] = useState('');
+  const [editSubject, setEditSubject] = useState('');
+  const [editTeacher, setEditTeacher] = useState('');
+  const [editDueDate, setEditDueDate] = useState('');
+  const [editInstructions, setEditInstructions] = useState('');
+
+  const handleOpenEditHomework = (hw: Homework) => {
+    setEditingHw(hw);
+    setEditTitle(hw.title);
+    setEditClass(hw.class);
+    setEditSubject(hw.subject);
+    setEditTeacher(hw.teacherName);
+    setEditDueDate(hw.dueDate);
+    setEditInstructions(hw.instructions || hw.description || '');
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditHomework = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingHw) return;
+    try {
+      await homeworkApi.updateHomework(editingHw.id, {
+        title: editTitle,
+        dueDate: editDueDate,
+        description: editInstructions
+      });
+    } catch (err) {
+      console.warn('Backend update failed:', err);
+    }
+    setHomeworkList((prev) =>
+      prev.map((h) =>
+        h.id === editingHw.id
+          ? {
+              ...h,
+              title: editTitle,
+              class: editClass,
+              subject: editSubject,
+              teacherName: editTeacher,
+              dueDate: editDueDate,
+              instructions: editInstructions,
+              description: editInstructions
+            }
+          : h
+      )
+    );
+    showToast('Homework updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingHw(null);
+  };
+
+  const handleDeleteHomework = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete homework "${title}"?`)) return;
+    try {
+      await homeworkApi.deleteHomework(id);
+    } catch (err) {
+      console.warn('Backend delete error:', err);
+    }
+    setHomeworkList((prev) => prev.filter((h) => h.id !== id));
+    showToast('Homework deleted successfully', undefined, 'success');
+  };
 
   const filtered = homeworkList.filter((h) => {
     if (selectedClass === 'All') return true;
@@ -252,13 +319,31 @@ export const HomeworkView: React.FC = () => {
                   <span>Due: {hw.dueDate}</span>
                 </div>
 
-                <button
-                  onClick={() => setActiveHomeworkSubmissions(hw)}
-                  className="bca-btn bca-btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                >
-                  <Eye size={13} /> Review Submissions
-                </button>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <button
+                    onClick={() => setActiveHomeworkSubmissions(hw)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                  >
+                    <Eye size={13} /> Submissions
+                  </button>
+                  <button
+                    onClick={() => handleOpenEditHomework(hw)}
+                    className="bca-btn bca-btn-secondary"
+                    title="Edit Homework"
+                    style={{ padding: '4px 8px', color: '#2563eb' }}
+                  >
+                    <Edit2 size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteHomework(hw.id, hw.title)}
+                    className="bca-btn bca-btn-secondary"
+                    title="Delete Homework"
+                    style={{ padding: '4px 8px', color: '#e11d48' }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -428,6 +513,94 @@ export const HomeworkView: React.FC = () => {
               placeholder="Specify questions, notebook formatting, or reference reading..."
               value={newInstructions}
               onChange={(e) => setNewInstructions(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT HOMEWORK MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Homework Assignment"
+        subtitle={`Update details for: ${editingHw?.title}`}
+        maxWidth="540px"
+        footer={
+          <>
+            <button type="submit" form="edit-homework-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-homework-form" onSubmit={handleSaveEditHomework} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Homework Title *</label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Target Class *</label>
+              <input
+                type="text"
+                required
+                value={editClass}
+                onChange={(e) => setEditClass(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Subject *</label>
+              <input
+                type="text"
+                required
+                value={editSubject}
+                onChange={(e) => setEditSubject(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Assigned Faculty *</label>
+              <input
+                type="text"
+                required
+                value={editTeacher}
+                onChange={(e) => setEditTeacher(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Submission Due Date *</label>
+              <input
+                type="date"
+                required
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Detailed Instructions</label>
+            <textarea
+              rows={3}
+              value={editInstructions}
+              onChange={(e) => setEditInstructions(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
             />
           </div>

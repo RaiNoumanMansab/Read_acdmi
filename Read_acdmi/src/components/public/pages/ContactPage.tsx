@@ -8,9 +8,11 @@ import {
   Calendar,
   Compass
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../../mockData';
+import { SCHOOL_INFO } from '../../../constants/schoolConfig';
 import { useToast } from '../../common/Toast';
 import { cmsApi } from '../../../services/api';
+import { WhatsAppButton, WhatsAppIcon } from '../../common/WhatsAppButton';
+import { SCHOOL_WHATSAPP_NUMBER } from '../../../utils/whatsapp';
 
 export const ContactPage: React.FC = () => {
   const { showToast } = useToast();
@@ -125,6 +127,30 @@ export const ContactPage: React.FC = () => {
                   {SCHOOL_INFO.phone}<br />
                   +92 40 4461002 (Admissions)
                 </p>
+              </div>
+
+              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #25D366' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <WhatsAppIcon size={24} color="#25D366" />
+                    <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: '#166534' }}>
+                      WhatsApp Helpline
+                    </h4>
+                  </div>
+                  <span style={{ fontSize: '0.68rem', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                    Instant Chat
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: '#475569', margin: '0 0 12px 0', lineHeight: 1.5 }}>
+                  Chat directly with our admissions and reception panel on WhatsApp.
+                </p>
+                <WhatsAppButton
+                  phone={SCHOOL_WHATSAPP_NUMBER}
+                  label="Chat on WhatsApp (0321-6909047)"
+                  message="Assalam-o-Alaikum! I want to inquire about Read Academy Sahiwal admissions and programs."
+                  size="sm"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                />
               </div>
 
               <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>

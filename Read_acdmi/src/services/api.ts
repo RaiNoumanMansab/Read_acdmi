@@ -85,6 +85,13 @@ export const authApi = {
     return apiRequest<{ status: string; user: any }>('/auth/me');
   },
 
+  updateProfile: async (data: any) => {
+    return apiRequest<{ status: string; message: string; user: any }>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
   logout: () => {
     removeToken();
     localStorage.removeItem('read_academy_user');
@@ -235,10 +242,36 @@ export const teachersApi = {
     });
   },
 
+  updateDuty: async (dutyId: string, dutyData: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/teachers/duties/${dutyId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(dutyData),
+    });
+  },
+
+  deleteDuty: async (dutyId: string) => {
+    return apiRequest<{ status: string; message: string }>(`/teachers/duties/${dutyId}`, {
+      method: 'DELETE',
+    });
+  },
+
   createPayroll: async (teacherId: string, payrollData: any) => {
     return apiRequest<{ status: string; message: string; data: any }>(`/teachers/${teacherId}/payroll`, {
       method: 'POST',
       body: JSON.stringify(payrollData),
+    });
+  },
+
+  updatePayroll: async (payrollId: string, payrollData: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/teachers/payroll/${payrollId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payrollData),
+    });
+  },
+
+  deletePayroll: async (payrollId: string) => {
+    return apiRequest<{ status: string; message: string }>(`/teachers/payroll/${payrollId}`, {
+      method: 'DELETE',
     });
   },
 };
@@ -399,6 +432,32 @@ export const examsApi = {
       body: JSON.stringify(payload),
     });
   },
+
+  updateExam: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/exams/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteExam: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/exams/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  updateDatesheetItem: async (examId: string, itemId: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/exams/${examId}/datesheet/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteDatesheetItem: async (examId: string, itemId: string) => {
+    return apiRequest<{ status: string; message: string }>(`/exams/${examId}/datesheet/${itemId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // ==============================================================================
@@ -438,6 +497,19 @@ export const homeworkApi = {
     return apiRequest<{ status: string; message: string; data: any }>(`/homework/submissions/${submissionId}/grade`, {
       method: 'PATCH',
       body: JSON.stringify(data),
+    });
+  },
+
+  updateHomework: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/homework/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteHomework: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/homework/${id}`, {
+      method: 'DELETE',
     });
   },
 };
@@ -507,6 +579,19 @@ export const feesApi = {
       body: JSON.stringify(data),
     });
   },
+
+  updateTransaction: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/fees/transactions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteTransaction: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/fees/transactions/${id}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // ==============================================================================
@@ -525,6 +610,13 @@ export const cmsApi = {
   publishNotice: async (data: { title: string; content: string; category: string; priority?: string; audience?: string; pinned?: boolean }) => {
     return apiRequest<{ status: string; message: string; data: any }>('/cms/notices', {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateNotice: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/cms/notices/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
@@ -550,6 +642,19 @@ export const cmsApi = {
     });
   },
 
+  updateBlog: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/cms/blogs/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteBlog: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/cms/blogs/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   getGallery: async () => {
     return apiRequest<{ status: string; count: number; data: any[] }>('/cms/gallery');
   },
@@ -558,6 +663,19 @@ export const cmsApi = {
     return apiRequest<{ status: string; message: string; data: any }>('/cms/gallery/albums', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  },
+
+  updateAlbum: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/cms/gallery/albums/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteAlbum: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/cms/gallery/albums/${id}`, {
+      method: 'DELETE',
     });
   },
 
@@ -579,6 +697,19 @@ export const cmsApi = {
     });
   },
 
+  updateEvent: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/cms/events/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteEvent: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/cms/events/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   submitContact: async (data: { fullName: string; email: string; phone?: string; subject?: string; message: string }) => {
     return apiRequest<{ status: string; message: string; data: any }>('/cms/contact', {
       method: 'POST',
@@ -590,3 +721,101 @@ export const cmsApi = {
     return apiRequest<{ status: string; count: number; data: any[] }>('/cms/contact');
   },
 };
+
+// ==============================================================================
+// 14. CAREERS & JOBS API
+// ==============================================================================
+export const jobsApi = {
+  getJobs: async (params?: { department?: string; jobType?: string; status?: string; publicOnly?: boolean }) => {
+    const query = new URLSearchParams();
+    if (params?.department) query.append('department', params.department);
+    if (params?.jobType) query.append('jobType', params.jobType);
+    if (params?.status) query.append('status', params.status);
+    if (params?.publicOnly !== undefined) query.append('publicOnly', String(params.publicOnly));
+
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return apiRequest<{ status: string; count: number; data: any[] }>(`/jobs${qs}`);
+  },
+
+  getJobById: async (id: string) => {
+    return apiRequest<{ status: string; data: any }>(`/jobs/${id}`);
+  },
+
+  createJob: async (data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>('/jobs', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateJob: async (id: string, data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/jobs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteJob: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/jobs/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  applyForJob: async (data: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>('/jobs/apply', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  getApplications: async (params?: { status?: string; jobId?: string; q?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.status) query.append('status', params.status);
+    if (params?.jobId) query.append('jobId', params.jobId);
+    if (params?.q) query.append('q', params.q);
+
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return apiRequest<{ status: string; count: number; data: any[] }>(`/jobs/applications/all${qs}`);
+  },
+
+  updateApplicationStatus: async (id: string, data: { status: string; interviewDate?: string; adminNotes?: string; enrollAsTeacher?: boolean; basicSalary?: number }) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/jobs/applications/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteApplication: async (id: string) => {
+    return apiRequest<{ status: string; message: string }>(`/jobs/applications/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// ==============================================================================
+// 14. INSTITUTIONAL SETTINGS & TESTIMONIALS API
+// ==============================================================================
+export const settingsApi = {
+  getSettings: async () => {
+    return apiRequest<{ status: string; data: Record<string, string> }>('/settings');
+  },
+
+  updateSettings: async (settings: Record<string, string>) => {
+    return apiRequest<{ status: string; message: string; data: Record<string, string> }>('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  },
+
+  getTestimonials: async () => {
+    return apiRequest<{ status: string; data: any[] }>('/settings/testimonials');
+  },
+
+  createTestimonial: async (data: { name: string; role: string; content: string; avatar?: string; rating?: number }) => {
+    return apiRequest<{ status: string; message: string; data: any }>('/settings/testimonials', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+

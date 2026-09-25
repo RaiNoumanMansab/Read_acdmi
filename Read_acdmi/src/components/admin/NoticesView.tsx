@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Users,
   Eye,
+  Edit2,
   Trash2
 } from 'lucide-react';
 import type { Notice } from '../../types';
@@ -65,6 +66,70 @@ export const NoticesView: React.FC = () => {
   const [newPriority, setNewPriority] = useState<Notice['priority']>('Normal');
   const [newAudience, setNewAudience] = useState<Notice['audience']>('All');
   const [newContent, setNewContent] = useState('');
+
+  // Edit Notice state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState<Notice['category']>('Academic');
+  const [editPriority, setEditPriority] = useState<Notice['priority']>('Normal');
+  const [editAudience, setEditAudience] = useState<Notice['audience']>('All');
+  const [editContent, setEditContent] = useState('');
+
+  const handleOpenEditNotice = (n: Notice) => {
+    setEditingNotice(n);
+    setEditTitle(n.title);
+    setEditCategory(n.category);
+    setEditPriority(n.priority);
+    setEditAudience(n.audience || n.targetAudience || 'All');
+    setEditContent(n.content);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditNotice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingNotice) return;
+    try {
+      await cmsApi.updateNotice(editingNotice.id, {
+        title: editTitle,
+        content: editContent,
+        category: editCategory,
+        priority: editPriority === 'High' ? 'HIGH' : 'NORMAL',
+        audience: editAudience
+      });
+    } catch (err) {
+      console.warn('Backend update error:', err);
+    }
+    setNotices((prev) =>
+      prev.map((n) =>
+        n.id === editingNotice.id
+          ? {
+              ...n,
+              title: editTitle,
+              category: editCategory,
+              priority: editPriority,
+              audience: editAudience,
+              targetAudience: editAudience,
+              content: editContent
+            }
+          : n
+      )
+    );
+    showToast('Notice updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingNotice(null);
+  };
+
+  const handleDeleteNotice = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete notice "${title}"?`)) return;
+    try {
+      await cmsApi.deleteNotice(id);
+    } catch (err) {
+      console.warn('Backend delete error:', err);
+    }
+    setNotices((prev) => prev.filter((n) => n.id !== id));
+    showToast('Notice deleted successfully', undefined, 'success');
+  };
 
   const categories = ['All', 'Academic', 'Fee', 'Events', 'Holiday', 'Administrative'];
 
@@ -236,14 +301,32 @@ export const NoticesView: React.FC = () => {
                 <Users size={13} />
                 <span>Target: <strong>{notice.targetAudience || notice.audience}</strong></span>
               </div>
-              <button
-                onClick={() => setActiveNotice(notice)}
-                className="bca-btn bca-btn-secondary"
-                style={{ padding: '3px 8px', fontSize: '0.74rem' }}
-              >
-                <Eye size={12} /> View
-              </button>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <button
+                  onClick={() => setActiveNotice(notice)}
+                  className="bca-btn bca-btn-secondary"
+                  style={{ padding: '3px 8px', fontSize: '0.74rem' }}
+                >
+                  <Eye size={12} /> View
+                </button>
+                <button
+                  onClick={() => handleOpenEditNotice(notice)}
+                  className="bca-btn bca-btn-secondary"
+                  title="Edit Notice"
+                  style={{ padding: '3px 8px', color: '#2563eb' }}
+                >
+                  <Edit2 size={12} />
+                </button>
+                <button
+                  onClick={() => handleDeleteNotice(notice.id, notice.title)}
+                  className="bca-btn bca-btn-secondary"
+                  title="Delete Notice"
+                  style={{ padding: '3px 8px', color: '#e11d48' }}
+                >
+                  <Trash2 size={12} />
+                </button>
               </div>
+            </div>
             </div>
           ))}
         </div>
@@ -361,6 +444,93 @@ export const NoticesView: React.FC = () => {
               placeholder="Write the full circular announcement..."
               value={newContent}
               onChange={(e) => setNewContent(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT NOTICE MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Notice Circular"
+        subtitle={`Update announcement: ${editingNotice?.title}`}
+        maxWidth="540px"
+        footer={
+          <>
+            <button type="submit" form="edit-notice-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-notice-form" onSubmit={handleSaveEditNotice} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Notice Heading / Title *</label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Category</label>
+              <select
+                value={editCategory}
+                onChange={(e) => setEditCategory(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+              >
+                <option value="Academic">Academic</option>
+                <option value="Fee">Fee</option>
+                <option value="Events">Events</option>
+                <option value="Holiday">Holiday</option>
+                <option value="Administrative">Administrative</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Priority</label>
+              <select
+                value={editPriority}
+                onChange={(e) => setNewPriority(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+              >
+                <option value="Normal">Normal</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Target Audience</label>
+              <select
+                value={editAudience}
+                onChange={(e) => setEditAudience(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem' }}
+              >
+                <option value="All">All School</option>
+                <option value="Parents">Parents Only</option>
+                <option value="Students">Students Only</option>
+                <option value="Teachers">Teachers Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Notice Text Body *</label>
+            <textarea
+              rows={4}
+              required
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
             />
           </div>

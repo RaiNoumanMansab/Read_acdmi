@@ -12,9 +12,9 @@ import {
   Users,
   Quote
 } from 'lucide-react';
-import { PARENT_TESTIMONIALS, SCHOOL_INFO } from '../../../mockData';
-import type { Testimonial } from '../../../mockData';
-import { cmsApi } from '../../../services/api';
+import { SCHOOL_INFO } from '../../../constants/schoolConfig';
+import type { Testimonial } from '../../../constants/schoolConfig';
+import { cmsApi, settingsApi } from '../../../services/api';
 
 interface HomePageProps {
   onNavigate: (page: string) => void;
@@ -24,6 +24,7 @@ interface HomePageProps {
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) => {
   const [notices, setNotices] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
   useEffect(() => {
     cmsApi.getNotices().then((res) => {
@@ -32,6 +33,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
 
     cmsApi.getEvents().then((res) => {
       if (res?.data) setEvents(res.data);
+    }).catch(() => {});
+
+    settingsApi.getTestimonials().then((res) => {
+      if (res?.data && res.data.length > 0) setTestimonials(res.data);
     }).catch(() => {});
   }, []);
   return (
@@ -642,7 +647,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               gap: '24px'
             }}
           >
-            {PARENT_TESTIMONIALS.map((test: Testimonial) => (
+            {testimonials.map((test: Testimonial) => (
               <div
                 key={test.id}
                 className="bca-card"

@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { ToastProvider, useToast } from './components/common/Toast';
+import { Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { ToastProvider } from './components/common/Toast';
+import { AuthProvider } from './context/AuthContext';
 import { CommandPalette } from './components/common/CommandPalette';
 import { Sidebar } from './components/admin/Sidebar';
 import { AdminHeader } from './components/admin/AdminHeader';
 import { PublicWebsite } from './components/public/PublicWebsite';
+import { TeacherPortal } from './components/portal/TeacherPortal';
+import { StudentParentPortal } from './components/portal/StudentParentPortal';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // Admin View Components
 import { DashboardHome } from './components/admin/DashboardHome';
@@ -27,163 +32,158 @@ import { AccountsView } from './components/admin/AccountsView';
 import { ReportsView } from './components/admin/ReportsView';
 import { SettingsView } from './components/admin/SettingsView';
 import { RolesView } from './components/admin/RolesView';
+import { CareersView } from './components/admin/CareersView';
 
-import type { AppMode, AdminTab } from './types';
-import { Globe, LayoutDashboard, Sparkles } from 'lucide-react';
+import type { AdminTab } from './types';
 
-const AppContent: React.FC = () => {
-  const { showToast } = useToast();
-  const [appMode, setAppMode] = useState<AppMode>('public');
-  const [adminTab, setAdminTab] = useState<AdminTab>('dashboard');
+const AdminLayout: React.FC = () => {
+  const { tab } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
-  const handleSwitchToAdmin = (tab: AdminTab = 'dashboard') => {
-    setAppMode('admin');
-    setAdminTab(tab);
+  const adminTab: AdminTab = (tab as AdminTab) || 'dashboard';
+
+  const handleSelectTab = (newTab: AdminTab) => {
+    navigate(`/admin/${newTab}`);
+    setMobileSidebarOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast('Switched to Admin ERP Portal', 'Logged in as Campus Super Administrator', 'info');
   };
 
   const handleSwitchToPublic = () => {
-    setAppMode('public');
+    navigate('/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast('Switched to Public School Website', 'Viewing as prospective parent / visitor', 'info');
   };
 
   return (
-    <div className="app-root">
-      {/* GLOBAL COMMAND PALETTE (CTRL + K) */}
-      <CommandPalette
-        isOpen={commandPaletteOpen}
-        onClose={() => setCommandPaletteOpen(false)}
-        onSelectTab={(tab) => {
-          setAdminTab(tab);
-          setAppMode('admin');
-          setCommandPaletteOpen(false);
-        }}
-        onSwitchToPublic={() => {
-          handleSwitchToPublic();
-          setCommandPaletteOpen(false);
-        }}
-      />
-
-      {/* FLOATING QUICK-SWITCH DOCK */}
-      <div
-        className="global-mode-switcher no-print"
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          backgroundColor: '#0f172a',
-          padding: '6px 8px',
-          borderRadius: '50px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-          border: '1px solid rgba(255,255,255,0.15)'
-        }}
-      >
-        <button
-          onClick={handleSwitchToPublic}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '7px 14px',
-            borderRadius: '30px',
-            border: 'none',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            backgroundColor: appMode === 'public' ? '#2563eb' : 'transparent',
-            color: appMode === 'public' ? '#ffffff' : '#94a3b8',
-            transition: 'all 0.2s ease'
+    <ProtectedRoute
+      allowedRoles={['SUPER_ADMIN', 'ADMIN']}
+      portalName="Campus Admin ERP Portal"
+      onRedirectToLogin={() => navigate('/login')}
+    >
+      <div className="admin-container">
+        {/* GLOBAL COMMAND PALETTE (CTRL + K) */}
+        <CommandPalette
+          isOpen={commandPaletteOpen}
+          onClose={() => setCommandPaletteOpen(false)}
+          onSelectTab={(selectedTab) => {
+            handleSelectTab(selectedTab);
+            setCommandPaletteOpen(false);
           }}
-        >
-          <Globe size={14} />
-          <span>Public Website</span>
-        </button>
-
-        <button
-          onClick={() => handleSwitchToAdmin('dashboard')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '7px 14px',
-            borderRadius: '30px',
-            border: 'none',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            backgroundColor: appMode === 'admin' ? '#2563eb' : 'transparent',
-            color: appMode === 'admin' ? '#ffffff' : '#94a3b8',
-            transition: 'all 0.2s ease'
+          onSwitchToPublic={() => {
+            handleSwitchToPublic();
+            setCommandPaletteOpen(false);
           }}
-        >
-          <LayoutDashboard size={14} />
-          <span>Admin Portal</span>
-        </button>
-      </div>
+        />
 
-      {/* RENDER PUBLIC OR ADMIN */}
-      {appMode === 'public' ? (
-        <PublicWebsite onOpenAdmin={() => handleSwitchToAdmin('dashboard')} />
-      ) : (
-        <div className="admin-container">
-          {/* Admin Left Sidebar */}
-          <Sidebar
-            currentTab={adminTab}
-            onSelectTab={(tab) => {
-              setAdminTab(tab);
-              setMobileSidebarOpen(false);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            isMobileOpen={mobileSidebarOpen}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
+        {/* Admin Left Sidebar */}
+        <Sidebar
+          currentTab={adminTab}
+          onSelectTab={handleSelectTab}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          isMobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+          onSwitchToPublic={handleSwitchToPublic}
+        />
+
+        {/* Admin Main Body */}
+        <div className={`admin-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          <AdminHeader
+            onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+            onOpenCommandPalette={() => setCommandPaletteOpen(true)}
             onSwitchToPublic={handleSwitchToPublic}
           />
 
-          {/* Admin Main Body */}
-          <div className={`admin-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-            <AdminHeader
-              onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
-              onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-              onSwitchToPublic={handleSwitchToPublic}
-            />
-
-            <main className="admin-content">
-              {adminTab === 'dashboard' && <DashboardHome onNavigate={(tab) => setAdminTab(tab)} />}
-              {adminTab === 'students' && <StudentsView />}
-              {adminTab === 'admissions' && <AdmissionsView />}
-              {adminTab === 'attendance' && <AttendanceView />}
-              {adminTab === 'fees' && <FeesView />}
-              {adminTab === 'teachers' && <TeachersView />}
-              {adminTab === 'teacher-duties' && <TeacherDutiesView />}
-              {adminTab === 'timetable' && <TimetableView />}
-              {adminTab === 'classes-subjects' && <ClassesSubjectsView />}
-              {adminTab === 'exams-results' && <ExamsResultsView />}
-              {adminTab === 'student-progress' && <StudentProgressView />}
-              {adminTab === 'homework' && <HomeworkView />}
-              {adminTab === 'notices' && <NoticesView />}
-              {adminTab === 'blogs' && <BlogsCmsView />}
-              {adminTab === 'gallery' && <GalleryCmsView />}
-              {adminTab === 'events' && <EventsCmsView />}
-              {adminTab === 'payroll' && <PayrollView />}
-              {adminTab === 'accounts' && <AccountsView />}
-              {adminTab === 'reports' && <ReportsView />}
-              {adminTab === 'roles' && <RolesView />}
-              {adminTab === 'settings' && <SettingsView />}
-            </main>
-          </div>
+          <main className="admin-content">
+            {adminTab === 'dashboard' && <DashboardHome onNavigate={handleSelectTab} />}
+            {adminTab === 'students' && <StudentsView />}
+            {adminTab === 'admissions' && <AdmissionsView />}
+            {adminTab === 'attendance' && <AttendanceView />}
+            {adminTab === 'fees' && <FeesView />}
+            {adminTab === 'teachers' && <TeachersView />}
+            {adminTab === 'teacher-duties' && <TeacherDutiesView />}
+            {adminTab === 'timetable' && <TimetableView />}
+            {adminTab === 'classes-subjects' && <ClassesSubjectsView />}
+            {adminTab === 'exams-results' && <ExamsResultsView />}
+            {adminTab === 'student-progress' && <StudentProgressView />}
+            {adminTab === 'homework' && <HomeworkView />}
+            {adminTab === 'notices' && <NoticesView />}
+            {adminTab === 'blogs' && <BlogsCmsView />}
+            {adminTab === 'gallery' && <GalleryCmsView />}
+            {adminTab === 'events' && <EventsCmsView />}
+            {adminTab === 'payroll' && <PayrollView />}
+            {adminTab === 'accounts' && <AccountsView />}
+            {adminTab === 'reports' && <ReportsView />}
+            {adminTab === 'roles' && <RolesView />}
+            {adminTab === 'careers' && <CareersView />}
+            {adminTab === 'settings' && <SettingsView />}
+          </main>
         </div>
-      )}
+      </div>
+    </ProtectedRoute>
+  );
+};
+
+const AppContent: React.FC = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="app-root">
+      <Routes>
+        {/* Public Website Routes */}
+        <Route path="/" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/about" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/academics" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/admissions" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/teachers" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/faculty" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/careers" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/jobs" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/gallery" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/events" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/blog" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/news" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/contact" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/login" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+        <Route path="/signup" element={<PublicWebsite onOpenAdmin={() => navigate('/admin/dashboard')} />} />
+
+        {/* Admin ERP Routes */}
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/:tab" element={<AdminLayout />} />
+
+        {/* Teacher / Faculty Portal */}
+        <Route
+          path="/portal/teacher"
+          element={
+            <ProtectedRoute
+              allowedRoles={['TEACHER', 'SUPER_ADMIN']}
+              portalName="Faculty Workspace"
+              onRedirectToLogin={() => navigate('/login')}
+            >
+              <TeacherPortal />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Student & Parent Dossier Portal */}
+        <Route
+          path="/portal/student"
+          element={
+            <ProtectedRoute
+              allowedRoles={['STUDENT', 'PARENT', 'SUPER_ADMIN']}
+              portalName="Student & Parent Dossier"
+              onRedirectToLogin={() => navigate('/login')}
+            >
+              <StudentParentPortal />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback to Home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 };
@@ -191,7 +191,9 @@ const AppContent: React.FC = () => {
 export function App() {
   return (
     <ToastProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ToastProvider>
   );
 }

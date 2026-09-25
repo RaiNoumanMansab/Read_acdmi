@@ -7,8 +7,10 @@ import {
   Send,
   ShieldCheck
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../mockData';
+import { SCHOOL_INFO } from '../../constants/schoolConfig';
 import { useToast } from '../common/Toast';
+import { WhatsAppButton } from '../common/WhatsAppButton';
+import { SCHOOL_WHATSAPP_NUMBER } from '../../utils/whatsapp';
 
 interface PublicFooterProps {
   setActivePage: (page: string) => void;
@@ -103,6 +105,11 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
                 </button>
               </li>
               <li>
+                <button onClick={() => nav('careers')} style={{ background: 'none', border: 'none', color: '#FFD700', cursor: 'pointer', padding: 0, fontWeight: 700 }}>
+                  Careers & Faculty Vacancies
+                </button>
+              </li>
+              <li>
                 <button onClick={() => nav('events')} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}>
                   Campus Events & Calendar
                 </button>
@@ -138,11 +145,18 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
                 <Mail size={16} color="#FFD700" style={{ flexShrink: 0 }} />
                 <span>{SCHOOL_INFO.email}</span>
               </div>
-              <div style={{ marginTop: '8px' }}>
+              <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <WhatsAppButton
+                  phone={SCHOOL_WHATSAPP_NUMBER}
+                  label="Chat on WhatsApp"
+                  message="Assalam-o-Alaikum! I want to inquire about Read Academy Sahiwal."
+                  size="sm"
+                  style={{ width: 'fit-content' }}
+                />
                 <button
                   onClick={() => nav('contact')}
                   className="bca-btn bca-btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: 'rgba(255,255,255,0.2)', color: '#ffffff' }}
+                  style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: 'rgba(255,255,255,0.2)', color: '#ffffff', width: 'fit-content' }}
                 >
                   Schedule a Campus Tour
                 </button>

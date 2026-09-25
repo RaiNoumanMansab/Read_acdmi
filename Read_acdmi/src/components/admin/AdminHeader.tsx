@@ -12,6 +12,8 @@ import {
   Shield
 } from 'lucide-react';
 import { useToast } from '../common/Toast';
+import { useAuth } from '../../context/AuthContext';
+import { AdminProfileModal } from './AdminProfileModal';
 
 interface AdminHeaderProps {
   onOpenMobileSidebar: () => void;
@@ -25,8 +27,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   onSwitchToPublic
 }) => {
   const { showToast } = useToast();
+  const { user, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const notifications = [
     { id: 1, title: 'New Admission Application', text: 'Shahmeer Khan applied for Grade 9', time: '10m ago', unread: true },
@@ -214,8 +218,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-              alt="Admin"
+              src={user?.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+              alt={user?.fullName || "Admin"}
               style={{
                 width: '36px',
                 height: '36px',
@@ -226,10 +230,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             />
             <div className="text-left hidden md:block">
               <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
-                Dr. Shahbaz Alam
+                {user?.fullName || 'Dr. Muhammad Tariq Khan'}
               </div>
               <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
-                Executive Principal
+                {user?.admin?.designation || (user?.role === 'SUPER_ADMIN' ? 'Executive Director' : 'Administrator')}
               </div>
             </div>
             <ChevronDown size={14} color="#64748b" className="hidden sm:block" />
@@ -241,7 +245,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 position: 'absolute',
                 right: 0,
                 top: '48px',
-                width: '220px',
+                width: '230px',
                 backgroundColor: '#ffffff',
                 borderRadius: '12px',
                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)',
@@ -252,20 +256,20 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             >
               <div style={{ padding: '8px 12px', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>
-                  Dr. Shahbaz Alam
+                  {user?.fullName || 'Dr. Muhammad Tariq Khan'}
                 </div>
-                <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                  principal@readacademy.edu.pk
+                <div style={{ fontSize: '0.74rem', color: '#64748b', wordBreak: 'break-all' }}>
+                  {user?.email || 'admin@readacademy.edu.pk'}
                 </div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.7rem', color: '#059669', background: '#ecfdf5', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                  <Shield size={11} /> Super Admin
+                  <Shield size={11} /> {user?.role === 'SUPER_ADMIN' ? 'Super Admin' : (user?.role || 'Admin')}
                 </div>
               </div>
 
               <div
                 onClick={() => {
-                  showToast('Opened profile settings', undefined, 'info');
                   setShowProfileMenu(false);
+                  setShowProfileModal(true);
                 }}
                 style={{
                   display: 'flex',
@@ -285,7 +289,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
               <div
                 onClick={() => {
-                  showToast('Simulation: Admin logged out', 'Switched to public demo view', 'warning');
+                  logout();
                   setShowProfileMenu(false);
                   onSwitchToPublic();
                 }}
@@ -302,12 +306,17 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fff1f2')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
-                <LogOut size={15} /> Log Out (Demo)
+                <LogOut size={15} /> Sign Out
               </div>
             </div>
           )}
         </div>
       </div>
+
+      <AdminProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </header>
   );
 };

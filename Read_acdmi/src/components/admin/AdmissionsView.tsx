@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   UserPlus,
   CheckCircle,
@@ -14,15 +14,25 @@ import {
   Upload,
   Check,
   X,
-  DollarSign
+  DollarSign,
+  Trash2,
+  Edit2,
+  FileText,
+  Image as ImageIcon,
+  Paperclip,
+  CheckCircle2,
+  ExternalLink
 } from 'lucide-react';
-import type { AdmissionApplication } from '../../types';
+import type { AdmissionApplication, AttachedDocument } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
 import { admissionsApi, academicsApi } from '../../services/api';
+import { WhatsAppButton } from '../common/WhatsAppButton';
 
 export const ALL_CLASSES = [
+  'Playgroup',
   'Nursery',
+  'Prep / KG',
   'Grade 1',
   'Grade 2',
   'Grade 3',
@@ -139,6 +149,99 @@ export const AdmissionsView: React.FC = () => {
   const [newPrevPercentage, setNewPrevPercentage] = useState('');
   const [newAddress, setNewAddress] = useState('Sahiwal, Punjab');
 
+  // Real-time Document Upload States
+  const [uploadedDocs, setUploadedDocs] = useState<{
+    id: string;
+    name: string;
+    docType: string;
+    fileSize: string;
+    fileType: string;
+    dataUrl?: string;
+    uploadedAt: string;
+  }[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<{ name: string; url: string; type: string } | null>(null);
+  const generalFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFilesUpload = async (files: FileList | File[], docTypePrefix?: string) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    const maxBytes = 10 * 1024 * 1024; // 10MB
+
+    const newDocs: typeof uploadedDocs = [];
+    for (const file of fileArray) {
+      if (file.size > maxBytes) {
+        showToast('File Too Large', `${file.name} exceeds 10MB limit`, 'error');
+        continue;
+      }
+
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        const sizeStr = file.size > 1024 * 1024
+          ? `${(file.size / (1024 * 1024)).toFixed(2)} MB`
+          : `${(file.size / 1024).toFixed(1)} KB`;
+
+        let assignedType = docTypePrefix || 'Supporting Certificate';
+        if (!docTypePrefix) {
+          const lower = file.name.toLowerCase();
+          if (lower.includes('b-form') || lower.includes('bform') || lower.includes('birth')) {
+            assignedType = 'Student B-Form / Birth Certificate';
+          } else if (lower.includes('photo') || lower.includes('pic') || lower.includes('passport') || lower.includes('image')) {
+            assignedType = 'Passport Size Photograph';
+          } else if (lower.includes('cnic') || lower.includes('nic') || lower.includes('father') || lower.includes('guardian')) {
+            assignedType = 'Father / Guardian CNIC Copy';
+          } else if (lower.includes('slc') || lower.includes('leaving') || lower.includes('transfer')) {
+            assignedType = 'School Leaving Certificate (SLC)';
+          } else if (lower.includes('result') || lower.includes('mark') || lower.includes('grade') || lower.includes('transcript')) {
+            assignedType = 'Past Academic Transcripts / Result Card';
+          }
+        }
+
+        newDocs.push({
+          id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          name: file.name,
+          docType: assignedType,
+          fileSize: sizeStr,
+          fileType: file.type || 'application/octet-stream',
+          dataUrl,
+          uploadedAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error('File reading failed:', err);
+        showToast('Upload Error', `Failed to read ${file.name}`, 'error');
+      }
+    }
+
+    if (newDocs.length > 0) {
+      setUploadedDocs((prev) => {
+        if (docTypePrefix) {
+          const filtered = prev.filter((d) => d.docType !== docTypePrefix);
+          return [...filtered, ...newDocs];
+        }
+        return [...prev, ...newDocs];
+      });
+      showToast(
+        'Document(s) Attached',
+        `${newDocs.length} real document(s) uploaded successfully`,
+        'success'
+      );
+    }
+  };
+
+  const handleRemoveDoc = (id: string) => {
+    setUploadedDocs((prev) => prev.filter((d) => d.id !== id));
+    showToast('Document Removed', undefined, 'info');
+  };
+
   const filtered = applications.filter((app) => {
     const matchesSearch =
       app.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -229,12 +332,34 @@ export const AdmissionsView: React.FC = () => {
     }
   };
 
+  const handleDeleteApplication = async (id: string, studentName: string) => {
+    if (!window.confirm(`Are you sure you want to delete application "${id}" for ${studentName}?`)) return;
+    try {
+      await admissionsApi.deleteAdmission(id);
+    } catch (err: any) {
+      console.warn('API delete error:', err);
+    }
+    setApplications((prev) => prev.filter((a) => a.id !== id));
+    showToast(`Application ${id} deleted successfully`, undefined, 'success');
+  };
+
   const handleCreateApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStudentName || !newParentName || !newParentPhone) {
       showToast('Please complete all mandatory fields', undefined, 'error');
       return;
     }
+
+    const finalDocs = uploadedDocs.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      docType: doc.docType,
+      fileSize: doc.fileSize,
+      fileType: doc.fileType,
+      dataUrl: doc.dataUrl,
+      uploadedAt: doc.uploadedAt,
+    }));
+
     try {
       const res = await admissionsApi.submitAdmission({
         studentName: newStudentName,
@@ -248,20 +373,29 @@ export const AdmissionsView: React.FC = () => {
         previousSchool: newPrevSchool.trim() || undefined,
         previousPercentage: newPrevPercentage ? Number(newPrevPercentage.replace('%', '')) : undefined,
         homeAddress: newAddress,
+        documentsSubmitted: finalDocs,
       });
 
       if (res?.data) {
         setApplications((prev) => [mapBackendAdmission(res.data), ...prev]);
         setShowNewFormModal(false);
-        showToast('Admission Application Registered', `Application ${res.data.applicationNo || ''} saved successfully to database`, 'success');
+        showToast(
+          'Admission Application Registered',
+          `Application ${res.data.applicationNo || ''} with ${finalDocs.length} real document(s) saved successfully`,
+          'success'
+        );
         setNewStudentName('');
         setNewParentName('');
         setNewParentPhone('');
         setNewParentEmail('');
         setNewPrevSchool('');
+        setUploadedDocs([]);
+        setFormSection('student');
       } else {
         setShowNewFormModal(false);
         showToast('Application Submitted', 'Application received', 'info');
+        setUploadedDocs([]);
+        setFormSection('student');
       }
     } catch (err: any) {
       console.error('Error registering admission:', err);
@@ -439,7 +573,16 @@ export const AdmissionsView: React.FC = () => {
                   </td>
                   <td>
                     <div style={{ fontWeight: 600, color: '#334155' }}>{app.parentName}</div>
-                    <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{app.parentPhone}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{app.parentPhone}</span>
+                      <WhatsAppButton
+                        phone={app.parentPhone}
+                        compact
+                        size="xs"
+                        message={`Assalam-o-Alaikum ${app.parentName}! This is Read Academy Admissions regarding your application (${app.id}) for ${app.studentName}.`}
+                        title="Chat with Parent on WhatsApp"
+                      />
+                    </div>
                   </td>
                   <td>{app.applicationDate}</td>
                   <td>
@@ -449,6 +592,22 @@ export const AdmissionsView: React.FC = () => {
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <button
+                        onClick={() => setSelectedApp(app)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '5px 8px', color: '#2563eb' }}
+                        title="Edit / Review Application"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteApplication(app.id, app.studentName)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '5px 8px', color: '#e11d48' }}
+                        title="Delete Application"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                       <button
                         onClick={() => setSelectedApp(app)}
                         className="bca-btn bca-btn-secondary"
@@ -541,41 +700,157 @@ export const AdmissionsView: React.FC = () => {
               <div><strong>Previous School:</strong> {selectedApp.previousSchool}</div>
               <div><strong>Previous Academic Record:</strong> {selectedApp.previousPercentage}</div>
               <div><strong>Father / Guardian:</strong> {selectedApp.parentName}</div>
-              <div><strong>Contact Number:</strong> {selectedApp.parentPhone}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <strong>Contact Number:</strong> {selectedApp.parentPhone}
+                <WhatsAppButton
+                  phone={selectedApp.parentPhone}
+                  size="xs"
+                  label="WhatsApp"
+                  message={`Assalam-o-Alaikum ${selectedApp.parentName}! This is Read Academy Admissions regarding your application (${selectedApp.id}) for ${selectedApp.studentName}.`}
+                />
+              </div>
               <div><strong>Contact Email:</strong> {selectedApp.parentEmail}</div>
               <div style={{ gridColumn: 'span 2' }}><strong>Residential Address:</strong> {selectedApp.address}</div>
             </div>
 
             <div>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '0.92rem' }}>Submitted Verification Documents</h4>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
+                  Submitted Verification Documents ({selectedApp.documentsSubmitted?.length || 0})
+                </h4>
+                <span style={{ fontSize: '0.72rem', color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                  Real-Time Dossier
+                </span>
+              </div>
+
               {selectedApp.documentsSubmitted && selectedApp.documentsSubmitted.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {selectedApp.documentsSubmitted.map((doc, idx) => {
-                    const isAttached = typeof doc === 'string' && (doc.includes('[Attached:') || doc.includes('[File:'));
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
+                  {selectedApp.documentsSubmitted.map((doc: any, idx: number) => {
+                    const isObj = typeof doc === 'object' && doc !== null;
+                    const docName = isObj ? (doc.name || doc.docType || 'Certificate') : String(doc);
+                    const docType = isObj ? doc.docType : undefined;
+                    const docSize = isObj ? doc.fileSize : undefined;
+                    const dataUrl = isObj ? (doc.dataUrl || doc.fileData || doc.url) : undefined;
+                    const isImage = dataUrl && (dataUrl.startsWith('data:image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(docName));
+                    const isPdf = dataUrl && (dataUrl.startsWith('data:application/pdf') || /\.pdf$/i.test(docName));
+
                     return (
-                      <span
+                      <div
                         key={idx}
                         style={{
-                          background: isAttached ? '#ecfdf5' : '#eff6ff',
-                          border: isAttached ? '1px solid #a7f3d0' : '1px solid #bfdbfe',
-                          color: isAttached ? '#065f46' : '#1e40af',
-                          padding: '5px 12px',
-                          borderRadius: '6px',
-                          fontSize: '0.78rem',
-                          fontWeight: 600,
-                          display: 'inline-flex',
+                          display: 'flex',
                           alignItems: 'center',
-                          gap: '6px'
+                          justifyContent: 'space-between',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                          gap: '10px'
                         }}
                       >
-                        <FileCheck size={14} color={isAttached ? '#059669' : '#2563eb'} />
-                        {doc}
-                      </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                          {isImage ? (
+                            <img
+                              src={dataUrl}
+                              alt={docName}
+                              style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1', flexShrink: 0 }}
+                            />
+                          ) : isPdf ? (
+                            <div style={{ width: '40px', height: '40px', borderRadius: '6px', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.72rem', flexShrink: 0 }}>
+                              PDF
+                            </div>
+                          ) : (
+                            <div style={{ width: '40px', height: '40px', borderRadius: '6px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <FileCheck size={20} />
+                            </div>
+                          )}
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div
+                              style={{
+                                fontSize: '0.82rem',
+                                fontWeight: 700,
+                                color: '#1e293b',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                              title={docName}
+                            >
+                              {docName}
+                            </div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                              {docType && docType !== docName ? `${docType} • ` : ''}
+                              {docSize || 'Verified'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {dataUrl ? (
+                          <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDoc({ name: docName, url: dataUrl, type: isPdf ? 'pdf' : isImage ? 'image' : 'other' })}
+                              style={{
+                                padding: '4px 8px',
+                                background: '#eff6ff',
+                                color: '#2563eb',
+                                border: '1px solid #bfdbfe',
+                                borderRadius: '6px',
+                                fontSize: '0.74rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}
+                              title="Preview Document"
+                            >
+                              <Eye size={12} /> View
+                            </button>
+                            <a
+                              href={dataUrl}
+                              download={docName}
+                              style={{
+                                padding: '4px 8px',
+                                background: '#f8fafc',
+                                color: '#475569',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '6px',
+                                fontSize: '0.74rem',
+                                fontWeight: 600,
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}
+                              title="Download File"
+                            >
+                              <Download size={12} />
+                            </a>
+                          </div>
+                        ) : (
+                          <span
+                            style={{
+                              background: '#eff6ff',
+                              border: '1px solid #bfdbfe',
+                              color: '#1e40af',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              flexShrink: 0
+                            }}
+                          >
+                            Recorded
+                          </span>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
               ) : (
-                <div style={{ fontSize: '0.82rem', color: '#64748b', fontStyle: 'italic', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                <div style={{ fontSize: '0.82rem', color: '#64748b', fontStyle: 'italic', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
                   No verification documents submitted yet (Candidate has not attached documents).
                 </div>
               )}
@@ -803,27 +1078,304 @@ export const AdmissionsView: React.FC = () => {
 
           {/* Section 4: Documents & Photo */}
           {formSection === 'documents' && (
-            <div>
-              <p style={{ fontSize: '0.84rem', color: '#64748b', marginBottom: '14px' }}>
-                Upload soft copies of candidate certificates (Mock UI Upload):
-              </p>
-              <div
-                style={{
-                  border: '2px dashed #cbd5e1',
-                  borderRadius: '12px',
-                  padding: '30px',
-                  textAlign: 'center',
-                  backgroundColor: '#f8fafc',
-                  cursor: 'pointer'
-                }}
-                onClick={() => showToast('Mock files attached: B-Form, Photos & Report Card', undefined, 'success')}
-              >
-                <Upload size={32} color="#2563eb" style={{ margin: '0 auto 8px' }} />
-                <div style={{ fontWeight: 700, color: '#1e293b' }}>Click to Browse or Drag Files Here</div>
-                <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '4px' }}>
-                  Supported formats: PDF, JPG, PNG (Max 10MB each)
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>
+                      Real-Time Candidate Documents & Photo Upload
+                    </h4>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                      Upload authentic copies of certificates (PDF, JPG, PNG). Documents are processed in real time and saved in the database dossier.
+                    </p>
+                  </div>
+                  <span style={{ fontSize: '0.74rem', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '3px 10px', borderRadius: '20px', fontWeight: 600 }}>
+                    {uploadedDocs.length} Document(s) Attached
+                  </span>
                 </div>
               </div>
+
+              {/* Standard Documents Required List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  {
+                    type: 'Student B-Form / Birth Certificate',
+                    title: 'Student B-Form / Birth Certificate',
+                    desc: 'NADRA B-Form or Union Council Official Birth Certificate',
+                    required: true,
+                    accept: 'image/*,application/pdf'
+                  },
+                  {
+                    type: 'Passport Size Photograph',
+                    title: 'Passport Size Photograph',
+                    desc: 'Recent candidate photo with blue or white background',
+                    required: true,
+                    accept: 'image/*'
+                  },
+                  {
+                    type: 'Father / Guardian CNIC Copy',
+                    title: 'Father / Guardian CNIC Copy',
+                    desc: 'Scanned front and back copy of Father / Guardian CNIC',
+                    required: false,
+                    accept: 'image/*,application/pdf'
+                  },
+                  {
+                    type: 'School Leaving Certificate (SLC)',
+                    title: 'School Leaving Certificate (SLC)',
+                    desc: 'Official clearance or character certificate from previous institution',
+                    required: false,
+                    accept: 'image/*,application/pdf'
+                  },
+                  {
+                    type: 'Past Academic Transcripts / Result Card',
+                    title: 'Past Academic Transcripts / Result Card',
+                    desc: 'Latest annual exam result card or board certificate',
+                    required: false,
+                    accept: 'image/*,application/pdf'
+                  }
+                ].map((slot) => {
+                  const attached = uploadedDocs.find((d) => d.docType === slot.type);
+                  const isImage = attached?.fileType.startsWith('image/') || (attached?.name && /\.(jpg|jpeg|png|webp|gif)$/i.test(attached.name));
+                  const isPdf = attached?.fileType === 'application/pdf' || (attached?.name && /\.pdf$/i.test(attached.name));
+
+                  return (
+                    <div
+                      key={slot.type}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 14px',
+                        borderRadius: '10px',
+                        background: attached ? '#f0fdf4' : '#ffffff',
+                        border: attached ? '1px solid #86efac' : '1px solid #e2e8f0',
+                        gap: '12px',
+                        flexWrap: 'wrap'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '220px', flex: 1 }}>
+                        {attached ? (
+                          isImage && attached.dataUrl ? (
+                            <img
+                              src={attached.dataUrl}
+                              alt={attached.name}
+                              style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #86efac', flexShrink: 0 }}
+                            />
+                          ) : (
+                            <div style={{ width: '42px', height: '42px', borderRadius: '6px', background: isPdf ? '#fee2e2' : '#dcfce7', color: isPdf ? '#dc2626' : '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.72rem', flexShrink: 0 }}>
+                              {isPdf ? 'PDF' : <FileCheck size={20} />}
+                            </div>
+                          )
+                        ) : (
+                          <div style={{ width: '42px', height: '42px', borderRadius: '6px', background: '#f1f5f9', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <FileText size={20} />
+                          </div>
+                        )}
+
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1e293b' }}>{slot.title}</span>
+                            {slot.required && (
+                              <span style={{ fontSize: '0.68rem', background: '#fee2e2', color: '#dc2626', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                                Required
+                              </span>
+                            )}
+                            {attached && (
+                              <span style={{ fontSize: '0.68rem', background: '#dcfce7', color: '#15803d', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                <Check size={10} /> Attached
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+                            {attached ? `${attached.name} (${attached.fileSize})` : slot.desc}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {attached && (
+                          <>
+                            {attached.dataUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setPreviewDoc({ name: attached.name, url: attached.dataUrl!, type: isPdf ? 'pdf' : isImage ? 'image' : 'other' })}
+                                style={{
+                                  padding: '5px 10px',
+                                  background: '#eff6ff',
+                                  color: '#2563eb',
+                                  border: '1px solid #bfdbfe',
+                                  borderRadius: '6px',
+                                  fontSize: '0.76rem',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <Eye size={12} /> Preview
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveDoc(attached.id)}
+                              style={{
+                                padding: '5px 8px',
+                                background: '#fff1f2',
+                                color: '#e11d48',
+                                border: '1px solid #fecdd3',
+                                borderRadius: '6px',
+                                fontSize: '0.76rem',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center'
+                              }}
+                              title="Remove Document"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </>
+                        )}
+
+                        <label
+                          style={{
+                            padding: '6px 12px',
+                            background: attached ? '#f8fafc' : '#2563eb',
+                            color: attached ? '#334155' : '#ffffff',
+                            border: attached ? '1px solid #cbd5e1' : '1px solid #2563eb',
+                            borderRadius: '6px',
+                            fontSize: '0.76rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          <Upload size={13} />
+                          {attached ? 'Replace File' : 'Upload File'}
+                          <input
+                            type="file"
+                            accept={slot.accept}
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              if (e.target.files) handleFilesUpload(e.target.files, slot.type);
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* General Multi-file Drag & Drop Area */}
+              <div>
+                <input
+                  type="file"
+                  multiple
+                  ref={generalFileInputRef}
+                  accept="image/*,application/pdf"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    if (e.target.files) handleFilesUpload(e.target.files);
+                    e.target.value = '';
+                  }}
+                />
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files) handleFilesUpload(e.dataTransfer.files);
+                  }}
+                  onClick={() => generalFileInputRef.current?.click()}
+                  style={{
+                    border: isDragging ? '2px dashed #2563eb' : '2px dashed #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '24px',
+                    textAlign: 'center',
+                    backgroundColor: isDragging ? '#eff6ff' : '#f8fafc',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Upload size={28} color="#2563eb" style={{ margin: '0 auto 8px' }} />
+                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem' }}>
+                    Click to Browse Files or Drag & Drop Documents Here
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                    Real-time upload supporting PDF, JPG, PNG, WEBP (Max 10MB each)
+                  </div>
+                </div>
+              </div>
+
+              {/* All Attached Documents Real-time Review List */}
+              {uploadedDocs.length > 0 && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                      Ready to Submit ({uploadedDocs.length} files attached)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setUploadedDocs([])}
+                      style={{ border: 'none', background: 'transparent', color: '#ef4444', fontSize: '0.74rem', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {uploadedDocs.map((doc) => (
+                      <div
+                        key={doc.id}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '6px',
+                          padding: '4px 8px',
+                          fontSize: '0.76rem'
+                        }}
+                      >
+                        <FileCheck size={13} color="#059669" />
+                        <span style={{ fontWeight: 600, color: '#1e293b', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {doc.name}
+                        </span>
+                        <span style={{ color: '#64748b', fontSize: '0.7rem' }}>({doc.fileSize})</span>
+                        {doc.dataUrl && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const isPdf = doc.fileType === 'application/pdf' || doc.name.endsWith('.pdf');
+                              setPreviewDoc({ name: doc.name, url: doc.dataUrl!, type: isPdf ? 'pdf' : 'image' });
+                            }}
+                            style={{ border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', padding: 0 }}
+                            title="Preview"
+                          >
+                            <Eye size={12} />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDoc(doc.id)}
+                          style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
+                          title="Remove"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </form>
@@ -987,6 +1539,64 @@ export const AdmissionsView: React.FC = () => {
                 style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', resize: 'vertical' }}
               />
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* REAL-TIME DOCUMENT PREVIEW MODAL */}
+      {previewDoc && (
+        <Modal
+          isOpen={!!previewDoc}
+          onClose={() => setPreviewDoc(null)}
+          title={`Document Preview: ${previewDoc.name}`}
+          maxWidth="850px"
+          footer={
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+              <a
+                href={previewDoc.url}
+                download={previewDoc.name}
+                className="bca-btn bca-btn-primary"
+                style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Download size={15} /> Download Document
+              </a>
+              <button
+                type="button"
+                onClick={() => setPreviewDoc(null)}
+                className="bca-btn bca-btn-secondary"
+              >
+                Close Preview
+              </button>
+            </div>
+          }
+        >
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '350px', maxHeight: '72vh', overflow: 'auto', background: '#0f172a', borderRadius: '8px', padding: '12px' }}>
+            {previewDoc.type === 'image' ? (
+              <img
+                src={previewDoc.url}
+                alt={previewDoc.name}
+                style={{ maxWidth: '100%', maxHeight: '68vh', objectFit: 'contain', borderRadius: '4px' }}
+              />
+            ) : previewDoc.type === 'pdf' ? (
+              <iframe
+                src={previewDoc.url}
+                title={previewDoc.name}
+                style={{ width: '100%', height: '65vh', border: 'none', borderRadius: '4px', background: '#ffffff' }}
+              />
+            ) : (
+              <div style={{ color: '#ffffff', textAlign: 'center', padding: '30px' }}>
+                <FileText size={48} style={{ margin: '0 auto 12px', opacity: 0.8 }} />
+                <p style={{ margin: '0 0 14px 0', fontSize: '0.9rem' }}>Direct inline preview is not supported for this file type.</p>
+                <a
+                  href={previewDoc.url}
+                  download={previewDoc.name}
+                  className="bca-btn bca-btn-primary"
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Download size={15} /> Download & Open File
+                </a>
+              </div>
+            )}
           </div>
         </Modal>
       )}

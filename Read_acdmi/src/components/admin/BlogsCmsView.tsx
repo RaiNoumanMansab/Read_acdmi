@@ -8,6 +8,7 @@ import {
   Search,
   Filter,
   Trash2,
+  Edit2,
   FileText,
   Image as ImageIcon
 } from 'lucide-react';
@@ -71,6 +72,68 @@ export const BlogsCmsView: React.FC = () => {
   const [author, setAuthor] = useState('Academic Council');
   const [excerpt, setExcerpt] = useState('');
   const [readTime, setReadTime] = useState('5 min read');
+
+  // Edit Blog state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState('Academics');
+  const [editAuthor, setEditAuthor] = useState('');
+  const [editExcerpt, setEditExcerpt] = useState('');
+  const [editContent, setEditContent] = useState('');
+
+  const handleOpenEditBlog = (b: BlogPost) => {
+    setEditingBlog(b);
+    setEditTitle(b.title);
+    setEditCategory(b.category);
+    setEditAuthor(b.author);
+    setEditExcerpt(b.excerpt || '');
+    setEditContent(b.content || b.excerpt || '');
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditBlog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBlog) return;
+    try {
+      await cmsApi.updateBlog(editingBlog.id, {
+        title: editTitle,
+        category: editCategory,
+        excerpt: editExcerpt,
+        content: editContent
+      });
+    } catch (err) {
+      console.warn('Backend blog update error:', err);
+    }
+    setBlogs((prev) =>
+      prev.map((b) =>
+        b.id === editingBlog.id
+          ? {
+              ...b,
+              title: editTitle,
+              category: editCategory,
+              author: editAuthor,
+              excerpt: editExcerpt,
+              content: editContent
+            }
+          : b
+      )
+    );
+    showToast('Blog article updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingBlog(null);
+  };
+
+  const handleDeleteBlog = async (id: string, postTitle: string) => {
+    if (!window.confirm(`Are you sure you want to delete article "${postTitle}"?`)) return;
+    try {
+      await cmsApi.deleteBlog(id);
+    } catch (err) {
+      console.warn('Backend blog delete error:', err);
+    }
+    setBlogs((prev) => prev.filter((b) => b.id !== id));
+    showToast('Blog article deleted successfully', undefined, 'success');
+  };
 
   const handleCreateBlog = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,13 +300,31 @@ export const BlogsCmsView: React.FC = () => {
 
             <div style={{ padding: '12px 18px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.76rem', color: '#64748b' }}>By <strong>{b.author}</strong></span>
-              <button
-                onClick={() => setSelectedPost(b)}
-                className="bca-btn bca-btn-secondary"
-                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-              >
-                <Eye size={13} /> Preview Article
-              </button>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <button
+                  onClick={() => setSelectedPost(b)}
+                  className="bca-btn bca-btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                >
+                  <Eye size={13} /> Preview
+                </button>
+                <button
+                  onClick={() => handleOpenEditBlog(b)}
+                  className="bca-btn bca-btn-secondary"
+                  title="Edit Blog"
+                  style={{ padding: '4px 8px', color: '#2563eb' }}
+                >
+                  <Edit2 size={13} />
+                </button>
+                <button
+                  onClick={() => handleDeleteBlog(b.id, b.title)}
+                  className="bca-btn bca-btn-secondary"
+                  title="Delete Blog"
+                  style={{ padding: '4px 8px', color: '#e11d48' }}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
             </div>
             </div>
           ))}
@@ -345,6 +426,86 @@ export const BlogsCmsView: React.FC = () => {
               placeholder="Write a brief summary of the article..."
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT BLOG MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Blog Article"
+        subtitle={`Update post: ${editingBlog?.title}`}
+        maxWidth="620px"
+        footer={
+          <>
+            <button type="submit" form="edit-blog-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-blog-form" onSubmit={handleSaveEditBlog} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Article Headline *</label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Category *</label>
+              <select
+                value={editCategory}
+                onChange={(e) => setEditCategory(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Academics">Academics</option>
+                <option value="Sports">Sports</option>
+                <option value="STEM">STEM & Robotics</option>
+                <option value="Arts & Culture">Arts & Culture</option>
+                <option value="Campus Life">Campus Life</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Author Byline</label>
+              <input
+                type="text"
+                value={editAuthor}
+                onChange={(e) => setEditAuthor(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Short Abstract / Excerpt *</label>
+            <textarea
+              rows={2}
+              required
+              value={editExcerpt}
+              onChange={(e) => setEditExcerpt(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Full Article Content</label>
+            <textarea
+              rows={4}
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
             />
           </div>

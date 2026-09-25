@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   School,
@@ -9,14 +9,18 @@ import {
   Save,
   Database,
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../mockData';
+import { SCHOOL_INFO } from '../../constants/schoolConfig';
 import { useToast } from '../common/Toast';
+import { settingsApi } from '../../services/api';
 
 export const SettingsView: React.FC = () => {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'general' | 'academic' | 'fees' | 'notifications' | 'backup'>('general');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // School profile form
   const [schoolName, setSchoolName] = useState(SCHOOL_INFO.name);
@@ -30,9 +34,46 @@ export const SettingsView: React.FC = () => {
   const [activeSession, setActiveSession] = useState('2026-2027');
   const [termSystem, setTermSystem] = useState('3-Term Trimester');
 
-  const handleSaveGeneral = (e: React.FormEvent) => {
-    e.preventDefault();
-    showToast('School Profile Updated', 'Institutional information saved successfully', 'success');
+  useEffect(() => {
+    setLoading(true);
+    settingsApi.getSettings().then((res) => {
+      if (res?.data) {
+        if (res.data.name) setSchoolName(res.data.name);
+        if (res.data.motto) setMotto(res.data.motto);
+        if (res.data.address) setAddress(res.data.address);
+        if (res.data.phone) setPhone(res.data.phone);
+        if (res.data.email) setEmail(res.data.email);
+        if (res.data.principal) setPrincipal(res.data.principal);
+        if (res.data.activeSession) setActiveSession(res.data.activeSession);
+        if (res.data.termSystem) setTermSystem(res.data.termSystem);
+      }
+    }).catch((err) => {
+      console.error('Failed to load settings:', err);
+    }).finally(() => {
+      setLoading(false);
+    });
+  }, []);
+
+  const handleSaveGeneral = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSaving(true);
+    try {
+      await settingsApi.updateSettings({
+        name: schoolName,
+        motto,
+        address,
+        phone,
+        email,
+        principal,
+        activeSession,
+        termSystem
+      });
+      showToast('School Profile Updated', 'Institutional information saved to PostgreSQL database successfully', 'success');
+    } catch (err: any) {
+      showToast('Save Failed', err.message || 'Could not save settings', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -49,11 +90,12 @@ export const SettingsView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => showToast('All configuration changes committed to system cache', undefined, 'success')}
+          onClick={() => handleSaveGeneral()}
+          disabled={saving}
           className="bca-btn bca-btn-primary"
         >
-          <Save size={16} />
-          <span>Save All Settings</span>
+          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          <span>{saving ? 'Saving...' : 'Save All Settings'}</span>
         </button>
       </div>
 

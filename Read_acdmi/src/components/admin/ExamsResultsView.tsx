@@ -11,9 +11,10 @@ import {
   CheckCircle,
   FileText,
   School,
-  Download
+  Download,
+  Edit2,
+  Trash2
 } from 'lucide-react';
-import { SCHOOL_INFO } from '../../mockData';
 import type { Exam, DateSheetItem, Student } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
@@ -45,6 +46,122 @@ export const ExamsResultsView: React.FC = () => {
   const [newEndDate, setNewEndDate] = useState('2026-11-25');
 
   const [selectedClass, setSelectedClass] = useState('Grade 10');
+
+  // Edit Exam state
+  const [editExamModalOpen, setEditExamModalOpen] = useState(false);
+  const [editingExam, setEditingExam] = useState<Exam | null>(null);
+  const [editExamName, setEditExamName] = useState('');
+  const [editExamTerm, setEditExamTerm] = useState('Mid-Term');
+  const [editExamStartDate, setEditExamStartDate] = useState('');
+  const [editExamEndDate, setEditExamEndDate] = useState('');
+  const [editExamStatus, setEditExamStatus] = useState<Exam['status']>('Upcoming');
+
+  const handleOpenEditExam = (exam: Exam) => {
+    setEditingExam(exam);
+    setEditExamName(exam.name);
+    setEditExamTerm(exam.term || 'Mid-Term');
+    setEditExamStartDate(exam.startDate);
+    setEditExamEndDate(exam.endDate);
+    setEditExamStatus(exam.status);
+    setEditExamModalOpen(true);
+  };
+
+  const handleSaveEditExam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingExam) return;
+    try {
+      await examsApi.updateExam(editingExam.id, {
+        title: editExamName,
+        term: editExamTerm,
+        startDate: editExamStartDate,
+        endDate: editExamEndDate,
+        status: editExamStatus.toUpperCase()
+      });
+    } catch (err) {
+      console.warn('Backend update exam error:', err);
+    }
+    setExams((prev) =>
+      prev.map((x) =>
+        x.id === editingExam.id
+          ? {
+              ...x,
+              name: editExamName,
+              term: editExamTerm,
+              startDate: editExamStartDate,
+              endDate: editExamEndDate,
+              status: editExamStatus
+            }
+          : x
+      )
+    );
+    showToast('Examination schedule updated successfully', undefined, 'success');
+    setEditExamModalOpen(false);
+    setEditingExam(null);
+  };
+
+  const handleDeleteExam = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete exam term "${name}"?`)) return;
+    try {
+      await examsApi.deleteExam(id);
+    } catch (err) {
+      console.warn('Backend delete exam error:', err);
+    }
+    setExams((prev) => prev.filter((x) => x.id !== id));
+    showToast('Exam schedule deleted successfully', undefined, 'success');
+  };
+
+  // Edit DateSheet Item state
+  const [editDateSheetModalOpen, setEditDateSheetModalOpen] = useState(false);
+  const [editingDateSheetItem, setEditingDateSheetItem] = useState<DateSheetItem | null>(null);
+  const [editDsDate, setEditDsDate] = useState('');
+  const [editDsDay, setEditDsDay] = useState('');
+  const [editDsSubject, setEditDsSubject] = useState('');
+  const [editDsClass, setEditDsClass] = useState('');
+  const [editDsTime, setEditDsTime] = useState('');
+  const [editDsRoom, setEditDsRoom] = useState('');
+  const [editDsInvigilator, setEditDsInvigilator] = useState('');
+
+  const handleOpenEditDateSheet = (d: DateSheetItem) => {
+    setEditingDateSheetItem(d);
+    setEditDsDate(d.date);
+    setEditDsDay(d.day);
+    setEditDsSubject(d.subject);
+    setEditDsClass(d.class);
+    setEditDsTime(d.time);
+    setEditDsRoom(d.room);
+    setEditDsInvigilator(d.invigilator || '');
+    setEditDateSheetModalOpen(true);
+  };
+
+  const handleSaveEditDateSheet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDateSheetItem) return;
+    setDateSheet((prev) =>
+      prev.map((d) =>
+        d.id === editingDateSheetItem.id
+          ? {
+              ...d,
+              date: editDsDate,
+              day: editDsDay,
+              subject: editDsSubject,
+              class: editDsClass,
+              time: editDsTime,
+              room: editDsRoom,
+              invigilator: editDsInvigilator
+            }
+          : d
+      )
+    );
+    showToast('Date sheet slot updated successfully', undefined, 'success');
+    setEditDateSheetModalOpen(false);
+    setEditingDateSheetItem(null);
+  };
+
+  const handleDeleteDateSheet = async (id: string, subject: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${subject} from date sheet?`)) return;
+    setDateSheet((prev) => prev.filter((d) => d.id !== id));
+    showToast('Date sheet slot deleted successfully', undefined, 'success');
+  };
 
   // Load exams and students from live APIs
   useEffect(() => {
@@ -175,13 +292,31 @@ export const ExamsResultsView: React.FC = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
                 <span style={{ fontSize: '0.76rem', color: '#64748b' }}>Weightage: 30%</span>
-                <button
-                  onClick={() => setActiveTab('datesheet')}
-                  className="bca-btn bca-btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                >
-                  View Schedule
-                </button>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <button
+                    onClick={() => setActiveTab('datesheet')}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                  >
+                    View Schedule
+                  </button>
+                  <button
+                    onClick={() => handleOpenEditExam(exam)}
+                    className="bca-btn bca-btn-secondary"
+                    title="Edit Exam"
+                    style={{ padding: '4px 8px', color: '#2563eb' }}
+                  >
+                    <Edit2 size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteExam(exam.id, exam.name)}
+                    className="bca-btn bca-btn-secondary"
+                    title="Delete Exam"
+                    style={{ padding: '4px 8px', color: '#e11d48' }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -207,12 +342,13 @@ export const ExamsResultsView: React.FC = () => {
                 <th>Time Window</th>
                 <th>Assigned Hall</th>
                 <th>Chief Invigilator</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {dateSheet.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
                     No datesheet entries published.
                   </td>
                 </tr>
@@ -232,6 +368,26 @@ export const ExamsResultsView: React.FC = () => {
                   <td>{d.time}</td>
                   <td>{d.room}</td>
                   <td>{d.invigilator}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <button
+                        onClick={() => handleOpenEditDateSheet(d)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '4px 8px', color: '#2563eb' }}
+                        title="Edit Slot"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDateSheet(d.id, d.subject)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '4px 8px', color: '#e11d48' }}
+                        title="Delete Slot"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               )))}
             </tbody>
@@ -567,6 +723,191 @@ export const ExamsResultsView: React.FC = () => {
                 style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* EDIT EXAM MODAL */}
+      <Modal
+        isOpen={editExamModalOpen}
+        onClose={() => setEditExamModalOpen(false)}
+        title="Edit Examination Schedule"
+        subtitle={`Update exam term: ${editingExam?.name}`}
+        maxWidth="500px"
+        footer={
+          <>
+            <button type="button" onClick={handleSaveEditExam} className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditExamModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+              Examination Title *
+            </label>
+            <input
+              type="text"
+              value={editExamName}
+              onChange={(e) => setEditExamName(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Academic Term</label>
+              <select
+                value={editExamTerm}
+                onChange={(e) => setEditExamTerm(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="First Term">First Term</option>
+                <option value="Mid-Term">Mid-Term</option>
+                <option value="Final Term">Final Term</option>
+                <option value="Pre-Board Assessment">Pre-Board Assessment</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Status</label>
+              <select
+                value={editExamStatus}
+                onChange={(e) => setEditExamStatus(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Upcoming">Upcoming</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Commencement Date *
+              </label>
+              <input
+                type="date"
+                value={editExamStartDate}
+                onChange={(e) => setEditExamStartDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Concluding Date *
+              </label>
+              <input
+                type="date"
+                value={editExamEndDate}
+                onChange={(e) => setEditExamEndDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* EDIT DATESHEET MODAL */}
+      <Modal
+        isOpen={editDateSheetModalOpen}
+        onClose={() => setEditDateSheetModalOpen(false)}
+        title="Edit Date Sheet Slot"
+        subtitle={`Update examination paper: ${editingDateSheetItem?.subject}`}
+        maxWidth="500px"
+        footer={
+          <>
+            <button type="button" onClick={handleSaveEditDateSheet} className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditDateSheetModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Date *</label>
+              <input
+                type="text"
+                value={editDsDate}
+                onChange={(e) => setEditDsDate(e.target.value)}
+                placeholder="e.g. 15 Oct 2026"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Day</label>
+              <input
+                type="text"
+                value={editDsDay}
+                onChange={(e) => setEditDsDay(e.target.value)}
+                placeholder="e.g. Thursday"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Subject *</label>
+              <input
+                type="text"
+                value={editDsSubject}
+                onChange={(e) => setEditDsSubject(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Target Class *</label>
+              <input
+                type="text"
+                value={editDsClass}
+                onChange={(e) => setEditDsClass(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Time Window</label>
+              <input
+                type="text"
+                value={editDsTime}
+                onChange={(e) => setEditDsTime(e.target.value)}
+                placeholder="e.g. 09:00 AM - 12:00 PM"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Assigned Hall</label>
+              <input
+                type="text"
+                value={editDsRoom}
+                onChange={(e) => setEditDsRoom(e.target.value)}
+                placeholder="e.g. Hall A / Lab 2"
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Chief Invigilator</label>
+            <input
+              type="text"
+              value={editDsInvigilator}
+              onChange={(e) => setEditDsInvigilator(e.target.value)}
+              placeholder="e.g. Prof. Tariq Mahmood"
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
           </div>
         </div>
       </Modal>

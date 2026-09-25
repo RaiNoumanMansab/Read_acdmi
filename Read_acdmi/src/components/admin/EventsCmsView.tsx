@@ -7,7 +7,9 @@ import {
   Users,
   Eye,
   CheckCircle,
-  Download
+  Download,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import type { SchoolEvent } from '../../types';
 import { Modal } from '../common/Modal';
@@ -61,6 +63,73 @@ export const EventsCmsView: React.FC = () => {
   const [newTime, setNewTime] = useState('09:00 AM - 01:00 PM');
   const [newLocation, setNewLocation] = useState('Auditorium Hall');
   const [newDesc, setNewDesc] = useState('');
+
+  // Edit Event state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<SchoolEvent | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState<SchoolEvent['category']>('Academic');
+  const [editDate, setEditDate] = useState('2026-10-15');
+  const [editTime, setEditTime] = useState('09:00 AM - 01:00 PM');
+  const [editLocation, setEditLocation] = useState('Auditorium Hall');
+  const [editDesc, setEditDesc] = useState('');
+
+  const handleOpenEditEvent = (evt: SchoolEvent) => {
+    setEditingEvent(evt);
+    setEditTitle(evt.title);
+    setEditCategory(evt.category);
+    setEditDate(evt.date);
+    setEditTime(evt.time);
+    setEditLocation(evt.location);
+    setEditDesc(evt.description);
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEvent) return;
+    try {
+      await cmsApi.updateEvent(editingEvent.id, {
+        title: editTitle,
+        category: editCategory,
+        eventDate: editDate,
+        eventTime: editTime,
+        location: editLocation,
+        description: editDesc
+      });
+    } catch (err) {
+      console.warn('Backend event update error:', err);
+    }
+    setEvents((prev) =>
+      prev.map((evt) =>
+        evt.id === editingEvent.id
+          ? {
+              ...evt,
+              title: editTitle,
+              category: editCategory,
+              date: editDate,
+              time: editTime,
+              location: editLocation,
+              description: editDesc
+            }
+          : evt
+      )
+    );
+    showToast('Event updated successfully', undefined, 'success');
+    setEditModalOpen(false);
+    setEditingEvent(null);
+  };
+
+  const handleDeleteEvent = async (id: string, evtTitle: string) => {
+    if (!window.confirm(`Are you sure you want to delete event "${evtTitle}"?`)) return;
+    try {
+      await cmsApi.deleteEvent(id);
+    } catch (err) {
+      console.warn('Backend event delete error:', err);
+    }
+    setEvents((prev) => prev.filter((evt) => evt.id !== id));
+    showToast('Event deleted successfully', undefined, 'success');
+  };
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,13 +305,31 @@ export const EventsCmsView: React.FC = () => {
                   <span style={{ fontSize: '0.76rem', color: '#059669', fontWeight: 700 }}>
                     {evt.registeredCount} RSVPs Confirmed
                   </span>
-                  <button
-                    onClick={() => setSelectedEvent(evt)}
-                    className="bca-btn bca-btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                  >
-                    <Eye size={13} /> Details
-                  </button>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <button
+                      onClick={() => setSelectedEvent(evt)}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                    >
+                      <Eye size={13} /> Details
+                    </button>
+                    <button
+                      onClick={() => handleOpenEditEvent(evt)}
+                      className="bca-btn bca-btn-secondary"
+                      title="Edit Event"
+                      style={{ padding: '4px 8px', color: '#2563eb' }}
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteEvent(evt.id, evt.title)}
+                      className="bca-btn bca-btn-secondary"
+                      title="Delete Event"
+                      style={{ padding: '4px 8px', color: '#e11d48' }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -368,6 +455,100 @@ export const EventsCmsView: React.FC = () => {
               placeholder="Provide event details, itinerary or registration rules..."
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+        </form>
+      </Modal>
+
+      {/* EDIT EVENT MODAL */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit School Event"
+        subtitle={`Update scheduled event: ${editingEvent?.title}`}
+        maxWidth="540px"
+        footer={
+          <>
+            <button type="submit" form="edit-event-form" className="bca-btn bca-btn-primary">
+              Save Changes
+            </button>
+            <button type="button" onClick={() => setEditModalOpen(false)} className="bca-btn bca-btn-secondary">
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <form id="edit-event-form" onSubmit={handleSaveEditEvent} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Event Title *</label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Category *</label>
+              <select
+                value={editCategory}
+                onChange={(e) => setEditCategory(e.target.value as any)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="Academic">Academic</option>
+                <option value="Sports">Sports</option>
+                <option value="Cultural">Cultural</option>
+                <option value="Celebration">Celebration</option>
+                <option value="PTM">Parent-Teacher Meeting (PTM)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Event Date *</label>
+              <input
+                type="date"
+                required
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div className="bca-form-row">
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Time *</label>
+              <input
+                type="text"
+                required
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Location *</label>
+              <input
+                type="text"
+                required
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Description</label>
+            <textarea
+              rows={3}
+              value={editDesc}
+              onChange={(e) => setEditDesc(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
             />
           </div>

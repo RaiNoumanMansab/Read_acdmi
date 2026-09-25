@@ -246,6 +246,12 @@ export const AttendanceView: React.FC = () => {
                   <option value="Grade 8">Grade 8</option>
                   <option value="Grade 9">Grade 9 (SSC-I)</option>
                   <option value="Grade 10">Grade 10 (SSC-II)</option>
+                  <option value="FSC Pre-Medical">FSC Pre-Medical</option>
+                  <option value="FSC Pre-Engineering">FSC Pre-Engineering</option>
+                  <option value="ICS">ICS</option>
+                  <option value="I.Com">I.Com</option>
+                  <option value="FA">FA</option>
+                  <option value="D.Com">D.Com</option>
                 </select>
               </div>
 

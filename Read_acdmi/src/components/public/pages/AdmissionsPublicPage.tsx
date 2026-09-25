@@ -15,6 +15,8 @@ interface UploadedDoc {
   docType: string;
   fileName: string;
   fileSize: string;
+  fileData?: string;
+  fileType?: string;
 }
 
 export const AdmissionsPublicPage: React.FC = () => {
@@ -64,15 +66,20 @@ export const AdmissionsPublicPage: React.FC = () => {
     }
 
     const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-    setUploadedFiles((prev) => {
-      const filtered = prev.filter((f) => f.docType !== docType);
-      return [...filtered, { docType, fileName: file.name, fileSize: sizeStr }];
-    });
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setUploadedFiles((prev) => {
+        const filtered = prev.filter((f) => f.docType !== docType);
+        return [...filtered, { docType, fileName: file.name, fileSize: sizeStr, fileData: dataUrl, fileType: file.type }];
+      });
 
-    if (!selectedDocs.includes(docType)) {
-      setSelectedDocs((prev) => [...prev, docType]);
-    }
-    showToast('Document Attached', `${file.name} attached for ${docType}`, 'success');
+      if (!selectedDocs.includes(docType)) {
+        setSelectedDocs((prev) => [...prev, docType]);
+      }
+      showToast('Document Attached', `${file.name} attached for ${docType}`, 'success');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRemoveUploadedDoc = (docType: string) => {
@@ -104,17 +111,42 @@ export const AdmissionsPublicPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const finalDocuments = selectedDocs.map((docType) => {
+      const finalDocuments: any[] = [];
+      selectedDocs.forEach((docType) => {
         const attached = uploadedFiles.find((f) => f.docType === docType);
         if (attached) {
-          return `${docType} [Attached: ${attached.fileName} (${attached.fileSize})]`;
+          finalDocuments.push({
+            id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            name: attached.fileName,
+            docType: attached.docType,
+            fileSize: attached.fileSize,
+            fileType: attached.fileType || 'application/octet-stream',
+            dataUrl: attached.fileData,
+            uploadedAt: new Date().toISOString()
+          });
+        } else {
+          finalDocuments.push({
+            id: `req-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            name: docType,
+            docType: docType,
+            fileSize: 'Physical Copy / Pending',
+            fileType: 'text/plain',
+            uploadedAt: new Date().toISOString()
+          });
         }
-        return docType;
       });
 
       uploadedFiles.forEach((f) => {
         if (!selectedDocs.includes(f.docType)) {
-          finalDocuments.push(`Additional Document: ${f.fileName} (${f.fileSize})`);
+          finalDocuments.push({
+            id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            name: f.fileName,
+            docType: f.docType,
+            fileSize: f.fileSize,
+            fileType: f.fileType || 'application/octet-stream',
+            dataUrl: f.fileData,
+            uploadedAt: new Date().toISOString()
+          });
         }
       });
 
@@ -649,10 +681,20 @@ export const AdmissionsPublicPage: React.FC = () => {
                       if (e.target.files && e.target.files.length > 0) {
                         Array.from(e.target.files).forEach((file) => {
                           const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-                          setUploadedFiles((prev) => [
-                            ...prev,
-                            { docType: `Additional (${file.name})`, fileName: file.name, fileSize: sizeStr }
-                          ]);
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setUploadedFiles((prev) => [
+                              ...prev,
+                              {
+                                docType: `Additional (${file.name})`,
+                                fileName: file.name,
+                                fileSize: sizeStr,
+                                fileData: reader.result as string,
+                                fileType: file.type
+                              }
+                            ]);
+                          };
+                          reader.readAsDataURL(file);
                         });
                         showToast('Additional Files Attached', `${e.target.files.length} extra file(s) attached.`, 'success');
                       }

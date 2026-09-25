@@ -3,16 +3,20 @@ import {
   Plus,
   Search,
   Eye,
+  Edit2,
+  Trash2,
   Mail,
   BookOpen,
   Grid,
   List,
-  Award
+  Award,
+  Phone
 } from 'lucide-react';
 import type { Teacher } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
 import { teachersApi } from '../../services/api';
+import { WhatsAppButton } from '../common/WhatsAppButton';
 
 const mapBackendTeacher = (t: any): Teacher => ({
   id: t.id || t.empId,
@@ -72,6 +76,79 @@ export const TeachersView: React.FC = () => {
   const [newQualification, setNewQualification] = useState('M.Sc Physics (QAU), B.Ed');
   const [newPhone, setNewPhone] = useState('');
   const [newExpYears, setNewExpYears] = useState(5);
+
+  // Edit Teacher form states
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDept, setEditDept] = useState('');
+  const [editSubject, setEditSubject] = useState('');
+  const [editQualification, setEditQualification] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editSalary, setEditSalary] = useState(85000);
+  const [editStatus, setEditStatus] = useState<'Active' | 'On Leave'>('Active');
+
+  const handleOpenEdit = (t: Teacher) => {
+    setEditingTeacher(t);
+    setEditName(t.name);
+    setEditDept(t.department);
+    setEditSubject(t.subject);
+    setEditQualification(t.qualification);
+    setEditPhone(t.phone);
+    setEditSalary(t.salary);
+    setEditStatus(t.status as any);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeacher) return;
+    try {
+      await teachersApi.updateTeacher(editingTeacher.id, {
+        fullName: editName,
+        department: editDept,
+        specialization: editSubject,
+        qualification: editQualification,
+        phone: editPhone,
+        basicSalary: editSalary,
+        status: editStatus === 'Active' ? 'ACTIVE' : 'ON_LEAVE'
+      });
+      setTeachers((prev) =>
+        prev.map((item) =>
+          item.id === editingTeacher.id
+            ? {
+                ...item,
+                name: editName,
+                department: editDept,
+                subject: editSubject,
+                qualification: editQualification,
+                phone: editPhone,
+                salary: editSalary,
+                status: editStatus
+              }
+            : item
+        )
+      );
+      showToast('Faculty Profile Updated', `${editName} was updated successfully`, 'success');
+      setShowEditModal(false);
+    } catch (err: any) {
+      showToast('Update Failed', err?.message || 'Could not update faculty member in database', 'error');
+    }
+  };
+
+  const handleDeleteTeacher = async (teacher: Teacher) => {
+    if (!window.confirm(`Are you sure you want to delete faculty member "${teacher.name}" (${teacher.empId})?`)) {
+      return;
+    }
+    try {
+      await teachersApi.deleteTeacher(teacher.id);
+      setTeachers((prev) => prev.filter((t) => t.id !== teacher.id));
+      if (selectedTeacher?.id === teacher.id) setSelectedTeacher(null);
+      showToast('Faculty Deleted', `${teacher.name} has been removed from database`, 'success');
+    } catch (err: any) {
+      showToast('Delete Failed', err?.message || 'Could not delete teacher from database', 'error');
+    }
+  };
 
   const departments = ['All', 'Science & STEM', 'Mathematics', 'Languages', 'Computer Science', 'Sports & Co-Curricular'];
 
@@ -294,6 +371,19 @@ export const TeachersView: React.FC = () => {
                     <Mail size={14} color="#64748b" />
                     <span>{t.email}</span>
                   </div>
+                  {t.phone && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Phone size={14} color="#64748b" />
+                      <span>{t.phone}</span>
+                      <WhatsAppButton
+                        phone={t.phone}
+                        compact
+                        size="xs"
+                        message={`Assalam-o-Alaikum ${t.name}! This is from Read Academy Sahiwal administration.`}
+                        title="Chat with Teacher on WhatsApp"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '14px' }}>
@@ -309,13 +399,32 @@ export const TeachersView: React.FC = () => {
                 <span style={{ fontSize: '0.74rem', color: '#059669', fontWeight: 700 }}>
                   Attendance: {t.attendancePct}%
                 </span>
-                <button
-                  onClick={() => setSelectedTeacher(t)}
-                  className="bca-btn bca-btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                >
-                  <Eye size={13} /> View Dossier
-                </button>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => setSelectedTeacher(t)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                    title="View Full Dossier"
+                  >
+                    <Eye size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleOpenEdit(t)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ padding: '4px 8px', color: '#2563eb' }}
+                    title="Edit Faculty Record"
+                  >
+                    <Edit2 size={13} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTeacher(t)}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ padding: '4px 8px', color: '#e11d48' }}
+                    title="Delete Faculty Member"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -337,7 +446,7 @@ export const TeachersView: React.FC = () => {
                 <th>Contact</th>
                 <th>Classes</th>
                 <th>Attendance</th>
-                <th style={{ textAlign: 'right' }}>Action</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -364,17 +473,49 @@ export const TeachersView: React.FC = () => {
                   <td>{t.department}</td>
                   <td>{t.subject}</td>
                   <td>{t.qualification}</td>
-                  <td>{t.phone}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>{t.phone}</span>
+                      {t.phone && (
+                        <WhatsAppButton
+                          phone={t.phone}
+                          compact
+                          size="xs"
+                          message={`Assalam-o-Alaikum ${t.name}! This is from Read Academy Sahiwal administration.`}
+                          title="Chat with Teacher on WhatsApp"
+                        />
+                      )}
+                    </div>
+                  </td>
                   <td>{t.classes.join(', ')}</td>
                   <td><strong style={{ color: '#059669' }}>{t.attendancePct}%</strong></td>
                   <td style={{ textAlign: 'right' }}>
-                    <button
-                      onClick={() => setSelectedTeacher(t)}
-                      className="bca-btn bca-btn-secondary"
-                      style={{ padding: '4px 8px', fontSize: '0.78rem' }}
-                    >
-                      <Eye size={13} />
-                    </button>
+                    <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                      <button
+                        onClick={() => setSelectedTeacher(t)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                        title="View Full Dossier"
+                      >
+                        <Eye size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleOpenEdit(t)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '4px 8px', color: '#2563eb' }}
+                        title="Edit Faculty Record"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTeacher(t)}
+                        className="bca-btn bca-btn-secondary"
+                        style={{ padding: '4px 8px', color: '#e11d48' }}
+                        title="Delete Faculty Member"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )))}
@@ -562,6 +703,130 @@ export const TeachersView: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* EDIT TEACHER MODAL */}
+      {showEditModal && editingTeacher && (
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title={`Edit Faculty Record — ${editingTeacher.name}`}
+          subtitle={`${editingTeacher.empId} • ${editingTeacher.department}`}
+          maxWidth="560px"
+          footer={
+            <>
+              <button onClick={() => setShowEditModal(false)} className="bca-btn bca-btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleSaveEdit} className="bca-btn bca-btn-primary">
+                Save Changes
+              </button>
+            </>
+          }
+        >
+          <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Full Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div className="bca-form-row">
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Department *
+                </label>
+                <select
+                  value={editDept}
+                  onChange={(e) => setEditDept(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                >
+                  <option value="Science & STEM">Science & STEM</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Languages">Languages</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Sports & Co-Curricular">Sports & Co-Curricular</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Primary Subject *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editSubject}
+                  onChange={(e) => setEditSubject(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            <div className="bca-form-row">
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Qualification *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editQualification}
+                  onChange={(e) => setEditQualification(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Monthly Salary (PKR)
+                </label>
+                <input
+                  type="number"
+                  value={editSalary}
+                  onChange={(e) => setEditSalary(Number(e.target.value))}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            <div className="bca-form-row">
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Contact Phone *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                  Faculty Status
+                </label>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value as any)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                >
+                  <option value="Active">Active</option>
+                  <option value="On Leave">On Leave</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };
