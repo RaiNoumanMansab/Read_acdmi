@@ -93,7 +93,11 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     res.json({ status: 'success', data: settings });
   } catch (error) {
     console.error('Fetch settings error:', error);
-    res.status(500).json({ status: 'error', message: 'Failed to retrieve settings' });
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Failed to retrieve settings',
+      detail: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 

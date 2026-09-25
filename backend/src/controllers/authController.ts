@@ -144,7 +144,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ status: 'error', message: 'An error occurred during login' });
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'An error occurred during login',
+      detail: error instanceof Error ? error.message : String(error)
+    });
   }
 };
 

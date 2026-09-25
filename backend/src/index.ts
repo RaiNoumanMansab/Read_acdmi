@@ -63,12 +63,20 @@ setupSwagger(app);
 // Basic API Health Check
 app.get('/api/health', async (_req: Request, res: Response) => {
   try {
-    // Check DB connection
     await prisma.$queryRaw`SELECT 1`;
+    let userCount: any = 'unknown';
+    try {
+      userCount = await prisma.user.count();
+    } catch (e: any) {
+      userCount = `Prisma error: ${e.message}`;
+    }
+    const dbUrl = process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/:[^:@]*@/, ':****@') : 'NOT SET';
     res.json({
       status: 'success',
       message: 'Read Academy Sahiwal Backend API is running smoothly',
       database: 'PostgreSQL Read_Acdmi connected',
+      databaseUrlMasked: dbUrl,
+      userCount,
       docsUrl: `http://localhost:${PORT}/api/docs`,
       timestamp: new Date().toISOString(),
     });
