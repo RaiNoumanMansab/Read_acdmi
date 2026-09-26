@@ -30,7 +30,11 @@ export const StudentParentPortal: React.FC = () => {
 
   const studentName = user?.fullName || 'Hamza Tariq';
   const rollNo = user?.student?.rollNo || 'RAS-2026-89';
-  const className = user?.student?.class || 'Grade 9 (Matric) - Section A';
+  const studentClass = user?.student?.class;
+  const studentSection = user?.student?.section;
+  const className = typeof studentClass === 'object' && studentClass !== null
+    ? `${studentClass.name || 'Grade 9'}${studentSection?.name ? ` - Section ${studentSection.name}` : ''}`
+    : (typeof studentClass === 'string' && studentClass ? studentClass : 'Grade 9 (Matric) - Section A');
   const parentName = user?.student?.parentName || 'Tariq Mahmood / Rai Nouman';
   const parentPhone = user?.phone || '+92 305 9988771';
 

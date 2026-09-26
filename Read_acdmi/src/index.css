@@ -922,6 +922,173 @@ button, input, select, textarea {
   animation: floatBadge 3.5s ease-in-out infinite;
 }
 
+/* ==========================================================================
+   INTERACTIVE SCROLL & HOVER ANIMATIONS (Inspired by Unique School System)
+   ========================================================================== */
+
+/* Dynamic Scroll Reveal (Continuous Up & Down Interactive Motion) */
+.scroll-reveal,
+.reveal-on-scroll {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition-property: opacity, transform;
+  transition-duration: 0.75s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal-up,
+.reveal-on-scroll {
+  transform: translateY(42px) scale(0.98);
+}
+
+.scroll-reveal-down {
+  transform: translateY(-42px) scale(0.98);
+}
+
+.scroll-reveal-left {
+  transform: translateX(-48px);
+}
+
+.scroll-reveal-right {
+  transform: translateX(48px);
+}
+
+.scroll-reveal-zoom {
+  transform: scale(0.90);
+}
+
+.scroll-reveal.is-in-view,
+.reveal-visible {
+  opacity: 1 !important;
+  transform: translate(0, 0) scale(1) !important;
+}
+
+/* Image Zoom on Card Hover */
+.scale-hover-img {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+  will-change: transform;
+}
+
+.bca-card:hover .scale-hover-img {
+  transform: scale(1.08);
+}
+
+/* Enhanced 3D Card Hover Lift */
+.card-interactive-lift {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
+}
+
+.card-interactive-lift:hover {
+  transform: translateY(-8px) scale(1.01) !important;
+  box-shadow: 0 20px 35px -8px rgba(11, 57, 116, 0.18), 0 8px 16px -6px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Gentle Floating Effect */
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.floating-gentle {
+  animation: gentleFloat 4.5s ease-in-out infinite;
+}
+
+/* Hero Staggered Load Animations */
+@keyframes heroSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-animate-1 {
+  animation: heroSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+}
+
+.hero-animate-2 {
+  animation: heroSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s backwards;
+}
+
+.hero-animate-3 {
+  animation: heroSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards;
+}
+
+.hero-animate-4 {
+  animation: heroSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.55s backwards;
+}
+
+/* Navbar Items Staggered Entrance */
+@keyframes navItemDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-animate-item {
+  animation: navItemDrop 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Navbar active indicator glow */
+.nav-btn-animated {
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.nav-btn-animated:hover {
+  transform: translateY(-2px);
+  color: #0B3974 !important;
+  background-color: #eff6ff !important;
+}
+
+/* Page Section Staggered Entrance (When landing or clicking Home) */
+@keyframes sectionStaggerFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-entrance-1 {
+  animation: sectionStaggerFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards;
+}
+
+.section-entrance-2 {
+  animation: sectionStaggerFadeUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.35s backwards;
+}
+
+.section-entrance-3 {
+  animation: sectionStaggerFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.55s backwards;
+}
+
+.section-entrance-4 {
+  animation: sectionStaggerFadeUp 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.75s backwards;
+}
+
+.section-entrance-5 {
+  animation: sectionStaggerFadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.95s backwards;
+}
+
+.section-entrance-6 {
+  animation: sectionStaggerFadeUp 1.05s cubic-bezier(0.16, 1, 0.3, 1) 1.15s backwards;
+}
+
 /* Button Micro-Interactions */
 .bca-btn, .bca-btn-gold, .bca-btn-red, .bca-btn-secondary {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease !important;
@@ -933,6 +1100,94 @@ button, input, select, textarea {
 
 .bca-btn:active, .bca-btn-gold:active, .bca-btn-red:active {
   transform: translateY(0) scale(0.98);
+}
+
+/* School Brand Red Navigation Dropdown Menu */
+.nav-dropdown-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-dropdown-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background-color: #E62929;
+  background: linear-gradient(135deg, #E62929 0%, #b81b1b 100%);
+  border-radius: 8px;
+  padding: 6px 0;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(230, 41, 41, 0.35);
+  border-top: 2px solid #FFD700;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Invisible hover bridge */
+.nav-dropdown-box::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 14px;
+}
+
+.nav-dropdown-wrapper:hover .nav-dropdown-box {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(2px);
+  pointer-events: auto;
+}
+
+.nav-chevron-icon {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.nav-dropdown-wrapper:hover .nav-chevron-icon {
+  transform: rotate(180deg) !important;
+}
+
+.nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 18px;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.nav-dropdown-item:hover {
+  background-color: rgba(0, 0, 0, 0.16);
+  color: #FFD700;
+  padding-left: 22px;
+}
+
+.nav-dropdown-arrow {
+  opacity: 0.75;
+  font-size: 0.82rem;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-dropdown-item:hover .nav-dropdown-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+  color: #FFD700;
 }
 
 

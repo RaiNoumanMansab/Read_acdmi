@@ -97,38 +97,40 @@ export const EventsCmsView: React.FC = () => {
         location: editLocation,
         description: editDesc
       });
-    } catch (err) {
-      console.warn('Backend event update error:', err);
+      setEvents((prev) =>
+        prev.map((evt) =>
+          evt.id === editingEvent.id
+            ? {
+                ...evt,
+                title: editTitle,
+                category: editCategory,
+                date: editDate,
+                time: editTime,
+                location: editLocation,
+                description: editDesc
+              }
+            : evt
+        )
+      );
+      showToast('Event updated successfully', undefined, 'success');
+      setEditModalOpen(false);
+      setEditingEvent(null);
+    } catch (err: any) {
+      console.error('Backend event update error:', err);
+      showToast('Failed to update event', err?.message || 'Server error', 'error');
     }
-    setEvents((prev) =>
-      prev.map((evt) =>
-        evt.id === editingEvent.id
-          ? {
-              ...evt,
-              title: editTitle,
-              category: editCategory,
-              date: editDate,
-              time: editTime,
-              location: editLocation,
-              description: editDesc
-            }
-          : evt
-      )
-    );
-    showToast('Event updated successfully', undefined, 'success');
-    setEditModalOpen(false);
-    setEditingEvent(null);
   };
 
   const handleDeleteEvent = async (id: string, evtTitle: string) => {
     if (!window.confirm(`Are you sure you want to delete event "${evtTitle}"?`)) return;
     try {
       await cmsApi.deleteEvent(id);
-    } catch (err) {
-      console.warn('Backend event delete error:', err);
+      setEvents((prev) => prev.filter((evt) => evt.id !== id));
+      showToast('Event deleted successfully', undefined, 'success');
+    } catch (err: any) {
+      console.error('Backend event delete error:', err);
+      showToast('Failed to delete event', err?.message || 'Server error', 'error');
     }
-    setEvents((prev) => prev.filter((evt) => evt.id !== id));
-    showToast('Event deleted successfully', undefined, 'success');
   };
 
   const handleCreateEvent = async (e: React.FormEvent) => {

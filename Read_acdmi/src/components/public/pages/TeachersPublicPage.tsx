@@ -6,6 +6,7 @@ import {
   Search
 } from 'lucide-react';
 import { useToast } from '../../common/Toast';
+import { ScrollReveal } from '../../common/ScrollReveal';
 import { teachersApi } from '../../../services/api';
 
 export const TeachersPublicPage: React.FC = () => {
@@ -45,60 +46,64 @@ export const TeachersPublicPage: React.FC = () => {
           borderBottom: '4px solid #E62929'
         }}
       >
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-            Academic Faculty • Read To Lead
-          </span>
-          <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
-            Distinguished Educators & Dedicated Mentors
-          </h1>
-          <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-            Our faculty members hold advanced degrees from leading national and global universities, combining deep subject-matter mastery with compassionate pastoral care.
-          </p>
-        </div>
+        <ScrollReveal animation="up">
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              Academic Faculty • Read To Lead
+            </span>
+            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+              Distinguished Educators & Dedicated Mentors
+            </h1>
+            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+              Our faculty members hold advanced degrees from leading national and global universities, combining deep subject-matter mastery with compassionate pastoral care.
+            </p>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Filter & Search Controls */}
       <section style={{ padding: '40px 24px 20px', backgroundColor: '#f8fafc' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
-            {departments.map((dept) => (
-              <button
-                key={dept}
-                onClick={() => setSelectedDept(dept)}
-                className="bca-btn"
-                style={{
-                  backgroundColor: selectedDept === dept ? '#0B3974' : '#ffffff',
-                  color: selectedDept === dept ? '#ffffff' : '#475569',
-                  border: '1px solid',
-                  borderColor: selectedDept === dept ? '#0B3974' : '#cbd5e1',
-                  padding: '6px 14px',
-                  fontSize: '0.82rem',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {dept}
-              </button>
-            ))}
-          </div>
+        <ScrollReveal animation="up">
+          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+              {departments.map((dept) => (
+                <button
+                  key={dept}
+                  onClick={() => setSelectedDept(dept)}
+                  className="bca-btn"
+                  style={{
+                    backgroundColor: selectedDept === dept ? '#0B3974' : '#ffffff',
+                    color: selectedDept === dept ? '#ffffff' : '#475569',
+                    border: '1px solid',
+                    borderColor: selectedDept === dept ? '#0B3974' : '#cbd5e1',
+                    padding: '6px 14px',
+                    fontSize: '0.82rem',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {dept}
+                </button>
+              ))}
+            </div>
 
-          <div style={{ position: 'relative', width: '280px' }}>
-            <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
-            <input
-              type="text"
-              placeholder="Search faculty or subject..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '7px 10px 7px 32px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.84rem'
-              }}
-            />
+            <div style={{ position: 'relative', width: '280px' }}>
+              <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+              <input
+                type="text"
+                placeholder="Search faculty or subject..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 10px 7px 32px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.84rem'
+                }}
+              />
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* Faculty Cards Grid */}
@@ -112,19 +117,20 @@ export const TeachersPublicPage: React.FC = () => {
             gap: '24px'
           }}
         >
-          {filtered.map((t) => (
-            <div
-              key={t.id}
-              className="bca-card"
-              style={{
-                padding: '24px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                borderRadius: '14px',
-                borderTop: '3px solid #E62929'
-              }}
-            >
+          {filtered.map((t, idx) => (
+            <ScrollReveal key={t.id} animation="up" delay={idx * 60}>
+              <div
+                className="bca-card card-interactive-lift"
+                style={{
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  borderRadius: '14px',
+                  borderTop: '3px solid #E62929',
+                  height: '100%'
+                }}
+              >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
                   <img
@@ -181,6 +187,7 @@ export const TeachersPublicPage: React.FC = () => {
                 </button>
               </div>
             </div>
+            </ScrollReveal>
           ))}
         </div>
       </section>
