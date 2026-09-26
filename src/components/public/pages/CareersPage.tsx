@@ -23,6 +23,7 @@ import {
 import { jobsApi } from '../../../services/api';
 import { Modal } from '../../common/Modal';
 import { useToast } from '../../common/Toast';
+import { ScrollReveal } from '../../common/ScrollReveal';
 import { WhatsAppButton } from '../../common/WhatsAppButton';
 import { SCHOOL_WHATSAPP_NUMBER } from '../../../utils/whatsapp';
 
@@ -216,60 +217,62 @@ export const CareersPage: React.FC = () => {
           borderBottom: '4px solid #E62929'
         }}
       >
-        <div style={{ maxWidth: '860px', margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              backgroundColor: 'rgba(255, 215, 0, 0.15)',
-              border: '1px solid rgba(255, 215, 0, 0.4)',
-              color: '#FFD700',
-              padding: '6px 14px',
-              borderRadius: '20px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '16px'
-            }}
-          >
-            <Sparkles size={14} /> Faculty & Staff Recruitment • 2026-2027
-          </div>
-
-          <h1
-            style={{
-              fontSize: 'clamp(2.2rem, 5vw, 3.4rem)',
-              fontWeight: 900,
-              margin: '0 0 16px',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.15
-            }}
-          >
-            Shape Future Leaders at <span style={{ color: '#FFD700' }}>Read Academy</span>
-          </h1>
-
-          <p style={{ fontSize: '1.08rem', color: '#cbd5e1', lineHeight: 1.6, margin: '0 0 28px' }}>
-            We invite distinguished educators, passionate subject specialists, and visionary mentors to join
-            Sahiwal’s premier academic institution. Experience merit-based growth, modern laboratories, and an inspiring teaching culture.
-          </p>
-
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
-              href="#openings"
-              className="bca-btn bca-btn-gold"
-              style={{ padding: '12px 26px', fontSize: '0.92rem', textDecoration: 'none' }}
+        <ScrollReveal animation="up">
+          <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: 'rgba(255, 215, 0, 0.15)',
+                border: '1px solid rgba(255, 215, 0, 0.4)',
+                color: '#FFD700',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: '16px'
+              }}
             >
-              <Briefcase size={16} /> Explore Open Positions ({jobs.length})
-            </a>
-            <WhatsAppButton
-              phone={SCHOOL_WHATSAPP_NUMBER}
-              label="HR WhatsApp Helpline (0321-6909047)"
-              message="Assalam-o-Alaikum! I want to inquire about faculty teaching vacancies at Read Academy Sahiwal."
-              size="md"
-            />
+              <Sparkles size={14} /> Faculty & Staff Recruitment • 2026-2027
+            </div>
+
+            <h1
+              style={{
+                fontSize: 'clamp(2.2rem, 5vw, 3.4rem)',
+                fontWeight: 900,
+                margin: '0 0 16px',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.15
+              }}
+            >
+              Shape Future Leaders at <span style={{ color: '#FFD700' }}>Read Academy</span>
+            </h1>
+
+            <p style={{ fontSize: '1.08rem', color: '#cbd5e1', lineHeight: 1.6, margin: '0 0 28px' }}>
+              We invite distinguished educators, passionate subject specialists, and visionary mentors to join
+              Sahiwal’s premier academic institution. Experience merit-based growth, modern laboratories, and an inspiring teaching culture.
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a
+                href="#openings"
+                className="bca-btn bca-btn-gold"
+                style={{ padding: '12px 26px', fontSize: '0.92rem', textDecoration: 'none' }}
+              >
+                <Briefcase size={16} /> Explore Open Positions ({jobs.length})
+              </a>
+              <WhatsAppButton
+                phone={SCHOOL_WHATSAPP_NUMBER}
+                label="HR WhatsApp Helpline (0321-6909047)"
+                message="Assalam-o-Alaikum! I want to inquire about faculty teaching vacancies at Read Academy Sahiwal."
+                size="md"
+              />
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* 2. WHY TEACH AT READ ACADEMY */}
@@ -307,40 +310,43 @@ export const CareersPage: React.FC = () => {
           ].map((benefit, idx) => {
             const Icon = benefit.icon;
             return (
-              <div
-                key={idx}
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '14px',
-                  padding: '24px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08)',
-                  border: '1px solid #e2e8f0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}
-              >
+              <ScrollReveal key={idx} animation="up" delay={idx * 100}>
                 <div
+                  className="card-interactive-lift"
                   style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '10px',
-                    backgroundColor: benefit.bg,
-                    color: benefit.color,
+                    backgroundColor: '#ffffff',
+                    borderRadius: '14px',
+                    padding: '24px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid #e2e8f0',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    flexDirection: 'column',
+                    gap: '12px',
+                    height: '100%'
                   }}
                 >
-                  <Icon size={22} />
+                  <div
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '10px',
+                      backgroundColor: benefit.bg,
+                      color: benefit.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Icon size={22} />
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                    {benefit.title}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
+                    {benefit.desc}
+                  </p>
                 </div>
-                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                  {benefit.title}
-                </h3>
-                <p style={{ margin: 0, fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
-                  {benefit.desc}
-                </p>
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>
@@ -348,81 +354,85 @@ export const CareersPage: React.FC = () => {
 
       {/* 3. CURRENT VACANCIES LIST */}
       <section id="openings" style={{ maxWidth: '1240px', margin: '0 auto 80px', padding: '0 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
-          <div>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', margin: '0 0 6px' }}>
-              Current Teaching & Staff Vacancies
-            </h2>
-            <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
-              Apply online in minutes. Selected candidates will be invited for demonstration and interview.
-            </p>
-          </div>
+        <ScrollReveal animation="up">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
+            <div>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', margin: '0 0 6px' }}>
+                Current Teaching & Staff Vacancies
+              </h2>
+              <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
+                Apply online in minutes. Selected candidates will be invited for demonstration and interview.
+              </p>
+            </div>
 
-          <button
-            onClick={() => handleOpenApply()}
-            className="bca-btn bca-btn-secondary"
-            style={{ padding: '9px 18px', fontSize: '0.84rem' }}
-          >
-            <Send size={15} /> General Application (Any Subject)
-          </button>
-        </div>
+            <button
+              onClick={() => handleOpenApply()}
+              className="bca-btn bca-btn-secondary"
+              style={{ padding: '9px 18px', fontSize: '0.84rem' }}
+            >
+              <Send size={15} /> General Application (Any Subject)
+            </button>
+          </div>
+        </ScrollReveal>
 
         {/* Filter Toolbar */}
-        <div
-          style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            padding: '16px 20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-            flexWrap: 'wrap',
-            marginBottom: '24px'
-          }}
-        >
-          <div style={{ flex: '1 1 260px', position: 'relative' }}>
-            <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input
-              type="text"
-              placeholder="Search by job title, subject, or qualification..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '9px 12px 9px 36px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.88rem',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', flexWrap: 'wrap' }}>
-            {departments.map((dept) => (
-              <button
-                key={dept}
-                onClick={() => setSelectedDept(dept)}
+        <ScrollReveal animation="up" delay={80}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              padding: '16px 20px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              flexWrap: 'wrap',
+              marginBottom: '24px'
+            }}
+          >
+            <div style={{ flex: '1 1 260px', position: 'relative' }}>
+              <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input
+                type="text"
+                placeholder="Search by job title, subject, or qualification..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  padding: '7px 14px',
-                  borderRadius: '20px',
-                  border: selectedDept === dept ? 'none' : '1px solid #cbd5e1',
-                  backgroundColor: selectedDept === dept ? '#0B3974' : '#ffffff',
-                  color: selectedDept === dept ? '#ffffff' : '#475569',
-                  fontSize: '0.8rem',
-                  fontWeight: selectedDept === dept ? 700 : 500,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
+                  width: '100%',
+                  padding: '9px 12px 9px 36px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.88rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
-              >
-                {dept}
-              </button>
-            ))}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', flexWrap: 'wrap' }}>
+              {departments.map((dept) => (
+                <button
+                  key={dept}
+                  onClick={() => setSelectedDept(dept)}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '20px',
+                    border: selectedDept === dept ? 'none' : '1px solid #cbd5e1',
+                    backgroundColor: selectedDept === dept ? '#0B3974' : '#ffffff',
+                    color: selectedDept === dept ? '#ffffff' : '#475569',
+                    fontSize: '0.8rem',
+                    fontWeight: selectedDept === dept ? 700 : 500,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {dept}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Job Cards Grid */}
         {loading ? (
@@ -454,10 +464,10 @@ export const CareersPage: React.FC = () => {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '22px' }}>
-            {filteredJobs.map((job) => (
-              <div
-                key={job.id}
-                style={{
+            {filteredJobs.map((job, idx) => (
+              <ScrollReveal key={job.id} animation="up" delay={idx * 60}>
+                <div
+                  style={{
                   backgroundColor: '#ffffff',
                   borderRadius: '14px',
                   padding: '24px',
@@ -587,7 +597,8 @@ export const CareersPage: React.FC = () => {
                     <ChevronRight size={14} />
                   </button>
                 </div>
-              </div>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         )}

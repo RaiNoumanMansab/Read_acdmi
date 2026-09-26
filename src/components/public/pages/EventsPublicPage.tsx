@@ -7,6 +7,7 @@ import {
 import type { SchoolEvent } from '../../../types';
 import { Modal } from '../../common/Modal';
 import { useToast } from '../../common/Toast';
+import { ScrollReveal } from '../../common/ScrollReveal';
 import { cmsApi } from '../../../services/api';
 
 export const EventsPublicPage: React.FC = () => {
@@ -55,105 +56,108 @@ export const EventsPublicPage: React.FC = () => {
           borderBottom: '4px solid #E62929'
         }}
       >
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-            Campus Calendar • Read To Lead
-          </span>
-          <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
-            Events, Symposiums & Sports Galas
-          </h1>
-          <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-            Join our vibrant learning community for upcoming science exhibitions, academic awards ceremonies, and parent-teacher dialogues.
-          </p>
-        </div>
+        <ScrollReveal animation="up">
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              Campus Calendar • Read To Lead
+            </span>
+            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+              Events, Symposiums & Sports Galas
+            </h1>
+            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+              Join our vibrant learning community for upcoming science exhibitions, academic awards ceremonies, and parent-teacher dialogues.
+            </p>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Events List */}
       <section style={{ padding: '60px 24px 80px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {events.map((evt) => {
+          {events.map((evt, idx) => {
             const d = new Date(evt.eventDate || evt.date || new Date());
             const monthStr = d.toLocaleDateString('en-US', { month: 'short' });
             const dayNum = d.getDate();
 
             return (
-              <div
-                key={evt.id}
-                className="bca-card"
-                style={{
-                  padding: '24px',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '24px',
-                  flexWrap: 'wrap',
-                  borderTop: '3px solid #E62929'
-                }}
-              >
-                {/* Date Badge */}
+              <ScrollReveal key={evt.id} animation="up" delay={idx * 80}>
                 <div
+                  className="bca-card card-interactive-lift"
                   style={{
-                    backgroundColor: '#feecec',
-                    color: '#E62929',
-                    borderRadius: '14px',
-                    padding: '12px 18px',
-                    textAlign: 'center',
-                    minWidth: '70px',
-                    border: '1px solid #fecaca'
+                    padding: '24px',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '24px',
+                    flexWrap: 'wrap',
+                    borderTop: '3px solid #E62929'
                   }}
                 >
-                  <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase' }}>
-                    {monthStr}
-                  </div>
-                  <div style={{ fontSize: '1.7rem', fontWeight: 900, lineHeight: 1, color: '#E62929' }}>
-                    {dayNum}
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div style={{ flex: 1, minWidth: '260px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span className="bca-badge bca-badge-primary">{evt.category}</span>
-                    <span style={{ fontSize: '0.76rem', color: '#4CAF50', fontWeight: 800 }}>
-                      {evt.registeredCount} RSVPs Confirmed
-                    </span>
-                  </div>
-
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 6px 0', color: '#0f172a' }}>
-                    {evt.title}
-                  </h3>
-
-                  <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.5, margin: '0 0 10px 0' }}>
-                    {evt.description}
-                  </p>
-
-                  <div style={{ display: 'flex', gap: '16px', fontSize: '0.8rem', color: '#64748b', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <Clock size={14} color="#64748b" />
-                      <span>{evt.time}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <MapPin size={14} color="#64748b" />
-                      <span>{evt.location}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <Users size={14} color="#64748b" />
-                      <span>Organizer: <strong>{evt.organizer}</strong></span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* RSVP Button */}
-                <div>
-                  <button
-                    onClick={() => setSelectedEventForRsvp(evt)}
-                    className="bca-btn bca-btn-primary"
-                    style={{ padding: '10px 20px', whiteSpace: 'nowrap' }}
+                  {/* Date Badge */}
+                  <div
+                    style={{
+                      backgroundColor: '#feecec',
+                      color: '#E62929',
+                      borderRadius: '14px',
+                      padding: '12px 18px',
+                      textAlign: 'center',
+                      minWidth: '70px',
+                      border: '1px solid #fecaca'
+                    }}
                   >
-                    RSVP / Register
-                  </button>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                      {monthStr}
+                    </div>
+                    <div style={{ fontSize: '1.7rem', fontWeight: 900, lineHeight: 1, color: '#E62929' }}>
+                      {dayNum}
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: '260px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <span className="bca-badge bca-badge-primary">{evt.category}</span>
+                      <span style={{ fontSize: '0.76rem', color: '#4CAF50', fontWeight: 800 }}>
+                        {evt.registeredCount || 0} RSVPs Confirmed
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 6px 0', color: '#0f172a' }}>
+                      {evt.title}
+                    </h3>
+
+                    <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.5, margin: '0 0 10px 0' }}>
+                      {evt.description}
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '0.8rem', color: '#64748b', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <Clock size={14} color="#64748b" />
+                        <span>{evt.eventTime || evt.time || '09:00 AM'}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <MapPin size={14} color="#64748b" />
+                        <span>{evt.location || 'Read Academy Sahiwal'}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <Users size={14} color="#64748b" />
+                        <span>Organizer: <strong>{evt.organizer || 'Institutional Events Directorate'}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* RSVP Button */}
+                  <div>
+                    <button
+                      onClick={() => setSelectedEventForRsvp(evt)}
+                      className="bca-btn bca-btn-primary"
+                      style={{ padding: '10px 20px', whiteSpace: 'nowrap' }}
+                    >
+                      RSVP / Register
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>

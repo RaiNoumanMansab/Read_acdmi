@@ -97,38 +97,40 @@ export const NoticesView: React.FC = () => {
         priority: editPriority === 'High' ? 'HIGH' : 'NORMAL',
         audience: editAudience
       });
-    } catch (err) {
-      console.warn('Backend update error:', err);
+      setNotices((prev) =>
+        prev.map((n) =>
+          n.id === editingNotice.id
+            ? {
+                ...n,
+                title: editTitle,
+                category: editCategory,
+                priority: editPriority,
+                audience: editAudience,
+                targetAudience: editAudience,
+                content: editContent
+              }
+            : n
+        )
+      );
+      showToast('Notice updated successfully', undefined, 'success');
+      setEditModalOpen(false);
+      setEditingNotice(null);
+    } catch (err: any) {
+      console.error('Backend update error:', err);
+      showToast('Failed to update notice', err?.message || 'Server error', 'error');
     }
-    setNotices((prev) =>
-      prev.map((n) =>
-        n.id === editingNotice.id
-          ? {
-              ...n,
-              title: editTitle,
-              category: editCategory,
-              priority: editPriority,
-              audience: editAudience,
-              targetAudience: editAudience,
-              content: editContent
-            }
-          : n
-      )
-    );
-    showToast('Notice updated successfully', undefined, 'success');
-    setEditModalOpen(false);
-    setEditingNotice(null);
   };
 
   const handleDeleteNotice = async (id: string, title: string) => {
     if (!window.confirm(`Are you sure you want to delete notice "${title}"?`)) return;
     try {
       await cmsApi.deleteNotice(id);
-    } catch (err) {
-      console.warn('Backend delete error:', err);
+      setNotices((prev) => prev.filter((n) => n.id !== id));
+      showToast('Notice deleted successfully', undefined, 'success');
+    } catch (err: any) {
+      console.error('Backend delete error:', err);
+      showToast('Failed to delete notice', err?.message || 'Server error', 'error');
     }
-    setNotices((prev) => prev.filter((n) => n.id !== id));
-    showToast('Notice deleted successfully', undefined, 'success');
   };
 
   const categories = ['All', 'Academic', 'Fee', 'Events', 'Holiday', 'Administrative'];

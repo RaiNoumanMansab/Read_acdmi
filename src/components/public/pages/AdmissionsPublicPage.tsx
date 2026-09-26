@@ -9,6 +9,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useToast } from '../../common/Toast';
+import { ScrollReveal } from '../../common/ScrollReveal';
 import { admissionsApi, academicsApi } from '../../../services/api';
 
 interface UploadedDoc {
@@ -202,40 +203,44 @@ export const AdmissionsPublicPage: React.FC = () => {
           borderBottom: '4px solid #E62929'
         }}
       >
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-            Admissions Open 2026-2027 • Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com
-          </span>
-          <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
-            Begin Your Journey at Read Academy Sahiwal
-          </h1>
-          <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-            We welcome motivated students from Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com who demonstrate intellectual curiosity, a strong work ethic, and an eagerness to lead.
-          </p>
+        <ScrollReveal animation="up">
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              Admissions Open 2026-2027 • Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com
+            </span>
+            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+              Begin Your Journey at Read Academy Sahiwal
+            </h1>
+            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+              We welcome motivated students from Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com who demonstrate intellectual curiosity, a strong work ethic, and an eagerness to lead.
+            </p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
-            <button
-              onClick={() => showToast('Admission Information Brochure Downloaded (PDF)', undefined, 'info')}
-              className="bca-btn bca-btn-gold"
-              style={{ padding: '10px 22px' }}
-            >
-              <Download size={16} /> Download Admission Prospectus
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
+              <button
+                onClick={() => showToast('Admission Information Brochure Downloaded (PDF)', undefined, 'info')}
+                className="bca-btn bca-btn-gold"
+                style={{ padding: '10px 22px' }}
+              >
+                <Download size={16} /> Download Admission Prospectus
+              </button>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* 5-Step Admission Flow */}
       <section style={{ padding: '70px 24px', backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-              Seamless Enrolment Protocol
-            </span>
-            <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
-              5-Step Admission Journey
-            </h2>
-          </div>
+          <ScrollReveal animation="up">
+            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                Seamless Enrolment Protocol
+              </span>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+                5-Step Admission Journey
+              </h2>
+            </div>
+          </ScrollReveal>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
             {[
@@ -245,35 +250,36 @@ export const AdmissionsPublicPage: React.FC = () => {
               { step: '04', title: 'Offer Letter', desc: 'Formal admission offer issued with fee voucher and documentation checklist.' },
               { step: '05', title: 'Orientation & Induction', desc: 'Welcome session, campus tour, uniform fitting, and academic kit handover.' }
             ].map((s, idx) => (
-              <div
-                key={idx}
-                className="bca-card"
-                style={{ padding: '24px', position: 'relative', borderTop: '4px solid #E62929' }}
-              >
+              <ScrollReveal key={idx} animation="up" delay={idx * 100}>
                 <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4px 12px',
-                    borderRadius: '8px',
-                    backgroundColor: '#feecec',
-                    color: '#E62929',
-                    border: '1px solid #fecaca',
-                    fontSize: '1.1rem',
-                    fontWeight: 900,
-                    marginBottom: '12px'
-                  }}
+                  className="bca-card card-interactive-lift"
+                  style={{ padding: '24px', position: 'relative', borderTop: '4px solid #E62929', height: '100%' }}
                 >
-                  Step {s.step}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '4px 12px',
+                      borderRadius: '8px',
+                      backgroundColor: '#feecec',
+                      color: '#E62929',
+                      border: '1px solid #fecaca',
+                      fontSize: '1.1rem',
+                      fontWeight: 900,
+                      marginBottom: '12px'
+                    }}
+                  >
+                    Step {s.step}
+                  </div>
+                  <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
+                    {s.title}
+                  </h3>
+                  <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.6, margin: 0 }}>
+                    {s.desc}
+                  </p>
                 </div>
-                <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
-                  {s.title}
-                </h3>
-                <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.6, margin: 0 }}>
-                  {s.desc}
-                </p>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -283,78 +289,81 @@ export const AdmissionsPublicPage: React.FC = () => {
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '32px' }}>
           {/* Left Column: Fee Schedule & Required Docs */}
-          <div>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: '0 0 18px 0' }}>
-              Tuition Fee Structure (2026-2027)
-            </h2>
-            <div className="bca-table-wrapper" style={{ marginBottom: '28px' }}>
-              <table className="bca-table" style={{ fontSize: '0.84rem' }}>
-                <thead>
-                  <tr>
-                    <th>Academic Wing</th>
-                    <th>Monthly Tuition</th>
-                    <th>One-Time Admission</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>College Wing (FA, FSC, ICS, I.Com & D.Com)</strong></td>
-                    <td><strong style={{ color: '#0B3974' }}>Rs. 18,000</strong></td>
-                    <td>Rs. 35,000</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Senior Wing (Matriculation - Grades 9 & 10)</strong></td>
-                    <td><strong style={{ color: '#0B3974' }}>Rs. 16,000</strong></td>
-                    <td>Rs. 30,000</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Middle Wing (Grades 6-8)</strong></td>
-                    <td><strong style={{ color: '#0B3974' }}>Rs. 14,500</strong></td>
-                    <td>Rs. 28,000</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Primary Wing (Grades 1-5)</strong></td>
-                    <td><strong style={{ color: '#0B3974' }}>Rs. 12,000</strong></td>
-                    <td>Rs. 25,000</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Early Years (Nursery & KG)</strong></td>
-                    <td><strong style={{ color: '#0B3974' }}>Rs. 10,500</strong></td>
-                    <td>Rs. 20,000</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div style={{ background: '#eef5fc', padding: '16px', borderRadius: '10px', border: '1px solid #bfdbfe', marginBottom: '28px' }}>
-              <div style={{ fontWeight: 800, color: '#0B3974', fontSize: '0.88rem', marginBottom: '4px' }}>
-                ✨ Sibling Concession & Merit Scholarships
+          <ScrollReveal animation="left">
+            <div>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: '0 0 18px 0' }}>
+                Tuition Fee Structure (2026-2027)
+              </h2>
+              <div className="bca-table-wrapper" style={{ marginBottom: '28px' }}>
+                <table className="bca-table" style={{ fontSize: '0.84rem' }}>
+                  <thead>
+                    <tr>
+                      <th>Academic Wing</th>
+                      <th>Monthly Tuition</th>
+                      <th>One-Time Admission</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>College Wing (FA, FSC, ICS, I.Com & D.Com)</strong></td>
+                      <td><strong style={{ color: '#0B3974' }}>Rs. 18,000</strong></td>
+                      <td>Rs. 35,000</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Senior Wing (Matriculation - Grades 9 & 10)</strong></td>
+                      <td><strong style={{ color: '#0B3974' }}>Rs. 16,000</strong></td>
+                      <td>Rs. 30,000</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Middle Wing (Grades 6-8)</strong></td>
+                      <td><strong style={{ color: '#0B3974' }}>Rs. 14,500</strong></td>
+                      <td>Rs. 28,000</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Primary Wing (Grades 1-5)</strong></td>
+                      <td><strong style={{ color: '#0B3974' }}>Rs. 12,000</strong></td>
+                      <td>Rs. 25,000</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Early Years (Nursery & KG)</strong></td>
+                      <td><strong style={{ color: '#0B3974' }}>Rs. 10,500</strong></td>
+                      <td>Rs. 20,000</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <p style={{ fontSize: '0.8rem', color: '#061d3d', margin: 0, lineHeight: 1.5 }}>
-                A 15% tuition concession is granted for the second sibling, and 25% for the third. Full merit scholarships are awarded to students scoring above 92% in previous board examinations.
-              </p>
-            </div>
 
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 14px 0' }}>
-              Mandatory Registration Documents:
-            </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.86rem', color: '#334155' }}>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle size={15} color="#4CAF50" /> Child’s Original NADRA Birth Certificate / Form-B copy
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle size={15} color="#10b981" /> 4 recent passport-sized blue background photographs
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle size={15} color="#10b981" /> Previous School Leaving Certificate (SLC) & Transcripts
-              </li>
-              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle size={15} color="#10b981" /> Valid CNIC / Passport copies of both parents or guardians
-              </li>
-            </ul>
-          </div>
+              <div style={{ background: '#eef5fc', padding: '16px', borderRadius: '10px', border: '1px solid #bfdbfe', marginBottom: '28px' }}>
+                <div style={{ fontWeight: 800, color: '#0B3974', fontSize: '0.88rem', marginBottom: '4px' }}>
+                  ✨ Sibling Concession & Merit Scholarships
+                </div>
+                <p style={{ fontSize: '0.8rem', color: '#061d3d', margin: 0, lineHeight: 1.5 }}>
+                  A 15% tuition concession is granted for the second sibling, and 25% for the third. Full merit scholarships are awarded to students scoring above 92% in previous board examinations.
+                </p>
+              </div>
+
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 14px 0' }}>
+                Mandatory Registration Documents:
+              </h3>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.86rem', color: '#334155' }}>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={15} color="#4CAF50" /> Child’s Original NADRA Birth Certificate / Form-B copy
+                </li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={15} color="#10b981" /> 4 recent passport-sized blue background photographs
+                </li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={15} color="#10b981" /> Previous School Leaving Certificate (SLC) & Transcripts
+                </li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={15} color="#10b981" /> Valid CNIC / Passport copies of both parents or guardians
+                </li>
+              </ul>
+            </div>
+          </ScrollReveal>
 
           {/* Right Column: Online Inquiry Form */}
+          <ScrollReveal animation="right" delay={150}>
           <div className="bca-card" style={{ padding: '36px', borderRadius: '16px' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0' }}>
               Online Admission Inquiry
@@ -732,6 +741,7 @@ export const AdmissionsPublicPage: React.FC = () => {
               </button>
             </form>
           </div>
+          </ScrollReveal>
         </div>
       </section>
     </div>

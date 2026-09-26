@@ -252,7 +252,11 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
     });
   } catch (error) {
     console.error('GetMe error:', error);
-    res.status(500).json({ status: 'error', message: 'Failed to retrieve profile' });
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Failed to retrieve profile',
+      detail: error instanceof Error ? error.message : String(error)
+    });
   }
 };
 

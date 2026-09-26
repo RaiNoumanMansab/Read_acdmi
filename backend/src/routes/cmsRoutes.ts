@@ -56,6 +56,29 @@ router.post('/notices', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+router.patch('/notices/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { title, content, category, priority, audience, pinned } = req.body;
+    const updateData: Prisma.NoticeUpdateInput = {};
+    if (title !== undefined) updateData.title = title;
+    if (content !== undefined) updateData.content = content;
+    if (category !== undefined) updateData.category = category;
+    if (priority !== undefined) updateData.priority = priority.toUpperCase() as NoticePriority;
+    if (audience !== undefined) updateData.audience = audience;
+    if (pinned !== undefined) updateData.pinned = Boolean(pinned);
+
+    const notice = await prisma.notice.update({
+      where: { id },
+      data: updateData,
+    });
+    res.json({ status: 'success', message: 'Notice updated', data: notice });
+  } catch (error) {
+    console.error('Update notice error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to update notice' });
+  }
+});
+
 router.delete('/notices/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -143,6 +166,40 @@ router.post('/blogs', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+router.patch('/blogs/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { title, excerpt, content, category, tags, featuredImage } = req.body;
+    const updateData: Prisma.BlogPostUpdateInput = {};
+    if (title !== undefined) updateData.title = title;
+    if (excerpt !== undefined) updateData.excerpt = excerpt;
+    if (content !== undefined) updateData.content = content;
+    if (category !== undefined) updateData.category = category;
+    if (tags !== undefined) updateData.tags = tags;
+    if (featuredImage !== undefined) updateData.featuredImage = featuredImage;
+
+    const blog = await prisma.blogPost.update({
+      where: { id },
+      data: updateData,
+    });
+    res.json({ status: 'success', message: 'Blog post updated', data: blog });
+  } catch (error) {
+    console.error('Update blog error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to update blog post' });
+  }
+});
+
+router.delete('/blogs/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await prisma.blogPost.delete({ where: { id } });
+    res.json({ status: 'success', message: 'Blog post deleted' });
+  } catch (error) {
+    console.error('Delete blog error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to delete blog post' });
+  }
+});
+
 // ==========================================
 // 3. GALLERY ALBUMS & IMAGES
 // ==========================================
@@ -212,6 +269,29 @@ router.post('/gallery/albums/:albumId/images', async (req: Request, res: Respons
   }
 });
 
+router.delete('/gallery/albums/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await prisma.galleryImage.deleteMany({ where: { albumId: id } });
+    await prisma.galleryAlbum.delete({ where: { id } });
+    res.json({ status: 'success', message: 'Album deleted' });
+  } catch (error) {
+    console.error('Delete album error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to delete album' });
+  }
+});
+
+router.delete('/gallery/images/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await prisma.galleryImage.delete({ where: { id } });
+    res.json({ status: 'success', message: 'Image deleted' });
+  } catch (error) {
+    console.error('Delete image error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to delete image' });
+  }
+});
+
 // ==========================================
 // 4. SCHOOL EVENTS
 // ==========================================
@@ -253,6 +333,45 @@ router.post('/events', async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Create event error:', error);
     res.status(500).json({ status: 'error', message: 'Failed to schedule event' });
+  }
+});
+
+router.patch('/events/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { title, category, eventDate, eventTime, location, description, bannerImage, isPublic, status } = req.body;
+
+    const updateData: Prisma.SchoolEventUpdateInput = {};
+    if (title !== undefined) updateData.title = title;
+    if (category !== undefined) updateData.category = category;
+    if (eventDate !== undefined) updateData.eventDate = new Date(eventDate);
+    if (eventTime !== undefined) updateData.eventTime = eventTime;
+    if (location !== undefined) updateData.location = location;
+    if (description !== undefined) updateData.description = description;
+    if (bannerImage !== undefined) updateData.bannerImage = bannerImage;
+    if (isPublic !== undefined) updateData.isPublic = Boolean(isPublic);
+    if (status !== undefined) updateData.status = status;
+
+    const event = await prisma.schoolEvent.update({
+      where: { id },
+      data: updateData,
+    });
+
+    res.json({ status: 'success', message: 'Event updated', data: event });
+  } catch (error) {
+    console.error('Update event error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to update event' });
+  }
+});
+
+router.delete('/events/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await prisma.schoolEvent.delete({ where: { id } });
+    res.json({ status: 'success', message: 'Event deleted' });
+  } catch (error) {
+    console.error('Delete event error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to delete event' });
   }
 });
 

@@ -5,6 +5,7 @@ import {
   Eye
 } from 'lucide-react';
 import { SCHOOL_INFO } from '../../../constants/schoolConfig';
+import { ScrollReveal } from '../../common/ScrollReveal';
 
 export const AboutPage: React.FC = () => {
   return (
@@ -46,44 +47,50 @@ export const AboutPage: React.FC = () => {
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
-            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #E62929' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                <Target size={24} color="#E62929" />
+            <ScrollReveal animation="up" delay={0}>
+              <div className="bca-card card-interactive-lift" style={{ padding: '36px', borderTop: '4px solid #E62929', height: '100%' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <Target size={24} color="#E62929" />
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
+                  Our Mission
+                </h2>
+                <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                  To cultivate intellectually curious, resilient, and socially responsible scholars by integrating rigorous academic inquiry with technological innovation, compassionate character mentorship, and global citizenship.
+                </p>
               </div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
-                Our Mission
-              </h2>
-              <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                To cultivate intellectually curious, resilient, and socially responsible scholars by integrating rigorous academic inquiry with technological innovation, compassionate character mentorship, and global citizenship.
-              </p>
-            </div>
+            </ScrollReveal>
 
-            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #E62929' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                <Eye size={24} color="#E62929" />
+            <ScrollReveal animation="up" delay={150}>
+              <div className="bca-card card-interactive-lift" style={{ padding: '36px', borderTop: '4px solid #E62929', height: '100%' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <Eye size={24} color="#E62929" />
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
+                  Our Vision
+                </h2>
+                <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                  To be South Asia's preeminent preparatory academy, where graduates emerge not merely as academic high-achievers, but as visionary innovators and ethical pioneers who transform their societies.
+                </p>
               </div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
-                Our Vision
-              </h2>
-              <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                To be South Asia's preeminent preparatory academy, where graduates emerge not merely as academic high-achievers, but as visionary innovators and ethical pioneers who transform their societies.
-              </p>
-            </div>
+            </ScrollReveal>
 
-            <div className="bca-card" style={{ padding: '36px', borderTop: '4px solid #E62929' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                <Compass size={24} color="#E62929" />
+            <ScrollReveal animation="up" delay={300}>
+              <div className="bca-card card-interactive-lift" style={{ padding: '36px', borderTop: '4px solid #E62929', height: '100%' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#feecec', color: '#E62929', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                  <Compass size={24} color="#E62929" />
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
+                  Our Motto
+                </h2>
+                <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#E62929', margin: '0 0 8px 0', fontStyle: 'italic' }}>
+                  "{SCHOOL_INFO.motto}"
+                </p>
+                <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.7, margin: 0 }}>
+                  Every lesson, sports competition, and community initiative at Read Academy Sahiwal is anchored in the pursuit of truth and the defense of moral integrity.
+                </p>
               </div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
-                Our Motto
-              </h2>
-              <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#E62929', margin: '0 0 8px 0', fontStyle: 'italic' }}>
-                "{SCHOOL_INFO.motto}"
-              </p>
-              <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.7, margin: 0 }}>
-                Every lesson, sports competition, and community initiative at Read Academy Sahiwal is anchored in the pursuit of truth and the defense of moral integrity.
-              </p>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -91,14 +98,16 @@ export const AboutPage: React.FC = () => {
       {/* Historical Milestones Timeline */}
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
-              Historical Journey
-            </span>
-            <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
-              Milestones of Growth & Excellence
-            </h2>
-          </div>
+          <ScrollReveal animation="up">
+            <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+                Historical Journey
+              </span>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+                Milestones of Growth & Excellence
+              </h2>
+            </div>
+          </ScrollReveal>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
             {[
@@ -108,43 +117,45 @@ export const AboutPage: React.FC = () => {
               { year: '2024', title: 'Activity Center & Sports Facilities', desc: 'Inaugurated dedicated sports grounds, library reading lounges, and co-curricular debate societies.' },
               { year: '2026', title: 'Digital Campus ERP & Smart Management Portal', desc: 'Launched comprehensive Cloud ERP portal for unified attendance, fee tracking, and academic reporting.' }
             ].map((m, idx) => (
-              <div
-                key={idx}
-                className="bca-card"
-                style={{
-                  padding: '24px',
-                  borderRadius: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px',
-                  borderTop: '3px solid #E62929',
-                  backgroundColor: '#ffffff'
-                }}
-              >
+              <ScrollReveal key={idx} animation="up" delay={idx * 100}>
                 <div
+                  className="bca-card card-interactive-lift"
                   style={{
-                    backgroundColor: '#feecec',
-                    color: '#E62929',
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    fontWeight: 900,
-                    fontSize: '1.1rem',
-                    width: 'fit-content',
-                    textAlign: 'center',
-                    border: '1px solid #fecaca'
+                    padding: '24px',
+                    borderRadius: '14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    borderTop: '3px solid #E62929',
+                    backgroundColor: '#ffffff',
+                    height: '100%'
                   }}
                 >
-                  {m.year}
+                  <div
+                    style={{
+                      backgroundColor: '#feecec',
+                      color: '#E62929',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      fontWeight: 900,
+                      fontSize: '1.1rem',
+                      width: 'fit-content',
+                      textAlign: 'center',
+                      border: '1px solid #fecaca'
+                    }}
+                  >
+                    {m.year}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.4 }}>
+                      {m.title}
+                    </h3>
+                    <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                      {m.desc}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.4 }}>
-                    {m.title}
-                  </h3>
-                  <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                    {m.desc}
-                  </p>
-                </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -153,14 +164,16 @@ export const AboutPage: React.FC = () => {
       {/* Campus Facilities Showcase */}
       <section style={{ padding: '80px 24px', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
-              World-Class Infrastructure
-            </span>
-            <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
-              Purpose-Built Campus Facilities
-            </h2>
-          </div>
+          <ScrollReveal animation="up">
+            <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+                World-Class Infrastructure
+              </span>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+                Purpose-Built Campus Facilities
+              </h2>
+            </div>
+          </ScrollReveal>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
             {[
@@ -185,17 +198,19 @@ export const AboutPage: React.FC = () => {
                 image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80'
               }
             ].map((fac, i) => (
-              <div key={i} className="bca-card" style={{ overflow: 'hidden', borderRadius: '14px' }}>
-                <img src={fac.image} alt={fac.title} style={{ width: '100%', height: '190px', objectFit: 'cover' }} />
-                <div style={{ padding: '20px' }}>
-                  <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
-                    {fac.title}
-                  </h3>
-                  <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                    {fac.desc}
-                  </p>
+              <ScrollReveal key={i} animation="zoom" delay={i * 120}>
+                <div className="bca-card card-interactive-lift" style={{ overflow: 'hidden', borderRadius: '14px', height: '100%' }}>
+                  <img src={fac.image} alt={fac.title} className="scale-hover-img" style={{ width: '100%', height: '190px', objectFit: 'cover' }} />
+                  <div style={{ padding: '20px' }}>
+                    <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
+                      {fac.title}
+                    </h3>
+                    <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                      {fac.desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -203,16 +218,18 @@ export const AboutPage: React.FC = () => {
 
       {/* Official Accreditations */}
       <section style={{ padding: '50px 24px', backgroundColor: '#f1f5f9', borderTop: '1px solid #e2e8f0' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '20px', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
-            Accredited & Affiliated With Prestigious Educational Bodies
+        <ScrollReveal animation="up">
+          <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '20px', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              Accredited & Affiliated With Prestigious Educational Bodies
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', flexWrap: 'wrap' }}>
+              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🏛️ Cambridge Assessment International</div>
+              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🎓 Federal Board of Intermediate & Secondary Education (FBISE)</div>
+              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🌍 British Council Partner School</div>
+            </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', flexWrap: 'wrap' }}>
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🏛️ Cambridge Assessment International</div>
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🎓 Federal Board of Intermediate & Secondary Education (FBISE)</div>
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🌍 British Council Partner School</div>
-          </div>
-        </div>
+        </ScrollReveal>
       </section>
     </div>
   );

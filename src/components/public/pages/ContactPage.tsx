@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { SCHOOL_INFO } from '../../../constants/schoolConfig';
 import { useToast } from '../../common/Toast';
+import { ScrollReveal } from '../../common/ScrollReveal';
 import { cmsApi } from '../../../services/api';
 import { WhatsAppButton, WhatsAppIcon } from '../../common/WhatsAppButton';
 import { SCHOOL_WHATSAPP_NUMBER } from '../../../utils/whatsapp';
@@ -89,25 +90,28 @@ export const ContactPage: React.FC = () => {
           borderBottom: '4px solid #E62929'
         }}
       >
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-            Get in Touch • Read Academy Sahiwal
-          </span>
-          <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
-            We'd Love to Hear From You
-          </h1>
-          <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
-            Whether you have questions regarding our curriculum, wish to apply, or want to schedule a guided tour of our campus, our team is here to assist.
-          </p>
-        </div>
+        <ScrollReveal animation="up">
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              Get in Touch • Read Academy Sahiwal
+            </span>
+            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+              We'd Love to Hear From You
+            </h1>
+            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+              Whether you have questions regarding our curriculum, wish to apply, or want to schedule a guided tour of our campus, our team is here to assist.
+            </p>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Main Grid: Info Cards + Form */}
       <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '32px' }}>
           {/* Left Column: Contact Cards & Map */}
-          <div>
-            <div className="bca-grid-2" style={{ marginBottom: '24px' }}>
+          <ScrollReveal animation="left">
+            <div>
+              <div className="bca-grid-2" style={{ marginBottom: '24px' }}>
               <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>
                 <MapPin size={22} color="#E62929" style={{ marginBottom: '10px' }} />
                 <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#E62929' }}>
@@ -262,9 +266,11 @@ export const ContactPage: React.FC = () => {
               </div>
             </div>
           </div>
+          </ScrollReveal>
 
           {/* Right Column: Toggleable Message / Tour Form */}
-          <div className="bca-card" style={{ padding: '36px', borderRadius: '16px' }}>
+          <ScrollReveal animation="right" delay={150}>
+            <div className="bca-card card-interactive-lift" style={{ padding: '36px', borderRadius: '16px' }}>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
               <button
                 onClick={() => setActiveTab('message')}
@@ -492,7 +498,8 @@ export const ContactPage: React.FC = () => {
                 </button>
               </form>
             )}
-          </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
     </div>
