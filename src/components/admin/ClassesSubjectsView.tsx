@@ -15,6 +15,7 @@ import {
 import type { ClassEntity, SubjectEntity } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState, TableLoadingRow } from '../common/Spinner';
 import { academicsApi } from '../../services/api';
 
 const mapBackendClass = (cls: any): ClassEntity => ({
@@ -307,9 +308,13 @@ export const ClassesSubjectsView: React.FC = () => {
 
       {/* CLASSES TAB */}
       {activeTab === 'classes' && (
-        classes.length === 0 ? (
+        loading ? (
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <LoadingState message="Loading classes from database..." minHeight="240px" />
+          </div>
+        ) : classes.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            {loading ? 'Loading classes from database...' : 'No classes registered.'}
+            No classes registered.
           </div>
         ) : (
         <div
@@ -412,10 +417,12 @@ export const ClassesSubjectsView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {subjects.length === 0 ? (
+              {loading ? (
+                <TableLoadingRow colSpan={6} message="Loading subjects from database..." />
+              ) : subjects.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                    {loading ? 'Loading subjects from database...' : 'No curriculum subjects registered.'}
+                    No curriculum subjects registered.
                   </td>
                 </tr>
               ) : (

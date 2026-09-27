@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../common/Toast';
 import { ScrollReveal } from '../../common/ScrollReveal';
+import { ButtonSpinner } from '../../common/Spinner';
 import { admissionsApi, academicsApi } from '../../../services/api';
 
 interface UploadedDoc {
@@ -198,17 +199,17 @@ export const AdmissionsPublicPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
-          padding: '70px 24px',
+          padding: 'clamp(75px, 8vw, 105px) 24px',
           textAlign: 'center',
           borderBottom: '4px solid #E62929'
         }}
       >
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               Admissions Open 2026-2027 • Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com
             </span>
-            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, lineHeight: 1.25, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
               Begin Your Journey at Read Academy Sahiwal
             </h1>
             <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
@@ -233,10 +234,10 @@ export const AdmissionsPublicPage: React.FC = () => {
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <ScrollReveal animation="up">
             <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0B3974', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                 Seamless Enrolment Protocol
               </span>
-              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '6px 0 0 0' }}>
                 5-Step Admission Journey
               </h2>
             </div>
@@ -266,7 +267,7 @@ export const AdmissionsPublicPage: React.FC = () => {
                       color: '#E62929',
                       border: '1px solid #fecaca',
                       fontSize: '1.1rem',
-                      fontWeight: 900,
+                      fontWeight: 700,
                       marginBottom: '12px'
                     }}
                   >
@@ -736,8 +737,17 @@ export const AdmissionsPublicPage: React.FC = () => {
                 className="bca-btn bca-btn-gold"
                 style={{ padding: '12px', justifyContent: 'center', fontSize: '0.95rem', marginTop: '6px' }}
               >
-                <Send size={16} />
-                <span>{isSubmitting ? 'Registering to Database...' : 'Submit Admission Application'}</span>
+                {isSubmitting ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <ButtonSpinner color="#0B3974" />
+                    <span>Registering to Database...</span>
+                  </div>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    <span>Submit Admission Application</span>
+                  </>
+                )}
               </button>
             </form>
           </div>

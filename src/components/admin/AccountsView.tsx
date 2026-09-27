@@ -17,6 +17,7 @@ import type { FinancialSummary, AccountTransaction } from '../../types';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { TableLoadingRow } from '../common/Spinner';
 import { feesApi } from '../../services/api';
 
 export const AccountsView: React.FC = () => {
@@ -318,10 +319,12 @@ export const AccountsView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {transactions.length === 0 ? (
+            {loading ? (
+              <TableLoadingRow colSpan={7} message="Loading financial transactions from database..." />
+            ) : transactions.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                  {loading ? 'Loading financial transactions from database...' : 'No general ledger transactions recorded.'}
+                  No general ledger transactions recorded.
                 </td>
               </tr>
             ) : (

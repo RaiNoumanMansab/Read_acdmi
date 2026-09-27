@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { SCHOOL_INFO } from '../../constants/schoolConfig';
 import { useToast } from '../common/Toast';
+import { LoadingState, ButtonSpinner } from '../common/Spinner';
 import { settingsApi } from '../../services/api';
 
 export const SettingsView: React.FC = () => {
@@ -76,6 +77,14 @@ export const SettingsView: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="bca-card" style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+        <LoadingState minHeight="360px" />
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
@@ -94,7 +103,7 @@ export const SettingsView: React.FC = () => {
           disabled={saving}
           className="bca-btn bca-btn-primary"
         >
-          {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          {saving ? <ButtonSpinner color="#ffffff" /> : <Save size={16} />}
           <span>{saving ? 'Saving...' : 'Save All Settings'}</span>
         </button>
       </div>

@@ -73,7 +73,7 @@ const CounterItem: React.FC<CounterItemProps> = ({
       <div
         style={{
           fontSize: 'clamp(1.75rem, 4vw, 2.2rem)',
-          fontWeight: 900,
+          fontWeight: 700,
           color: '#0B3974',
           letterSpacing: '-0.02em',
           lineHeight: 1
@@ -100,6 +100,7 @@ interface RevealProps {
   duration?: number;
   className?: string;
   style?: React.CSSProperties;
+  once?: boolean;
 }
 
 const Reveal: React.FC<RevealProps> = ({
@@ -108,7 +109,8 @@ const Reveal: React.FC<RevealProps> = ({
   delay = 0,
   duration = 750,
   className = '',
-  style = {}
+  style = {},
+  once = true
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -121,8 +123,10 @@ const Reveal: React.FC<RevealProps> = ({
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-        } else {
-          // Re-triggers dynamically whenever scrolled away & back (up or down)
+          if (once) {
+            observer.unobserve(el);
+          }
+        } else if (!once) {
           setIsVisible(false);
         }
       },
@@ -134,7 +138,7 @@ const Reveal: React.FC<RevealProps> = ({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [once]);
 
   return (
     <div
@@ -190,7 +194,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
           overflow: 'hidden',
-          padding: 'clamp(40px, 7vw, 80px) 20px'
+          padding: 'clamp(65px, 8vw, 105px) 24px'
         }}
       >
         {/* Background decorative circles */}
@@ -207,11 +211,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           }}
         />
 
-        <div style={{ maxWidth: '1440px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 2 }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 2 }}>
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
               gap: '40px',
               alignItems: 'center'
             }}
@@ -245,9 +249,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               <h1
                 className="hero-animate-2"
                 style={{
-                  fontSize: 'clamp(1.65rem, 3.8vw, 3.4rem)',
-                  fontWeight: 900,
-                  lineHeight: 1.18,
+                  fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+                  fontWeight: 700,
+                  lineHeight: 1.25,
                   letterSpacing: '-0.02em',
                   marginBottom: '16px',
                   color: '#ffffff',
@@ -337,7 +341,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
             </div>
 
             {/* Right Column: Hero Visual Showcase (Enhanced Landscape & Right-Aligned) */}
-            <div className="hero-animate-3" style={{ position: 'relative', width: '100%', maxWidth: '720px', marginLeft: 'auto', marginRight: '0', justifySelf: 'end', transform: 'translateX(18px)' }}>
+            <div className="hero-animate-3" style={{ position: 'relative', width: '100%', maxWidth: '720px', marginLeft: 'auto', marginRight: '0', justifySelf: 'end' }}>
               {/* Main Panoramic Image Frame */}
               <div
                 style={{
@@ -347,7 +351,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                   background: '#0B3974',
                   zIndex: 1,
                   width: '100%',
-                  height: 'clamp(280px, 27vw, 335px)'
+                  height: 'clamp(300px, 30vw, 375px)'
                 }}
               >
                 <img
@@ -397,7 +401,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: '#04142a',
-                        fontWeight: 900,
+                        fontWeight: 700,
                         flexShrink: 0
                       }}
                     >
@@ -433,7 +437,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 2. QUICK STATS BANNER */}
-      <section id="campus-stats" className="section-entrance-1" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '28px 16px', scrollMarginTop: '80px' }}>
+      <section id="campus-stats" className="section-entrance-1" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '28px 24px', scrollMarginTop: '80px' }}>
         <Reveal>
           <div
             style={{
@@ -475,10 +479,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       <section style={{ padding: 'clamp(40px, 7vw, 80px) 20px', backgroundColor: '#f8fafc' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 40px auto' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Institutional Distinction
             </span>
-            <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)', fontWeight: 900, color: '#0f172a', margin: '8px 0 12px 0', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '8px 0 12px 0', letterSpacing: '-0.02em' }}>
               Why Read Academy Sahiwal Leads in Modern Education
             </h2>
             <p style={{ fontSize: '0.92rem', color: '#64748b', lineHeight: 1.6 }}>
@@ -581,10 +585,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <Reveal>
             <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 52px auto' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 Educational Continuum
               </span>
-              <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
                 Academic Wings — Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com
               </h2>
               <p style={{ fontSize: '0.94rem', color: '#64748b', lineHeight: 1.6 }}>
@@ -706,7 +710,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
         <div className="brand-top-bar-gradient" style={{ position: 'absolute', top: 0, left: 0, right: 0 }} />
         <div
           style={{
-            maxWidth: '1100px',
+            maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -755,7 +759,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           <Reveal animation="right" duration={800} delay={150}>
             <div>
               <Quote size={40} color="#E62929" style={{ marginBottom: '16px', filter: 'drop-shadow(0 2px 8px rgba(230,41,41,0.4))' }} />
-              <h2 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.2rem)', fontWeight: 900, lineHeight: 1.2, margin: '0 0 18px 0', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontSize: 'clamp(1.5rem, 3.2vw, 2rem)', fontWeight: 700, lineHeight: 1.3, margin: '0 0 18px 0', letterSpacing: '-0.015em' }}>
                 "We prepare our students not merely for exams, but for the moral and intellectual leadership of tomorrow."
               </h2>
               <p style={{ fontSize: '0.94rem', color: '#cbd5e1', lineHeight: 1.7, margin: '0 0 24px 0' }}>
@@ -863,7 +867,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                           color: '#0B3974',
                           borderRadius: '10px',
                           textAlign: 'center',
-                          fontWeight: 900,
+                          fontWeight: 700,
                           border: '1px solid #bfdbfe',
                           minWidth: '58px'
                         }}
@@ -898,10 +902,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <Reveal>
             <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 PARENT TESTIMONIALS & TRUST
               </span>
-              <h2 style={{ fontSize: 'clamp(1.6rem, 3.8vw, 2.4rem)', fontWeight: 900, color: '#0f172a', margin: '8px 0 12px' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '8px 0 12px' }}>
                 What Our Community Says
               </h2>
               <p style={{ fontSize: '0.94rem', color: '#64748b', margin: 0 }}>
@@ -962,53 +966,51 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
 
       {/* 8. CALL TO ACTION BANNER */}
       <section
-        className="section-entrance-6"
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 60%, #082a57 100%)',
           color: '#ffffff',
           padding: '80px 24px',
           textAlign: 'center',
-          borderTop: '4px solid #E62929'
+          borderTop: '4px solid #E62929',
+          position: 'relative'
         }}
       >
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <Reveal>
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 900, letterSpacing: '-0.02em', margin: '0 0 16px 0' }}>
-              Empower Your Child With Exceptional Foundations
-            </h2>
-            <p style={{ fontSize: '1.05rem', color: '#dbeafe', lineHeight: 1.65, margin: '0 0 32px 0' }}>
-              Cohort seats for the upcoming academic session are allocated on merit and assessment evaluation. Schedule a campus tour or begin your online application today.
-            </p>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em', margin: '0 0 16px 0' }}>
+            Empower Your Child With Exceptional Foundations
+          </h2>
+          <p style={{ fontSize: '1.05rem', color: '#dbeafe', lineHeight: 1.65, margin: '0 0 32px 0' }}>
+            Cohort seats for the upcoming academic session are allocated on merit and assessment evaluation. Schedule a campus tour or begin your online application today.
+          </p>
 
-            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={onOpenApply}
-                className="bca-btn bca-btn-gold"
-                style={{
-                  padding: '14px 30px',
-                  fontSize: '1rem',
-                  borderRadius: '10px'
-                }}
-              >
-                Start Admission Application
-              </button>
-              <button
-                onClick={() => onNavigate('contact')}
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.12)',
-                  color: '#ffffff',
-                  border: '1px solid rgba(255,255,255,0.35)',
-                  borderRadius: '10px',
-                  padding: '14px 26px',
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-              >
-                Book a Guided Campus Tour
-              </button>
-            </div>
-          </Reveal>
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={onOpenApply}
+              className="bca-btn bca-btn-gold"
+              style={{
+                padding: '14px 30px',
+                fontSize: '1rem',
+                borderRadius: '10px'
+              }}
+            >
+              Start Admission Application
+            </button>
+            <button
+              onClick={() => onNavigate('contact')}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.35)',
+                borderRadius: '10px',
+                padding: '14px 26px',
+                fontSize: '1rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Book a Guided Campus Tour
+            </button>
+          </div>
         </div>
       </section>
     </div>

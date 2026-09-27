@@ -18,36 +18,17 @@ import {
 } from 'lucide-react';
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  ArcElement
+  registerables
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { StatCard } from '../common/StatCard';
 import type { AdminTab } from '../../types';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { adminApi, admissionsApi, feesApi, cmsApi, studentsApi } from '../../services/api';
 
 // Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  ArcElement
-);
+ChartJS.register(...registerables);
 
 interface DashboardHomeProps {
   onNavigate: (tab: AdminTab) => void;
@@ -131,6 +112,30 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
 
     return () => { isMounted = false; };
   }, []);
+
+  if (!dashboardData) {
+    return (
+      <div style={{ padding: '40px 16px' }}>
+        <div
+          className="bca-card"
+          style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.04)'
+          }}
+        >
+          <LoadingState
+            message="Loading campus intelligence dashboard & analytics..."
+            minHeight="60vh"
+            size="lg"
+            color="primary"
+          />
+        </div>
+      </div>
+    );
+  }
+
   const todayDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',

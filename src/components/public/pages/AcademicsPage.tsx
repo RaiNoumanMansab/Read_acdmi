@@ -66,24 +66,24 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
-          padding: '70px 24px',
+          padding: 'clamp(75px, 8vw, 105px) 24px',
           textAlign: 'center',
           borderBottom: '4px solid #E62929'
         }}
       >
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               Academic Framework • Read To Lead
             </span>
-            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, lineHeight: 1.25, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
               Curriculum Engineered for Intellectual Distinction
             </h1>
             <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
               Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com — integrating modern STEM, inquiry-based learning, BISE Sahiwal board standards, cutting-edge science and IT laboratories, and character mentorship.
             </p>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px', flexWrap: 'wrap' }}>
               <button
                 onClick={() => showToast('Academic Calendar 2026-2027 Downloaded (PDF)', undefined, 'success')}
                 className="bca-btn bca-btn-secondary"
@@ -141,10 +141,10 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
             <div className="bca-card card-interactive-lift" style={{ padding: '40px', borderTop: '4px solid #E62929', borderLeft: '4px solid #E62929' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '18px' }}>
                 <div>
-                  <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                     {current.grades}
                   </span>
-                  <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', margin: '4px 0 0 0' }}>
+                  <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '4px 0 0 0' }}>
                     {current.title}
                   </h2>
                 </div>
@@ -193,10 +193,10 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <ScrollReveal animation="up">
             <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 Pedagogical Methodology
               </span>
-              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '6px 0 0 0' }}>
                 How We Teach: Inquiry, Rigor & Application
               </h2>
             </div>
@@ -223,7 +223,7 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
             ].map((m, i) => (
               <ScrollReveal key={i} animation="up" delay={i * 100}>
                 <div className="bca-card card-interactive-lift" style={{ padding: '28px', borderRadius: '14px', height: '100%' }}>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '0 0 10px 0', color: '#0f172a' }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 10px 0', color: '#0f172a' }}>
                     {m.title}
                   </h3>
                   <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
@@ -241,10 +241,10 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <ScrollReveal animation="up">
             <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 Beyond the Classroom
               </span>
-              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '6px 0 0 0' }}>
                 Co-Curricular Societies & Guilds
               </h2>
             </div>

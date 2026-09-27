@@ -14,6 +14,7 @@ import {
 import type { SchoolEvent } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
 const mapBackendEvent = (e: any): SchoolEvent => ({
@@ -212,8 +213,8 @@ export const EventsCmsView: React.FC = () => {
 
       {/* Events Grid */}
       {loading ? (
-        <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
-          Loading events...
+        <div className="bca-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <LoadingState message="Loading events from database..." minHeight="240px" />
         </div>
       ) : events.length === 0 ? (
         <div className="bca-card" style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>

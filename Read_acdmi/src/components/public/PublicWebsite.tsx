@@ -16,6 +16,7 @@ import { SignUpPage } from './pages/SignUpPage';
 import { CareersPage } from './pages/CareersPage';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { ButtonSpinner } from '../common/Spinner';
 import { CheckCircle, Upload, FileText, Paperclip, Trash2 } from 'lucide-react';
 import { admissionsApi, academicsApi } from '../../services/api';
 import { FloatingWhatsApp } from './FloatingWhatsApp';
@@ -282,7 +283,14 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button type="submit" form="quickApplyForm" disabled={isSubmitting} className="bca-btn bca-btn-gold">
-                  {isSubmitting ? 'Registering...' : 'Submit Application'}
+                  {isSubmitting ? (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <ButtonSpinner color="#0B3974" />
+                      <span>Registering...</span>
+                    </div>
+                  ) : (
+                    'Submit Application'
+                  )}
                 </button>
                 <button type="button" disabled={isSubmitting} onClick={() => setApplyModalOpen(false)} className="bca-btn bca-btn-secondary">
                   Cancel

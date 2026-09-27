@@ -26,6 +26,7 @@ import {
 import type { AdmissionApplication, AttachedDocument } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { TableLoadingRow } from '../common/Spinner';
 import { admissionsApi, academicsApi } from '../../services/api';
 import { WhatsAppButton } from '../common/WhatsAppButton';
 
@@ -550,10 +551,12 @@ export const AdmissionsView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <TableLoadingRow colSpan={7} message="Loading student admissions from database..." />
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                  {loading ? 'Loading admissions from database...' : 'No admission applications found.'}
+                  No admission applications found.
                 </td>
               </tr>
             ) : (

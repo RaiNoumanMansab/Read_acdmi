@@ -15,6 +15,7 @@ import {
   School
 } from 'lucide-react';
 import { useToast } from '../../common/Toast';
+import { ButtonSpinner } from '../../common/Spinner';
 import { authApi } from '../../../services/api';
 
 interface SignUpPageProps {
@@ -95,7 +96,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
             <span>Official Student & Parent Portal Signup</span>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.7rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.15, margin: '0 0 16px 0', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, color: '#0f172a', lineHeight: 1.25, margin: '0 0 16px 0', letterSpacing: '-0.02em' }}>
             Join the <span style={{ color: '#0B3974' }}>Read Academy</span> Community
           </h1>
 
@@ -150,7 +151,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               alt="Read Academy Sahiwal"
               style={{ height: '56px', margin: '0 auto 10px', display: 'block', objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.12))' }}
             />
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0B3974', margin: '0 0 4px 0' }}>
+            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, lineHeight: 1.3, color: '#0B3974', margin: '0 0 4px 0' }}>
               CREATE PORTAL ACCOUNT
             </h2>
             <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#E62929', letterSpacing: '0.08em' }}>
@@ -439,8 +440,17 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                 marginTop: '6px'
               }}
             >
-              <UserPlus size={18} />
-              <span>{isSubmitting ? 'Registering Account...' : 'Complete Portal Registration'}</span>
+              {isSubmitting ? (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <ButtonSpinner color="#ffffff" />
+                  <span>Registering Account...</span>
+                </div>
+              ) : (
+                <>
+                  <UserPlus size={18} />
+                  <span>Complete Portal Registration</span>
+                </>
+              )}
             </button>
 
             {/* Toggle to Login */}

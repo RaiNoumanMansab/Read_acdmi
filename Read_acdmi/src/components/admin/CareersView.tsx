@@ -25,6 +25,7 @@ import {
 import { jobsApi } from '../../services/api';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { TableLoadingRow } from '../common/Spinner';
 import { WhatsAppButton } from '../common/WhatsAppButton';
 
 export const CareersView: React.FC = () => {
@@ -318,7 +319,7 @@ export const CareersView: React.FC = () => {
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>ACTIVE VACANCIES</span>
             <Briefcase size={18} />
           </div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 2px' }}>
+          <div style={{ fontSize: '1.7rem', fontWeight: 700, color: '#0f172a', margin: '6px 0 2px' }}>
             {jobs.filter((j) => j.status === 'OPEN').length} Open ({totalOpenings} Seats)
           </div>
           <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Live on public Careers page</span>
@@ -329,7 +330,7 @@ export const CareersView: React.FC = () => {
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>CANDIDATE APPLICATIONS</span>
             <Users size={18} />
           </div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#0B3974', margin: '6px 0 2px' }}>
+          <div style={{ fontSize: '1.7rem', fontWeight: 700, color: '#0B3974', margin: '6px 0 2px' }}>
             {totalApps} Total
           </div>
           <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Received from online portal</span>
@@ -340,7 +341,7 @@ export const CareersView: React.FC = () => {
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>SHORTLISTED / INTERVIEWS</span>
             <Clock size={18} />
           </div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#d97706', margin: '6px 0 2px' }}>
+          <div style={{ fontSize: '1.7rem', fontWeight: 700, color: '#d97706', margin: '6px 0 2px' }}>
             {shortlistedCount} Candidates
           </div>
           <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Scheduled for demonstration</span>
@@ -351,7 +352,7 @@ export const CareersView: React.FC = () => {
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>HIRED FACULTY</span>
             <CheckCircle size={18} />
           </div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#059669', margin: '6px 0 2px' }}>
+          <div style={{ fontSize: '1.7rem', fontWeight: 700, color: '#059669', margin: '6px 0 2px' }}>
             {hiredCount} Teachers
           </div>
           <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Enrolled into system</span>
@@ -435,10 +436,12 @@ export const CareersView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredJobs.length === 0 ? (
+                {loading ? (
+                  <TableLoadingRow colSpan={9} message="Loading career job postings from database..." />
+                ) : filteredJobs.length === 0 ? (
                   <tr>
                     <td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                      {loading ? 'Loading job postings from database...' : 'No job openings found. Click "+ Post New Vacancy" above to add one.'}
+                      No job openings found. Click "+ Post New Vacancy" above to add one.
                     </td>
                   </tr>
                 ) : (
@@ -579,10 +582,12 @@ export const CareersView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredApps.length === 0 ? (
+                {loading ? (
+                  <TableLoadingRow colSpan={9} message="Loading teacher job applications from database..." />
+                ) : filteredApps.length === 0 ? (
                   <tr>
                     <td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                      {loading ? 'Loading applications from database...' : 'No teacher applications found for this filter.'}
+                      No teacher applications found for this filter.
                     </td>
                   </tr>
                 ) : (

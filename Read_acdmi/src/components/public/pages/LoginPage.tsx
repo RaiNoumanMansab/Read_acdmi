@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../common/Toast';
+import { ButtonSpinner } from '../../common/Spinner';
 import { useAuth } from '../../../context/AuthContext';
 import { getCurrentUser } from '../../../services/api';
 
@@ -78,7 +79,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               alt="Read Academy Sahiwal"
               style={{ height: '64px', width: 'auto', margin: '0 auto 14px', display: 'block', objectFit: 'contain' }}
             />
-            <h1 style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0B3974', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontSize: '1.45rem', fontWeight: 700, lineHeight: 1.25, color: '#0B3974', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
               READ ACADEMY SAHIWAL
             </h1>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#eff6ff', color: '#0B3974', padding: '4px 14px', borderRadius: '20px', fontSize: '0.76rem', fontWeight: 700, marginTop: '4px' }}>
@@ -191,7 +192,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               }}
             >
               {isSubmitting ? (
-                <span>Authenticating with Backend...</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <ButtonSpinner color="#0B3974" />
+                  <span>Authenticating with Backend...</span>
+                </div>
               ) : (
                 <>
                   <LogIn size={16} />
@@ -201,6 +205,83 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               )}
             </button>
           </form>
+
+          {/* Quick Demo Credentials Box */}
+          <div style={{ marginTop: '22px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '14px', textAlign: 'left' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0B3974', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>🔐 DEFAULT / DEMO CREDENTIALS:</span>
+              <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 700 }}>Click to Fill ⤵</span>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('admin@readacademy.edu.pk');
+                  setPassword('admin1234');
+                }}
+                style={{
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '6px',
+                  padding: '6px 4px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                👑 Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('teacher@readacademy.edu.pk');
+                  setPassword('teacher1234');
+                }}
+                style={{
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '6px',
+                  padding: '6px 4px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#166534',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                👨‍🏫 Teacher
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('student@readacademy.edu.pk');
+                  setPassword('student1234');
+                }}
+                style={{
+                  backgroundColor: '#fef3c7',
+                  border: '1px solid #fde68a',
+                  borderRadius: '6px',
+                  padding: '6px 4px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#92400e',
+                  cursor: 'pointer',
+                  textAlign: 'center'
+                }}
+              >
+                🎓 Student
+              </button>
+            </div>
+
+            <div style={{ fontSize: '0.73rem', color: '#64748b', lineHeight: 1.45 }}>
+              <div>• <strong>Admin:</strong> <code style={{ color: '#0B3974' }}>admin@readacademy.edu.pk</code> | <code style={{ color: '#0B3974' }}>admin1234</code></div>
+              <div>• <strong>Teacher:</strong> <code style={{ color: '#0B3974' }}>teacher@readacademy.edu.pk</code> | <code style={{ color: '#0B3974' }}>teacher1234</code></div>
+              <div>• <strong>Student:</strong> <code style={{ color: '#0B3974' }}>student@readacademy.edu.pk</code> | <code style={{ color: '#0B3974' }}>student1234</code></div>
+            </div>
+          </div>
 
           {/* Back to Public Website link */}
           <div style={{ marginTop: '24px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>

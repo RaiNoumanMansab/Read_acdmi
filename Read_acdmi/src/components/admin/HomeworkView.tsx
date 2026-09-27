@@ -15,6 +15,7 @@ import {
 import type { Homework } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { homeworkApi, studentsApi } from '../../services/api';
 
 const mapBackendHomework = (h: any): Homework => ({
@@ -257,9 +258,13 @@ export const HomeworkView: React.FC = () => {
       </div>
 
       {/* Homework Cards Grid */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <LoadingState message="Loading homework assignments from database..." minHeight="240px" />
+        </div>
+      ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {loading ? 'Loading homework assignments from database...' : 'No homework assignments found.'}
+          No homework assignments found.
         </div>
       ) : (
         <div

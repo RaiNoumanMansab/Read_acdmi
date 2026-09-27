@@ -15,6 +15,7 @@ import {
 import type { Teacher } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState, TableLoadingRow } from '../common/Spinner';
 import { teachersApi } from '../../services/api';
 import { WhatsAppButton } from '../common/WhatsAppButton';
 
@@ -326,9 +327,13 @@ export const TeachersView: React.FC = () => {
 
       {/* GRID VIEW */}
       {viewMode === 'grid' && (
-        filtered.length === 0 ? (
+        loading ? (
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <LoadingState message="Loading faculty directory from database..." minHeight="240px" />
+          </div>
+        ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            {loading ? 'Loading faculty directory from database...' : 'No faculty members found.'}
+            No faculty members found.
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
@@ -450,10 +455,12 @@ export const TeachersView: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {loading ? (
+                <TableLoadingRow colSpan={9} message="Loading faculty directory from database..." />
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                    {loading ? 'Loading faculty directory from database...' : 'No faculty members found.'}
+                    No faculty members found.
                   </td>
                 </tr>
               ) : (

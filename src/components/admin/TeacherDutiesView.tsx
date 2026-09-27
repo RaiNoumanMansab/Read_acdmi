@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { TableLoadingRow } from '../common/Spinner';
 import { teachersApi } from '../../services/api';
 
 export interface DutyRosterShift {
@@ -304,11 +305,7 @@ export const TeacherDutiesView: React.FC = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                  Loading faculty duty roster...
-                </td>
-              </tr>
+              <TableLoadingRow colSpan={8} message="Loading faculty duty roster from database..." />
             ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>

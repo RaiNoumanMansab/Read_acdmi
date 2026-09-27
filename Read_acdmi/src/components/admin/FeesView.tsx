@@ -21,6 +21,7 @@ import {
 import type { FeeVoucher } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { TableLoadingRow } from '../common/Spinner';
 import { feesApi, studentsApi } from '../../services/api';
 import { WhatsAppButton } from '../common/WhatsAppButton';
 
@@ -384,10 +385,12 @@ export const FeesView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <TableLoadingRow colSpan={9} message="Loading fee vouchers & challans from database..." />
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                  {loading ? 'Loading fee vouchers from database...' : 'No fee vouchers found.'}
+                  No fee vouchers found.
                 </td>
               </tr>
             ) : (

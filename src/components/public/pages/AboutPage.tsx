@@ -15,12 +15,12 @@ export const AboutPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
-          padding: '70px 24px',
+          padding: 'clamp(75px, 8vw, 105px) 24px',
           textAlign: 'center',
           borderBottom: '4px solid #E62929'
         }}
       >
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
           <img
             src="/logo.png"
             alt="Read Academy Sahiwal Logo"
@@ -31,10 +31,10 @@ export const AboutPage: React.FC = () => {
               filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
             }}
           />
-          <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
             Read To Lead • Since 2018
           </span>
-          <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, lineHeight: 1.25, margin: '8px 0 16px 0', letterSpacing: '-0.02em' }}>
             Read Academy Sahiwal
           </h1>
           <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
@@ -100,10 +100,10 @@ export const AboutPage: React.FC = () => {
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <ScrollReveal animation="up">
             <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 Historical Journey
               </span>
-              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '6px 0 0 0' }}>
                 Milestones of Growth & Excellence
               </h2>
             </div>
@@ -137,7 +137,7 @@ export const AboutPage: React.FC = () => {
                       color: '#E62929',
                       padding: '6px 14px',
                       borderRadius: '8px',
-                      fontWeight: 900,
+                      fontWeight: 700,
                       fontSize: '1.1rem',
                       width: 'fit-content',
                       textAlign: 'center',
@@ -147,7 +147,7 @@ export const AboutPage: React.FC = () => {
                     {m.year}
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.4 }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.4 }}>
                       {m.title}
                     </h3>
                     <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
@@ -166,10 +166,10 @@ export const AboutPage: React.FC = () => {
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <ScrollReveal animation="up">
             <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 50px auto' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 World-Class Infrastructure
               </span>
-              <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a', margin: '6px 0 0 0' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '6px 0 0 0' }}>
                 Purpose-Built Campus Facilities
               </h2>
             </div>
@@ -219,14 +219,14 @@ export const AboutPage: React.FC = () => {
       {/* Official Accreditations */}
       <section style={{ padding: '50px 24px', backgroundColor: '#f1f5f9', borderTop: '1px solid #e2e8f0' }}>
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.84rem', fontWeight: 900, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '20px', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', textAlign: 'center' }}>
+            <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: '20px', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
               Accredited & Affiliated With Prestigious Educational Bodies
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '40px', flexWrap: 'wrap' }}>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🏛️ Cambridge Assessment International</div>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🎓 Federal Board of Intermediate & Secondary Education (FBISE)</div>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#1e293b' }}>🌍 British Council Partner School</div>
+              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1e293b' }}>🏛️ Cambridge Assessment International</div>
+              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1e293b' }}>🎓 Federal Board of Intermediate & Secondary Education (FBISE)</div>
+              <div style={{ fontWeight: 700, fontSize: '1.1rem', color: '#1e293b' }}>🌍 British Council Partner School</div>
             </div>
           </div>
         </ScrollReveal>

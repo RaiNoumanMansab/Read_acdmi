@@ -14,6 +14,7 @@ import {
 import type { Notice } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
 const mapBackendNotice = (n: any): Notice => ({
@@ -246,9 +247,13 @@ export const NoticesView: React.FC = () => {
       </div>
 
       {/* Notices Grid */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <LoadingState message="Loading circulars & notices from database..." minHeight="240px" />
+        </div>
+      ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {loading ? 'Loading circulars & notices from database...' : 'No circular notices found in this category.'}
+          No circular notices found in this category.
         </div>
       ) : (
         <div

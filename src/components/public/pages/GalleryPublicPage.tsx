@@ -3,17 +3,20 @@ import { Maximize2 } from 'lucide-react';
 import type { GalleryAlbum } from '../../../types';
 import { Modal } from '../../common/Modal';
 import { ScrollReveal } from '../../common/ScrollReveal';
+import { LoadingState } from '../../common/Spinner';
 import { cmsApi } from '../../../services/api';
 
 export const GalleryPublicPage: React.FC = () => {
   const [gallery, setGallery] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeItem, setActiveItem] = useState<any | null>(null);
 
   useEffect(() => {
+    setLoading(true);
     cmsApi.getGallery().then((res) => {
       if (res?.data) setGallery(res.data);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const categories = ['All', 'Campus', 'Science & Innovation', 'Sports', 'Arts & Culture', 'Events'];
@@ -30,17 +33,17 @@ export const GalleryPublicPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
           color: '#ffffff',
-          padding: '70px 24px',
+          padding: 'clamp(75px, 8vw, 105px) 24px',
           textAlign: 'center',
           borderBottom: '4px solid #E62929'
         }}
       >
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               Campus Life in Pictures • Read To Lead
             </span>
-            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, lineHeight: 1.25, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
               Moments of Discovery, Passion & Achievement
             </h1>
             <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
@@ -78,16 +81,24 @@ export const GalleryPublicPage: React.FC = () => {
 
       {/* Gallery Cards Grid */}
       <section style={{ padding: '20px 24px 80px', backgroundColor: '#f8fafc' }}>
-        <div
-          style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-            gap: '24px'
-          }}
-        >
-          {filtered.map((item, idx) => (
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          {loading ? (
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px' }}>
+              <LoadingState message="Loading campus media gallery & albums..." minHeight="300px" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b', background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+              No media items found in this album category.
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                gap: '24px'
+              }}
+            >
+              {filtered.map((item, idx) => (
             <ScrollReveal key={item.id} animation="zoom" delay={idx * 60}>
               <div
                 onClick={() => setActiveItem(item)}
@@ -138,6 +149,8 @@ export const GalleryPublicPage: React.FC = () => {
               </div>
             </ScrollReveal>
           ))}
+            </div>
+          )}
         </div>
       </section>
 

@@ -11,9 +11,16 @@ import {
   Download
 } from 'lucide-react';
 import type { Student } from '../../types';
+import {
+  Chart as ChartJS,
+  registerables
+} from 'chart.js';
 import { Line, Radar, Bar } from 'react-chartjs-2';
 import { useToast } from '../common/Toast';
 import { studentsApi } from '../../services/api';
+import { LoadingState } from '../common/Spinner';
+
+ChartJS.register(...registerables);
 
 export const StudentProgressView: React.FC = () => {
   const { showToast } = useToast();
@@ -128,8 +135,8 @@ export const StudentProgressView: React.FC = () => {
       </div>
 
       {loading ? (
-        <div style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
-          Loading student progress analytics...
+        <div className="bca-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <LoadingState message="Loading student academic progress analytics..." minHeight="280px" />
         </div>
       ) : students.length === 0 || !selectedStudent ? (
         <div className="bca-card" style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>

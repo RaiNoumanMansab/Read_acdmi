@@ -16,6 +16,7 @@ import {
 import type { PayrollRecord } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { TableLoadingRow } from '../common/Spinner';
 import { teachersApi } from '../../services/api';
 
 const mapBackendPayroll = (t: any): PayrollRecord => {
@@ -260,10 +261,12 @@ export const PayrollView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <TableLoadingRow colSpan={10} message="Loading faculty payroll records from database..." />
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={10} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                  {loading ? 'Loading payroll records from database...' : 'No payroll records found.'}
+                  No payroll records found.
                 </td>
               </tr>
             ) : (

@@ -24,6 +24,7 @@ import { jobsApi } from '../../../services/api';
 import { Modal } from '../../common/Modal';
 import { useToast } from '../../common/Toast';
 import { ScrollReveal } from '../../common/ScrollReveal';
+import { LoadingState, ButtonSpinner } from '../../common/Spinner';
 import { WhatsAppButton } from '../../common/WhatsAppButton';
 import { SCHOOL_WHATSAPP_NUMBER } from '../../../utils/whatsapp';
 
@@ -211,14 +212,14 @@ export const CareersPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
           color: '#ffffff',
-          padding: '80px 24px 70px',
+          padding: 'clamp(85px, 8vw, 115px) 24px 80px',
           textAlign: 'center',
           position: 'relative',
           borderBottom: '4px solid #E62929'
         }}
       >
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+          <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
             <div
               style={{
                 display: 'inline-flex',
@@ -241,11 +242,11 @@ export const CareersPage: React.FC = () => {
 
             <h1
               style={{
-                fontSize: 'clamp(2.2rem, 5vw, 3.4rem)',
-                fontWeight: 900,
+                fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+                fontWeight: 700,
                 margin: '0 0 16px',
                 letterSpacing: '-0.02em',
-                lineHeight: 1.15
+                lineHeight: 1.25
               }}
             >
               Shape Future Leaders at <span style={{ color: '#FFD700' }}>Read Academy</span>
@@ -276,7 +277,7 @@ export const CareersPage: React.FC = () => {
       </section>
 
       {/* 2. WHY TEACH AT READ ACADEMY */}
-      <section style={{ maxWidth: '1240px', margin: '-30px auto 60px', padding: '0 24px', position: 'relative', zIndex: 10 }}>
+      <section style={{ maxWidth: '1280px', margin: '-30px auto 60px', padding: '0 24px', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
           {[
             {
@@ -353,11 +354,11 @@ export const CareersPage: React.FC = () => {
       </section>
 
       {/* 3. CURRENT VACANCIES LIST */}
-      <section id="openings" style={{ maxWidth: '1240px', margin: '0 auto 80px', padding: '0 24px' }}>
+      <section id="openings" style={{ maxWidth: '1280px', margin: '0 auto 80px', padding: '0 24px' }}>
         <ScrollReveal animation="up">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
             <div>
-              <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', margin: '0 0 6px' }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '0 0 6px' }}>
                 Current Teaching & Staff Vacancies
               </h2>
               <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
@@ -436,8 +437,8 @@ export const CareersPage: React.FC = () => {
 
         {/* Job Cards Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-            <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>Loading active openings from database...</div>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <LoadingState message="Loading active career openings from database..." minHeight="260px" />
           </div>
         ) : filteredJobs.length === 0 ? (
           <div
@@ -463,7 +464,7 @@ export const CareersPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '22px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '22px' }}>
             {filteredJobs.map((job, idx) => (
               <ScrollReveal key={job.id} animation="up" delay={idx * 60}>
                 <div
@@ -883,8 +884,17 @@ export const CareersPage: React.FC = () => {
                   className="bca-btn bca-btn-primary"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <Send size={15} />
-                  <span>{isSubmitting ? 'Submitting Application...' : 'Submit Application'}</span>
+                  {isSubmitting ? (
+                    <>
+                      <ButtonSpinner color="#ffffff" />
+                      <span>Submitting Application...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={15} />
+                      <span>Submit Application</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

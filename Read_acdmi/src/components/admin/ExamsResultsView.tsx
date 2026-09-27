@@ -18,6 +18,7 @@ import {
 import type { Exam, DateSheetItem, Student } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { examsApi, studentsApi } from '../../services/api';
 
 const mapBackendExam = (e: any): Exam => ({
@@ -259,9 +260,13 @@ export const ExamsResultsView: React.FC = () => {
 
       {/* EXAMS TAB */}
       {activeTab === 'exams' && (
-        exams.length === 0 ? (
+        loading ? (
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <LoadingState message="Loading examination schedules from database..." minHeight="240px" />
+          </div>
+        ) : exams.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            {loading ? 'Loading examination schedules from database...' : 'No examination terms registered.'}
+            No examination terms registered.
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>

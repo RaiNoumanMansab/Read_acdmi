@@ -12,6 +12,7 @@ import {
 import type { GalleryAlbum } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
 const mapBackendAlbum = (a: any): GalleryAlbum => ({
@@ -221,9 +222,13 @@ export const GalleryCmsView: React.FC = () => {
       </div>
 
       {/* Media Grid */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <LoadingState message="Loading media albums from database..." minHeight="240px" />
+        </div>
+      ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {loading ? 'Loading media albums from database...' : 'No media items found in this album category.'}
+          No media items found in this album category.
         </div>
       ) : (
         <div

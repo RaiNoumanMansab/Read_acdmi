@@ -15,6 +15,7 @@ import {
 import type { BlogPost } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
 const mapBackendBlog = (b: any): BlogPost => ({
@@ -220,9 +221,13 @@ export const BlogsCmsView: React.FC = () => {
       </div>
 
       {/* Blogs Grid */}
-      {blogs.length === 0 ? (
+      {loading ? (
+        <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <LoadingState message="Loading blog articles from database..." minHeight="240px" />
+        </div>
+      ) : blogs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {loading ? 'Loading blog articles from database...' : 'No published blog posts found.'}
+          No published blog posts found.
         </div>
       ) : (
         <div

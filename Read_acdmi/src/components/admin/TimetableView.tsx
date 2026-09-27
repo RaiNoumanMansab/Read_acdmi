@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { TableLoadingRow } from '../common/Spinner';
 import { academicsApi, teachersApi } from '../../services/api';
 
 export const ALL_ACADEMIC_GRADES = [
@@ -526,12 +527,7 @@ export const TimetableView: React.FC = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
-                    <div style={{ display: 'inline-block', width: '22px', height: '22px', border: '2px solid #cbd5e1', borderTopColor: '#0B3974', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '8px' }}></div>
-                    <div>Loading timetable periods from database...</div>
-                  </td>
-                </tr>
+                <TableLoadingRow colSpan={9} message="Loading timetable periods from database..." />
               ) : filteredRecords.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ textAlign: 'center', padding: '50px 20px', color: '#64748b' }}>

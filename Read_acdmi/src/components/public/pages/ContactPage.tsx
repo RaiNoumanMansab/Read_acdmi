@@ -85,17 +85,17 @@ export const ContactPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
           color: '#ffffff',
-          padding: '70px 24px',
+          padding: 'clamp(75px, 8vw, 105px) 24px',
           textAlign: 'center',
           borderBottom: '4px solid #E62929'
         }}
       >
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
+            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               Get in Touch • Read Academy Sahiwal
             </span>
-            <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.2rem)', fontWeight: 900, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, lineHeight: 1.25, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
               We'd Love to Hear From You
             </h1>
             <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>

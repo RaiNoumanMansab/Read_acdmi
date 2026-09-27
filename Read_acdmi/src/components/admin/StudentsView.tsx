@@ -31,6 +31,7 @@ import {
 import type { Student } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { LoadingState } from '../common/Spinner';
 import { studentsApi, academicsApi } from '../../services/api';
 import { WhatsAppButton } from '../common/WhatsAppButton';
 import './StudentsView.css';
@@ -595,8 +596,21 @@ export const StudentsView: React.FC = () => {
         </div>
       </div>
 
-      {/* No Students Found Message */}
-      {filteredStudents.length === 0 && (
+      {/* Loading State */}
+      {loading ? (
+        <div
+          className="bca-card"
+          style={{
+            textAlign: 'center',
+            padding: '30px 20px',
+            background: '#ffffff',
+            borderRadius: '14px',
+            border: '1px solid #e2e8f0'
+          }}
+        >
+          <LoadingState message="Loading student records from database..." minHeight="300px" size="lg" />
+        </div>
+      ) : filteredStudents.length === 0 ? (
         <div
           className="bca-card"
           style={{
@@ -618,7 +632,7 @@ export const StudentsView: React.FC = () => {
             <span>Reset All Filters</span>
           </button>
         </div>
-      )}
+      ) : null}
 
       {/* TABLE VIEW (Desktop / Tablet) */}
       {viewMode === 'table' && filteredStudents.length > 0 && (
