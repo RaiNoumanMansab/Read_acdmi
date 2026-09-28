@@ -41,20 +41,20 @@ export const TeachersPublicPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
-          padding: 'clamp(75px, 8vw, 105px) 24px',
+          padding: 'clamp(48px, 6vw, 84px) clamp(16px, 4vw, 24px)',
           textAlign: 'center',
           borderBottom: '4px solid #E62929'
         }}
       >
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               Academic Faculty • Read To Lead
             </span>
-            <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, lineHeight: 1.25, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            <h1 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)', fontWeight: 500, lineHeight: 1.25, margin: '8px 0 14px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
               Distinguished Educators & Dedicated Mentors
             </h1>
-            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 'clamp(0.88rem, 2vw, 1.05rem)', color: '#cbd5e1', lineHeight: 1.6, margin: 0 }}>
               Our faculty members hold advanced degrees from leading national and global universities, combining deep subject-matter mastery with compassionate pastoral care.
             </p>
           </div>
@@ -62,10 +62,18 @@ export const TeachersPublicPage: React.FC = () => {
       </section>
 
       {/* Filter & Search Controls */}
-      <section style={{ padding: '40px 24px 20px', backgroundColor: '#f8fafc' }}>
+      <section style={{ padding: 'clamp(24px, 4vw, 36px) clamp(16px, 4vw, 24px) 14px', backgroundColor: '#f8fafc' }}>
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                maxWidth: '100%'
+              }}
+            >
               {departments.map((dept) => (
                 <button
                   key={dept}
@@ -76,9 +84,12 @@ export const TeachersPublicPage: React.FC = () => {
                     color: selectedDept === dept ? '#ffffff' : '#475569',
                     border: '1px solid',
                     borderColor: selectedDept === dept ? '#0B3974' : '#cbd5e1',
-                    padding: '6px 14px',
+                    padding: '7px 14px',
                     fontSize: '0.82rem',
-                    whiteSpace: 'nowrap'
+                    borderRadius: '8px',
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
                   }}
                 >
                   {dept}
@@ -86,8 +97,8 @@ export const TeachersPublicPage: React.FC = () => {
               ))}
             </div>
 
-            <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
-              <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+            <div style={{ position: 'relative', width: '100%', maxWidth: '320px', flex: '1 1 240px' }}>
+              <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               <input
                 type="text"
                 placeholder="Search faculty or subject..."
@@ -95,10 +106,13 @@ export const TeachersPublicPage: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '7px 10px 7px 32px',
+                  padding: '9px 12px 9px 36px',
                   borderRadius: '8px',
                   border: '1px solid #cbd5e1',
-                  fontSize: '0.84rem'
+                  fontSize: '0.85rem',
+                  backgroundColor: '#ffffff',
+                  boxSizing: 'border-box',
+                  outline: 'none'
                 }}
               />
             </div>
@@ -107,14 +121,14 @@ export const TeachersPublicPage: React.FC = () => {
       </section>
 
       {/* Faculty Cards Grid */}
-      <section style={{ padding: '20px 24px 80px', backgroundColor: '#f8fafc' }}>
+      <section style={{ padding: '10px clamp(16px, 4vw, 24px) clamp(48px, 6vw, 80px)', backgroundColor: '#f8fafc' }}>
         <div
           style={{
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-            gap: '24px'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
+            gap: '20px'
           }}
         >
           {filtered.map((t, idx) => (
@@ -122,13 +136,14 @@ export const TeachersPublicPage: React.FC = () => {
               <div
                 className="bca-card card-interactive-lift"
                 style={{
-                  padding: '24px',
+                  padding: 'clamp(18px, 4vw, 24px)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   borderRadius: '14px',
                   borderTop: '3px solid #E62929',
-                  height: '100%'
+                  height: '100%',
+                  boxSizing: 'border-box'
                 }}
               >
               <div>
@@ -136,13 +151,13 @@ export const TeachersPublicPage: React.FC = () => {
                   <img
                     src={t.avatarUrl || t.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'}
                     alt={t.fullName || t.name}
-                    style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #fecaca' }}
+                    style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #fecaca', flexShrink: 0 }}
                   />
-                  <div>
-                    <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: '0 0 4px 0', color: '#0f172a' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 500, margin: '0 0 3px 0', color: '#0f172a', wordBreak: 'break-word' }}>
                       {t.fullName || t.name}
                     </h3>
-                    <div style={{ fontSize: '0.78rem', color: '#E62929', fontWeight: 800 }}>
+                    <div style={{ fontSize: '0.78rem', color: '#E62929', fontWeight: 600 }}>
                       Faculty Specialist • {t.department}
                     </div>
                   </div>
@@ -150,11 +165,11 @@ export const TeachersPublicPage: React.FC = () => {
 
                 <div style={{ fontSize: '0.82rem', color: '#475569', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <GraduationCap size={15} color="#64748b" />
+                    <GraduationCap size={15} color="#64748b" style={{ flexShrink: 0 }} />
                     <span>{t.qualification}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Award size={15} color="#64748b" />
+                    <Award size={15} color="#64748b" style={{ flexShrink: 0 }} />
                     <span>{t.experienceYears} Years Academic Experience</span>
                   </div>
                 </div>
@@ -176,12 +191,12 @@ export const TeachersPublicPage: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                 <span className="bca-badge bca-badge-active">{t.department}</span>
                 <button
                   onClick={() => showToast(`Message request queued to ${t.name}`, undefined, 'info')}
                   className="bca-btn bca-btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                  style={{ padding: '6px 12px', fontSize: '0.78rem' }}
                 >
                   <Mail size={13} /> Message Tutor
                 </button>
@@ -189,6 +204,18 @@ export const TeachersPublicPage: React.FC = () => {
             </div>
             </ScrollReveal>
           ))}
+
+          {filtered.length === 0 && (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '48px 16px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <GraduationCap size={40} color="#94a3b8" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 500, color: '#0f172a', margin: '0 0 6px 0' }}>
+                No Faculty Members Found
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+                Try searching with another subject or selecting 'All' departments.
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </div>

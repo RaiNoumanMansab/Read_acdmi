@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import {
-  School,
   Mail,
   Phone,
   MapPin,
-  Send,
-  ShieldCheck
+  Send
 } from 'lucide-react';
 import { SCHOOL_INFO } from '../../constants/schoolConfig';
 import { useToast } from '../common/Toast';
@@ -31,7 +29,7 @@ interface PublicFooterProps {
   onOpenAdmin: () => void;
 }
 
-export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpenAdmin }) => {
+export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage: _setActivePage, onOpenAdmin: _onOpenAdmin }) => {
   const { showToast } = useToast();
   const [emailInput, setEmailInput] = useState('');
 
@@ -42,22 +40,17 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
     setEmailInput('');
   };
 
-  const nav = (page: string) => {
-    setActivePage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
-    <footer style={{ backgroundColor: '#04142a', color: '#cbd5e1', paddingTop: '64px', paddingBottom: '32px', borderTop: '4px solid #E62929', position: 'relative' }}>
+    <footer style={{ backgroundColor: '#04142a', color: '#cbd5e1', paddingTop: 'clamp(44px, 6vw, 64px)', paddingBottom: 'clamp(48px, 6vw, 64px)', borderTop: '4px solid #E62929', position: 'relative', width: '100%', boxSizing: 'border-box' }}>
       <div className="brand-top-bar-gradient" style={{ position: 'absolute', top: 0, left: 0, right: 0 }} />
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 clamp(16px, 4vw, 24px)', boxSizing: 'border-box' }}>
         {/* Top 4-Column Grid */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '40px',
-            marginBottom: '48px'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
+            gap: 'clamp(28px, 4vw, 40px)',
+            marginBottom: 'clamp(32px, 5vw, 48px)'
           }}
         >
           {/* Col 1: About School */}
@@ -86,135 +79,79 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
               Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com. Empowering visionary thinkers and ethical leaders through quality curriculum, disciplined character development, and interactive learning in Sahiwal.
             </p>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: '#4CAF50', fontWeight: 600, marginBottom: '18px' }}>
-              <ShieldCheck size={16} color="#4CAF50" />
-              <span>Registered Institution • Since 2018</span>
+            {/* Social Media Channels (Icon-only) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '18px' }}>
+              <a
+                href="https://www.facebook.com/share/1Bmqu8tzhU/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Follow Read Academy Sahiwal on Facebook"
+                aria-label="Facebook"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  transition: 'all 0.25s ease',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1877F2';
+                  e.currentTarget.style.borderColor = '#1877F2';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(24, 119, 242, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <FacebookIcon size={18} color="#ffffff" />
+              </a>
+
+              <a
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Follow Read Academy Sahiwal on Instagram"
+                aria-label="Instagram"
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  transition: 'all 0.25s ease',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)';
+                  e.currentTarget.style.borderColor = 'transparent';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 39, 67, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'none';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <InstagramIcon size={18} color="#ffffff" />
+              </a>
             </div>
-
-            {/* Social Media Channels */}
-            <div>
-              <div style={{ fontSize: '0.76rem', color: '#FFD700', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Follow Our Official Channels:
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <a
-                  href="https://www.facebook.com/share/1Bmqu8tzhU/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Follow Read Academy Sahiwal on Facebook"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 14px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(24, 119, 242, 0.15)',
-                    color: '#ffffff',
-                    border: '1px solid rgba(24, 119, 242, 0.45)',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    transition: 'all 0.25s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#1877F2';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(24, 119, 242, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(24, 119, 242, 0.15)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <FacebookIcon size={16} color="#ffffff" />
-                  <span>Facebook</span>
-                </a>
-
-                <a
-                  href="https://www.instagram.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Follow Read Academy Sahiwal on Instagram"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 14px',
-                    borderRadius: '8px',
-                    background: 'linear-gradient(45deg, rgba(240, 148, 51, 0.2), rgba(220, 39, 67, 0.2), rgba(188, 24, 136, 0.2))',
-                    color: '#ffffff',
-                    border: '1px solid rgba(225, 48, 108, 0.45)',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    transition: 'all 0.25s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 39, 67, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'linear-gradient(45deg, rgba(240, 148, 51, 0.2), rgba(220, 39, 67, 0.2), rgba(188, 24, 136, 0.2))';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <InstagramIcon size={16} color="#ffffff" />
-                  <span>Instagram</span>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Col 2: Quick Links */}
-          <div>
-            <h4 style={{ color: '#ffffff', fontSize: '1rem', fontWeight: 700, margin: '0 0 16px 0' }}>
-              Academic Exploration
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem' }}>
-              <li>
-                <button onClick={() => nav('about')} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}>
-                  About Our Institution
-                </button>
-              </li>
-              <li>
-                <button onClick={() => nav('academics')} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}>
-                  Curriculum & Departments
-                </button>
-              </li>
-              <li>
-                <button onClick={() => nav('admissions')} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}>
-                  Admissions Criteria & Forms
-                </button>
-              </li>
-              <li>
-                <button onClick={() => nav('teachers')} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}>
-                  Faculty Directory
-                </button>
-              </li>
-              <li>
-                <button onClick={() => nav('careers')} style={{ background: 'none', border: 'none', color: '#FFD700', cursor: 'pointer', padding: 0, fontWeight: 700 }}>
-                  Careers & Faculty Vacancies
-                </button>
-              </li>
-              <li>
-                <button onClick={() => nav('events')} style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', padding: 0 }}>
-                  Campus Events & Calendar
-                </button>
-              </li>
-              <li>
-                <button onClick={() => nav('login')} style={{ background: 'none', border: 'none', color: '#E62929', cursor: 'pointer', padding: 0, fontWeight: 800 }}>
-                  Portal Login (Student / Teacher / Admin)
-                </button>
-              </li>
-              <li>
-                <button onClick={() => nav('signup')} style={{ background: 'none', border: 'none', color: '#FFD700', cursor: 'pointer', padding: 0, fontWeight: 700 }}>
-                  Register New Account
-                </button>
-              </li>
-            </ul>
           </div>
 
           {/* Col 3: Campus Contact */}
@@ -235,7 +172,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
                 <Mail size={16} color="#FFD700" style={{ flexShrink: 0 }} />
                 <span>{SCHOOL_INFO.email}</span>
               </div>
-              <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ marginTop: '8px' }}>
                 <WhatsAppButton
                   phone={SCHOOL_WHATSAPP_NUMBER}
                   label="Chat on WhatsApp"
@@ -243,13 +180,6 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
                   size="sm"
                   style={{ width: 'fit-content' }}
                 />
-                <button
-                  onClick={() => nav('contact')}
-                  className="bca-btn bca-btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: 'rgba(255,255,255,0.2)', color: '#ffffff', width: 'fit-content' }}
-                >
-                  Schedule a Campus Tour
-                </button>
               </div>
             </div>
           </div>
@@ -263,7 +193,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
               Receive quarterly newsletters, academic scholarship announcements, and campus event schedules.
             </p>
 
-            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '6px' }}>
+            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <input
                 type="email"
                 required
@@ -271,13 +201,14 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 style={{
-                  flex: 1,
-                  padding: '8px 12px',
+                  flex: '1 1 180px',
+                  minWidth: 0,
+                  padding: '9px 12px',
                   borderRadius: '8px',
                   border: '1px solid #334155',
                   backgroundColor: '#0e2343',
                   color: '#ffffff',
-                  fontSize: '0.82rem'
+                  fontSize: '0.84rem'
                 }}
               />
               <button
@@ -287,11 +218,12 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
                   color: '#FFD700',
                   border: '1px solid #FFD700',
                   borderRadius: '8px',
-                  padding: '8px 14px',
+                  padding: '9px 16px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  flexShrink: 0
                 }}
               >
                 <Send size={15} />
@@ -304,7 +236,8 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
         <div
           style={{
             borderTop: '1px solid #1e293b',
-            paddingTop: '24px',
+            paddingTop: '20px',
+            paddingBottom: '8px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -315,34 +248,13 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ setActivePage, onOpe
           }}
         >
           <div>
-            © {new Date().getFullYear()} Read Academy Sahiwal. All rights reserved. Registered Institution • Read To Lead (Since 2018).
+            © {new Date().getFullYear()} Read Academy Sahiwal. All rights reserved. Read To Lead.
           </div>
 
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <a
-              href="https://www.facebook.com/share/1Bmqu8tzhU/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', transition: 'color 0.2s' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#1877F2')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
-            >
-              <FacebookIcon size={14} color="currentColor" /> Facebook
-            </a>
-            <a
-              href="https://www.instagram.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: '5px', textDecoration: 'none', transition: 'color 0.2s' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#E1306C')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
-            >
-              <InstagramIcon size={14} color="currentColor" /> Instagram
-            </a>
-            <span>•</span>
             <span>Privacy Policy</span>
-            <span>Parent Code of Conduct</span>
-            <span>Disciplinary Charter</span>
+            <span>•</span>
+            <span>Terms of Service</span>
           </div>
         </div>
       </div>

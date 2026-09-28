@@ -72,21 +72,21 @@ const CounterItem: React.FC<CounterItemProps> = ({
     <div ref={elementRef} style={{ padding: '6px' }}>
       <div
         style={{
-          fontSize: 'clamp(1.75rem, 4vw, 2.2rem)',
+          fontSize: 'clamp(1.5rem, 3.8vw, 2.2rem)',
           fontWeight: 700,
           color: '#0B3974',
           letterSpacing: '-0.02em',
-          lineHeight: 1
+          lineHeight: 1.1
         }}
       >
         {prefix}
         {count.toLocaleString()}
         {suffix}
       </div>
-      <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
+      <div style={{ fontSize: 'clamp(0.78rem, 2.2vw, 0.86rem)', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
         {label}
       </div>
-      <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+      <div style={{ fontSize: 'clamp(0.68rem, 1.8vw, 0.74rem)', color: '#64748b', marginTop: '2px', lineHeight: 1.3 }}>
         {sub}
       </div>
     </div>
@@ -194,7 +194,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
           overflow: 'hidden',
-          padding: 'clamp(65px, 8vw, 105px) 24px'
+          padding: 'clamp(45px, 6vw, 95px) 16px'
         }}
       >
         {/* Background decorative circles */}
@@ -216,7 +216,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-              gap: '40px',
+              gap: 'clamp(28px, 4vw, 40px)',
               alignItems: 'center'
             }}
           >
@@ -229,16 +229,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '6px 14px',
+                    padding: '5px 12px',
                     borderRadius: '30px',
                     background: 'rgba(255, 255, 255, 0.12)',
                     backdropFilter: 'blur(8px)',
                     border: '1px solid rgba(255, 215, 0, 0.35)',
-                    fontSize: '0.78rem',
+                    fontSize: 'clamp(0.68rem, 2.5vw, 0.78rem)',
                     fontWeight: 700,
                     color: '#FFD700',
                     maxWidth: '100%',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    lineHeight: 1.35
                   }}
                 >
                   <Sparkles size={13} color="#FFD700" style={{ flexShrink: 0 }} />
@@ -249,8 +250,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               <h1
                 className="hero-animate-2"
                 style={{
-                  fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
-                  fontWeight: 700,
+                  fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)',
+                  fontWeight: 500,
                   lineHeight: 1.25,
                   letterSpacing: '-0.02em',
                   marginBottom: '16px',
@@ -283,7 +284,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               <p
                 className="hero-animate-3"
                 style={{
-                  fontSize: 'clamp(0.9rem, 1.6vw, 1.1rem)',
+                  fontSize: 'clamp(0.88rem, 2.2vw, 1.05rem)',
                   color: '#e2e8f0',
                   lineHeight: 1.6,
                   marginBottom: '26px'
@@ -351,7 +352,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                   background: '#0B3974',
                   zIndex: 1,
                   width: '100%',
-                  height: 'clamp(300px, 30vw, 375px)'
+                  height: 'clamp(220px, 35vw, 375px)'
                 }}
               >
                 <img
@@ -380,9 +381,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '14px',
-                    left: '16px',
-                    right: '16px',
+                    bottom: '12px',
+                    left: '12px',
+                    right: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -393,8 +394,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div
                       style={{
-                        width: '30px',
-                        height: '30px',
+                        width: '28px',
+                        height: '28px',
                         borderRadius: '50%',
                         backgroundColor: '#FFD700',
                         display: 'flex',
@@ -405,13 +406,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                         flexShrink: 0
                       }}
                     >
-                      <Sparkles size={15} />
+                      <Sparkles size={14} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.15 }}>
+                      <div style={{ fontSize: 'clamp(0.76rem, 2.2vw, 0.84rem)', fontWeight: 800, color: '#ffffff', lineHeight: 1.15 }}>
                         The Royal Campus Sahiwal
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>
+                      <div style={{ fontSize: 'clamp(0.64rem, 1.8vw, 0.7rem)', color: '#cbd5e1' }}>
                         PRK Avenue Colony, Main Campus
                       </div>
                     </div>
@@ -420,11 +421,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                     style={{
                       background: 'rgba(22, 163, 74, 0.95)',
                       color: '#ffffff',
-                      padding: '3px 10px',
+                      padding: '3px 8px',
                       borderRadius: '12px',
-                      fontSize: '0.72rem',
+                      fontSize: 'clamp(0.65rem, 1.8vw, 0.72rem)',
                       fontWeight: 700,
-                      backdropFilter: 'blur(4px)'
+                      backdropFilter: 'blur(4px)',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     Admissions Open 2026-27
@@ -437,16 +439,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 2. QUICK STATS BANNER */}
-      <section id="campus-stats" className="section-entrance-1" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '28px 24px', scrollMarginTop: '80px' }}>
+      <section id="campus-stats" className="section-entrance-1" style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: 'clamp(20px, 4vw, 32px) 16px', scrollMarginTop: '80px' }}>
         <Reveal>
           <div
+            className="home-stats-grid"
             style={{
               maxWidth: '1280px',
-              margin: '0 auto',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-              gap: '16px',
-              textAlign: 'center'
+              margin: '0 auto'
             }}
           >
             <CounterItem
@@ -581,17 +580,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       */}
 
       {/* 4. FEATURED ACADEMIC DIVISIONS */}
-      <section id="academic-wings" className="section-entrance-2" style={{ padding: '80px 24px', backgroundColor: '#ffffff', scrollMarginTop: '80px' }}>
+      <section id="academic-wings" className="section-entrance-2" style={{ padding: 'clamp(48px, 6vw, 80px) 16px', backgroundColor: '#ffffff', scrollMarginTop: '80px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <Reveal>
-            <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 52px auto' }}>
+            <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto clamp(32px, 5vw, 52px) auto' }}>
               <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 Educational Continuum
               </span>
-              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontSize: 'clamp(1.4rem, 3.2vw, 2.1rem)', fontWeight: 500, lineHeight: 1.3, color: '#0f172a', margin: '8px 0 14px 0', letterSpacing: '-0.02em' }}>
                 Academic Wings — Nursery to Matriculation, FA, FSC, ICS, I.Com & D.Com
               </h2>
-              <p style={{ fontSize: '0.94rem', color: '#64748b', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 'clamp(0.86rem, 2vw, 0.94rem)', color: '#64748b', lineHeight: 1.6 }}>
                 From playful foundational inquiry to high-stakes pre-university and college board distinction.
               </p>
             </div>
@@ -600,8 +599,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '24px'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
+              gap: '20px'
             }}
           >
             {[
@@ -654,7 +653,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                   }}
                 >
                   <div>
-                    <div style={{ height: '180px', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ height: 'clamp(150px, 35vw, 180px)', overflow: 'hidden', position: 'relative' }}>
                       <img
                         src={prog.image}
                         alt={prog.title}
@@ -679,18 +678,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                       </span>
                     </div>
 
-                    <div style={{ padding: '22px' }}>
+                    <div style={{ padding: 'clamp(16px, 3.5vw, 22px)' }}>
                       <span style={{ fontSize: '0.76rem', color: '#0B3974', fontWeight: 800 }}>{prog.age}</span>
-                      <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '4px 0 10px 0', color: '#0f172a' }}>
+                      <h3 style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.15rem)', fontWeight: 500, margin: '4px 0 10px 0', color: '#0f172a' }}>
                         {prog.title}
                       </h3>
-                      <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                      <p style={{ fontSize: 'clamp(0.82rem, 2vw, 0.86rem)', color: '#475569', lineHeight: 1.6, margin: 0 }}>
                         {prog.desc}
                       </p>
                     </div>
                   </div>
 
-                  <div style={{ padding: '14px 22px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ padding: '12px clamp(16px, 3.5vw, 22px)', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
                     <button
                       onClick={() => onNavigate('academics')}
                       style={{ background: 'none', border: 'none', color: '#0B3974', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -706,15 +705,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 5. PRINCIPAL'S MESSAGE SPOTLIGHT */}
-      <section id="welcome-messages" className="section-entrance-3" style={{ padding: '80px 24px', backgroundColor: '#04142a', color: '#ffffff', position: 'relative', scrollMarginTop: '80px' }}>
+      <section id="welcome-messages" className="section-entrance-3" style={{ padding: 'clamp(48px, 6vw, 80px) 16px', backgroundColor: '#04142a', color: '#ffffff', position: 'relative', scrollMarginTop: '80px' }}>
         <div className="brand-top-bar-gradient" style={{ position: 'absolute', top: 0, left: 0, right: 0 }} />
         <div
           style={{
             maxWidth: '1280px',
             margin: '0 auto',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '48px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+            gap: 'clamp(28px, 4vw, 48px)',
             alignItems: 'center'
           }}
         >
@@ -732,7 +731,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                   src="/principal.jpg"
                   alt="Principal - Read Academy Sahiwal"
                   className="scale-hover-img"
-                  style={{ width: '100%', height: 'clamp(280px, 45vw, 440px)', objectFit: 'cover', objectPosition: 'center 15%' }}
+                  style={{ width: '100%', height: 'clamp(260px, 45vw, 440px)', objectFit: 'cover', objectPosition: 'center 15%' }}
                 />
               </div>
               <div
@@ -744,11 +743,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                   backgroundColor: '#E62929',
                   color: '#ffffff',
                   border: '2px solid #FFD700',
-                  padding: '10px 16px',
+                  padding: 'clamp(6px, 2vw, 10px) clamp(10px, 2.5vw, 16px)',
                   borderRadius: '12px',
                   fontWeight: 800,
-                  fontSize: '0.82rem',
-                  boxShadow: '0 10px 20px rgba(230,41,41,0.5)'
+                  fontSize: 'clamp(0.72rem, 2vw, 0.82rem)',
+                  boxShadow: '0 10px 20px rgba(230,41,41,0.5)',
+                  maxWidth: 'calc(100% - 24px)',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 25+ Years in Academic Leadership
@@ -758,18 +759,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
 
           <Reveal animation="right" duration={800} delay={150}>
             <div>
-              <Quote size={40} color="#E62929" style={{ marginBottom: '16px', filter: 'drop-shadow(0 2px 8px rgba(230,41,41,0.4))' }} />
-              <h2 style={{ fontSize: 'clamp(1.5rem, 3.2vw, 2rem)', fontWeight: 700, lineHeight: 1.3, margin: '0 0 18px 0', letterSpacing: '-0.015em' }}>
+              <Quote size={36} color="#E62929" style={{ marginBottom: '14px', filter: 'drop-shadow(0 2px 8px rgba(230,41,41,0.4))' }} />
+              <h2 style={{ fontSize: 'clamp(1.25rem, 3.2vw, 2rem)', fontWeight: 500, lineHeight: 1.3, margin: '0 0 16px 0', letterSpacing: '-0.015em' }}>
                 "We prepare our students not merely for exams, but for the moral and intellectual leadership of tomorrow."
               </h2>
-              <p style={{ fontSize: '0.94rem', color: '#cbd5e1', lineHeight: 1.7, margin: '0 0 24px 0' }}>
+              <p style={{ fontSize: 'clamp(0.86rem, 2.2vw, 0.94rem)', color: '#cbd5e1', lineHeight: 1.7, margin: '0 0 20px 0' }}>
                 True education transcends textbook memorization. At Read Academy Sahiwal, our teachers awaken curiosity, instill rigorous habits of critical inquiry, and cultivate students who take pride in community service and intellectual independence.
               </p>
               <div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff' }}>
+                <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.15rem)', fontWeight: 800, color: '#ffffff' }}>
                   {SCHOOL_INFO.principal}
                 </div>
-                <div style={{ fontSize: '0.84rem', color: '#FFD700', fontWeight: 700 }}>
+                <div style={{ fontSize: 'clamp(0.76rem, 2vw, 0.84rem)', color: '#FFD700', fontWeight: 700 }}>
                   Executive Principal & Academic Director (Ph.D. Oxford)
                 </div>
               </div>
@@ -779,14 +780,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 6. LATEST NOTICES & UPCOMING EVENTS SPLIT */}
-      <section id="notices-events" className="section-entrance-4" style={{ padding: '80px 24px', backgroundColor: '#f8fafc', scrollMarginTop: '80px' }}>
+      <section id="notices-events" className="section-entrance-4" style={{ padding: 'clamp(48px, 6vw, 80px) 16px', backgroundColor: '#f8fafc', scrollMarginTop: '80px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))', gap: 'clamp(24px, 4vw, 32px)' }}>
             {/* Notices List */}
             <Reveal animation="left" delay={80}>
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.4rem)', fontWeight: 500, color: '#0f172a', margin: 0 }}>
                     Campus Announcements
                   </h3>
                   <button
@@ -807,7 +808,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                       key={notice.id}
                       className="bca-card card-interactive-lift"
                       style={{
-                        padding: '18px',
+                        padding: 'clamp(14px, 3vw, 18px)',
                         borderRadius: '12px',
                         borderLeft: notice.priority === 'URGENT' || notice.priority === 'Urgent' ? '4px solid #E62929' : '4px solid #0B3974'
                       }}
@@ -816,7 +817,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                         <span className={`bca-badge ${notice.priority === 'URGENT' || notice.priority === 'Urgent' ? 'bca-badge-red' : 'bca-badge-primary'}`}>{notice.category}</span>
                         <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{notice.publishedDate ? new Date(notice.publishedDate).toLocaleDateString() : notice.date}</span>
                       </div>
-                      <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: '0 0 6px 0', color: '#0f172a' }}>
+                      <h4 style={{ fontSize: '0.96rem', fontWeight: 500, margin: '0 0 6px 0', color: '#0f172a' }}>
                         {notice.title}
                       </h4>
                       <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
@@ -831,8 +832,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
             {/* Events List */}
             <Reveal animation="right" delay={180}>
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.4rem)', fontWeight: 500, color: '#0f172a', margin: 0 }}>
                     Upcoming Events
                   </h3>
                   <button
@@ -853,35 +854,36 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                       key={evt.id}
                       className="bca-card card-interactive-lift"
                       style={{
-                        padding: '18px',
+                        padding: 'clamp(12px, 3vw, 18px)',
                         borderRadius: '12px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '16px'
+                        gap: 'clamp(10px, 2.5vw, 16px)'
                       }}
                     >
                       <div
                         style={{
-                          padding: '10px 14px',
+                          padding: '8px 12px',
                           backgroundColor: '#eff6ff',
                           color: '#0B3974',
                           borderRadius: '10px',
                           textAlign: 'center',
                           fontWeight: 700,
                           border: '1px solid #bfdbfe',
-                          minWidth: '58px'
+                          minWidth: '52px',
+                          flexShrink: 0
                         }}
                       >
-                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           {evt.eventDate ? new Date(evt.eventDate).toLocaleString('default', { month: 'short' }) : 'EVENT'}
                         </div>
-                        <div style={{ fontSize: '1.35rem', lineHeight: 1.1 }}>
+                        <div style={{ fontSize: '1.25rem', lineHeight: 1.1 }}>
                           {evt.eventDate ? new Date(evt.eventDate).getDate() : ''}
                         </div>
                       </div>
                       <div>
                         <span className="bca-badge bca-badge-blue" style={{ marginBottom: '4px' }}>{evt.category}</span>
-                        <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: '2px 0 4px 0', color: '#0f172a' }}>
+                        <h4 style={{ fontSize: '0.94rem', fontWeight: 500, margin: '2px 0 4px 0', color: '#0f172a' }}>
                           {evt.title}
                         </h4>
                         <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>
@@ -898,17 +900,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
       </section>
 
       {/* 7. PARENT & ALUMNI TESTIMONIALS */}
-      <section id="parent-testimonials" className="section-entrance-5" style={{ padding: '80px 24px', backgroundColor: '#ffffff', scrollMarginTop: '80px' }}>
+      <section id="parent-testimonials" className="section-entrance-5" style={{ padding: 'clamp(48px, 6vw, 80px) 16px', backgroundColor: '#ffffff', scrollMarginTop: '80px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <Reveal>
-            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
+            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto clamp(28px, 4vw, 48px)' }}>
               <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 2px rgba(0,0,0,0.15)' }}>
                 PARENT TESTIMONIALS & TRUST
               </span>
-              <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)', fontWeight: 700, lineHeight: 1.3, color: '#0f172a', margin: '8px 0 12px' }}>
+              <h2 style={{ fontSize: 'clamp(1.4rem, 3.2vw, 2.1rem)', fontWeight: 500, lineHeight: 1.3, color: '#0f172a', margin: '8px 0 12px' }}>
                 What Our Community Says
               </h2>
-              <p style={{ fontSize: '0.94rem', color: '#64748b', margin: 0 }}>
+              <p style={{ fontSize: 'clamp(0.86rem, 2vw, 0.94rem)', color: '#64748b', margin: 0 }}>
                 Hear reflections from parents and alumni on how Read Academy Sahiwal shaped their developmental journey.
               </p>
             </div>
@@ -917,8 +919,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '24px'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+              gap: '20px'
             }}
           >
             {testimonials.map((test: Testimonial, idx: number) => (
@@ -926,7 +928,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 <div
                   className="bca-card card-interactive-lift"
                   style={{
-                    padding: '28px',
+                    padding: 'clamp(18px, 4vw, 28px)',
                     borderRadius: '16px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -935,26 +937,26 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', gap: '4px', marginBottom: '14px' }}>
                       {[...Array(test.rating)].map((_, i) => (
-                        <Star key={i} size={16} fill="#FFD700" color="#FFD700" />
+                        <Star key={i} size={15} fill="#FFD700" color="#FFD700" />
                       ))}
                     </div>
 
-                    <p style={{ fontSize: '0.88rem', color: '#334155', lineHeight: 1.65, fontStyle: 'italic', margin: '0 0 20px 0' }}>
+                    <p style={{ fontSize: '0.88rem', color: '#334155', lineHeight: 1.65, fontStyle: 'italic', margin: '0 0 18px 0' }}>
                       "{test.content}"
                     </p>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
                     <img
                       src={test.avatar}
                       alt={test.name}
-                      style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                     />
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a' }}>{test.name}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{test.role}</div>
+                      <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{test.name}</div>
+                      <div style={{ fontSize: '0.76rem', color: '#64748b' }}>{test.role}</div>
                     </div>
                   </div>
                 </div>
@@ -969,27 +971,27 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 60%, #082a57 100%)',
           color: '#ffffff',
-          padding: '80px 24px',
+          padding: 'clamp(48px, 6vw, 80px) 16px',
           textAlign: 'center',
           borderTop: '4px solid #E62929',
           position: 'relative'
         }}
       >
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)', fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em', margin: '0 0 16px 0' }}>
+          <h2 style={{ fontSize: 'clamp(1.45rem, 3.8vw, 2.4rem)', fontWeight: 500, lineHeight: 1.25, letterSpacing: '-0.02em', margin: '0 0 16px 0' }}>
             Empower Your Child With Exceptional Foundations
           </h2>
-          <p style={{ fontSize: '1.05rem', color: '#dbeafe', lineHeight: 1.65, margin: '0 0 32px 0' }}>
+          <p style={{ fontSize: 'clamp(0.88rem, 2.2vw, 1.05rem)', color: '#dbeafe', lineHeight: 1.65, margin: '0 0 clamp(20px, 4vw, 32px) 0' }}>
             Cohort seats for the upcoming academic session are allocated on merit and assessment evaluation. Schedule a campus tour or begin your online application today.
           </p>
 
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="home-cta-buttons" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={onOpenApply}
               className="bca-btn bca-btn-gold"
               style={{
-                padding: '14px 30px',
-                fontSize: '1rem',
+                padding: '12px 24px',
+                fontSize: '0.94rem',
                 borderRadius: '10px'
               }}
             >
@@ -1002,8 +1004,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 color: '#ffffff',
                 border: '1px solid rgba(255,255,255,0.35)',
                 borderRadius: '10px',
-                padding: '14px 26px',
-                fontSize: '1rem',
+                padding: '12px 22px',
+                fontSize: '0.94rem',
                 fontWeight: 700,
                 cursor: 'pointer'
               }}

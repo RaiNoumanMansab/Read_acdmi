@@ -21,7 +21,7 @@ export const FloatingWhatsApp: React.FC = () => {
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, fontFamily: 'inherit' }}>
+    <div style={{ position: 'fixed', bottom: 'clamp(14px, 3vw, 24px)', right: 'clamp(14px, 3vw, 24px)', zIndex: 9999, fontFamily: 'inherit' }}>
       {/* Chat Popup Box */}
       {isOpen && (
         <div

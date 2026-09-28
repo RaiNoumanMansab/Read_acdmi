@@ -240,7 +240,7 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
+    <div className="public-site-wrapper" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', width: '100%' }}>
       {/* Sticky Header */}
       <PublicHeader
         activePage={activePage}
@@ -250,7 +250,7 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
       />
 
       {/* Main Page Body */}
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: '1 0 auto', width: '100%' }}>
         {activePage === 'home' && <HomePage onNavigate={handleNavigate} onOpenApply={() => setApplyModalOpen(true)} />}
         {activePage === 'about' && <AboutPage />}
         {activePage === 'academics' && <AcademicsPage onOpenApply={() => setApplyModalOpen(true)} />}

@@ -85,20 +85,20 @@ export const ContactPage: React.FC = () => {
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
           color: '#ffffff',
-          padding: 'clamp(75px, 8vw, 105px) 24px',
+          padding: 'clamp(44px, 6vw, 84px) clamp(16px, 4vw, 24px)',
           textAlign: 'center',
           borderBottom: '4px solid #E62929'
         }}
       >
         <ScrollReveal animation="up">
-          <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               Get in Touch • Read Academy Sahiwal
             </span>
-            <h1 style={{ fontSize: 'clamp(2rem, 3.8vw, 2.75rem)', fontWeight: 700, lineHeight: 1.25, margin: '8px 0 16px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            <h1 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)', fontWeight: 500, lineHeight: 1.25, margin: '8px 0 14px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>
               We'd Love to Hear From You
             </h1>
-            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 'clamp(0.88rem, 2vw, 1.05rem)', color: '#cbd5e1', lineHeight: 1.6, margin: 0 }}>
               Whether you have questions regarding our curriculum, wish to apply, or want to schedule a guided tour of our campus, our team is here to assist.
             </p>
           </div>
@@ -106,15 +106,15 @@ export const ContactPage: React.FC = () => {
       </section>
 
       {/* Main Grid: Info Cards + Form */}
-      <section style={{ padding: '80px 24px', backgroundColor: '#f8fafc' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '32px' }}>
+      <section style={{ padding: 'clamp(28px, 4vw, 64px) clamp(16px, 4vw, 24px)', backgroundColor: '#f8fafc' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 'clamp(20px, 4vw, 32px)' }}>
           {/* Left Column: Contact Cards & Map */}
           <ScrollReveal animation="left">
             <div>
               <div className="bca-grid-2" style={{ marginBottom: '24px' }}>
-              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>
+              <div className="bca-card" style={{ padding: 'clamp(16px, 3vw, 20px)', borderTop: '3px solid #E62929' }}>
                 <MapPin size={22} color="#E62929" style={{ marginBottom: '10px' }} />
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#E62929' }}>
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 500, margin: '0 0 6px 0', color: '#E62929' }}>
                   Campus Address
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
@@ -122,9 +122,9 @@ export const ContactPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>
+              <div className="bca-card" style={{ padding: 'clamp(16px, 3vw, 20px)', borderTop: '3px solid #E62929' }}>
                 <Phone size={22} color="#E62929" style={{ marginBottom: '10px' }} />
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#E62929' }}>
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 500, margin: '0 0 6px 0', color: '#E62929' }}>
                   Direct Phone
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
@@ -133,11 +133,11 @@ export const ContactPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #25D366' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div className="bca-card" style={{ padding: 'clamp(16px, 3vw, 20px)', borderTop: '3px solid #25D366' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <WhatsAppIcon size={24} color="#25D366" />
-                    <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: '#166534' }}>
+                    <h4 style={{ fontSize: '0.98rem', fontWeight: 500, margin: 0, color: '#166534' }}>
                       WhatsApp Helpline
                     </h4>
                   </div>
@@ -157,20 +157,20 @@ export const ContactPage: React.FC = () => {
                 />
               </div>
 
-              <div className="bca-card" style={{ padding: '20px', borderTop: '3px solid #E62929' }}>
+              <div className="bca-card" style={{ padding: 'clamp(16px, 3vw, 20px)', borderTop: '3px solid #E62929' }}>
                 <Mail size={22} color="#E62929" style={{ marginBottom: '10px' }} />
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#E62929' }}>
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 500, margin: '0 0 6px 0', color: '#E62929' }}>
                   Email Inquiries
                 </h4>
-                <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5, wordBreak: 'break-word' }}>
                   {SCHOOL_INFO.email}<br />
                   info@readacademy.edu.pk
                 </p>
               </div>
 
-              <div className="bca-card" style={{ padding: '20px' }}>
+              <div className="bca-card" style={{ padding: 'clamp(16px, 3vw, 20px)' }}>
                 <Clock size={22} color="#0B3974" style={{ marginBottom: '10px' }} />
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: '0 0 6px 0', color: '#0B3974' }}>
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 500, margin: '0 0 6px 0', color: '#0B3974' }}>
                   Administrative Hours
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
@@ -181,39 +181,39 @@ export const ContactPage: React.FC = () => {
             </div>
 
             {/* Fee Payment Info Card */}
-            <div className="bca-card" style={{ padding: '22px', borderTop: '3px solid #4CAF50', marginBottom: '24px' }}>
+            <div className="bca-card" style={{ padding: 'clamp(16px, 3vw, 22px)', borderTop: '3px solid #4CAF50', marginBottom: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                <div style={{ background: '#e8f5e9', padding: '8px', borderRadius: '10px' }}>
+                <div style={{ background: '#e8f5e9', padding: '8px', borderRadius: '10px', flexShrink: 0 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                   </svg>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, margin: 0, color: '#1b5e20' }}>Fee Payment Details</h4>
+                  <h4 style={{ fontSize: '0.98rem', fontWeight: 500, margin: 0, color: '#1b5e20' }}>Fee Payment Details</h4>
                   <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Send fees to any of the below accounts</div>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {/* JazzCash */}
                 <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
                     📱 JazzCash / EasyPaisa
                   </div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', letterSpacing: '0.04em' }}>0321-6909047</div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a', letterSpacing: '0.04em' }}>0321-6909047</div>
                   <div style={{ fontSize: '0.76rem', color: '#475569' }}>Account Name: <strong>Hafiz Abdul Nasir</strong></div>
                 </div>
                 {/* Alfalah Bank */}
                 <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
                     🏦 Bank Alfalah
                   </div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', letterSpacing: '0.04em' }}>59435002040250</div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a', letterSpacing: '0.04em' }}>59435002040250</div>
                   <div style={{ fontSize: '0.76rem', color: '#475569' }}>Account Name: <strong>Hafiz Abdul Nasir</strong></div>
                 </div>
                 {/* Email */}
-                <div style={{ fontSize: '0.78rem', color: '#64748b', paddingTop: '4px' }}>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', paddingTop: '4px', wordBreak: 'break-all' }}>
                   📧 After payment, send screenshot to:{' '}
-                  <a href="mailto:readacademysahiwal2018@gmail.com" style={{ color: '#0B3974', fontWeight: 700 }}>
+                  <a href="mailto:readacademysahiwal2018@gmail.com" style={{ color: '#0B3974', fontWeight: 600 }}>
                     readacademysahiwal2018@gmail.com
                   </a>
                 </div>
@@ -221,10 +221,10 @@ export const ContactPage: React.FC = () => {
             </div>
 
             {/* Styled Campus Location Map Card */}
-            <div className="bca-card" style={{ padding: '24px', overflow: 'hidden' }}>
+            <div className="bca-card" style={{ padding: 'clamp(16px, 3vw, 24px)', overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                 <Compass size={18} color="#0B3974" />
-                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0B3974' }}>
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#0B3974' }}>
                   Campus Location & Coordinates
                 </h4>
               </div>
@@ -270,49 +270,82 @@ export const ContactPage: React.FC = () => {
 
           {/* Right Column: Toggleable Message / Tour Form */}
           <ScrollReveal animation="right" delay={150}>
-            <div className="bca-card card-interactive-lift" style={{ padding: '36px', borderRadius: '16px' }}>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+            <div className="bca-card card-interactive-lift" style={{ padding: 'clamp(18px, 4vw, 36px)', borderRadius: '16px', boxSizing: 'border-box' }}>
+            {/* Segmented Control Tabs */}
+            <div
+              style={{
+                display: 'flex',
+                background: '#f1f5f9',
+                padding: '5px',
+                borderRadius: '12px',
+                gap: '6px',
+                marginBottom: '24px',
+                border: '1px solid #e2e8f0'
+              }}
+            >
               <button
+                type="button"
                 onClick={() => setActiveTab('message')}
-                className="bca-btn"
                 style={{
                   flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: activeTab === 'message' ? '#0B3974' : '#f8fafc',
-                  color: activeTab === 'message' ? '#ffffff' : '#475569',
-                  border: '1px solid',
-                  borderColor: activeTab === 'message' ? '#0B3974' : '#cbd5e1',
-                  padding: '10px',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  borderRadius: '9px',
                   fontSize: '0.86rem',
-                  fontWeight: activeTab === 'message' ? 700 : 500
+                  fontWeight: activeTab === 'message' ? 600 : 500,
+                  color: activeTab === 'message' ? '#ffffff' : '#64748b',
+                  backgroundColor: activeTab === 'message' ? '#0B3974' : 'transparent',
+                  boxShadow: activeTab === 'message' ? '0 2px 8px rgba(11, 57, 116, 0.28)' : 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                Send Message / Inquiry
+                <Mail size={16} color={activeTab === 'message' ? '#FFD700' : '#64748b'} />
+                <span>
+                  <span className="hidden sm:inline">Send Message / Inquiry</span>
+                  <span className="sm:hidden">Send Message</span>
+                </span>
               </button>
 
               <button
+                type="button"
                 onClick={() => setActiveTab('tour')}
-                className="bca-btn"
                 style={{
                   flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: activeTab === 'tour' ? '#0B3974' : '#f8fafc',
-                  color: activeTab === 'tour' ? '#ffffff' : '#475569',
-                  border: '1px solid',
-                  borderColor: activeTab === 'tour' ? '#0B3974' : '#cbd5e1',
-                  padding: '10px',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  borderRadius: '9px',
                   fontSize: '0.86rem',
-                  fontWeight: activeTab === 'tour' ? 700 : 500
+                  fontWeight: activeTab === 'tour' ? 600 : 500,
+                  color: activeTab === 'tour' ? '#ffffff' : '#64748b',
+                  backgroundColor: activeTab === 'tour' ? '#0B3974' : 'transparent',
+                  boxShadow: activeTab === 'tour' ? '0 2px 8px rgba(11, 57, 116, 0.28)' : 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                Schedule Campus Tour
+                <Calendar size={16} color={activeTab === 'tour' ? '#FFD700' : '#64748b'} />
+                <span>
+                  <span className="hidden sm:inline">Schedule Campus Tour</span>
+                  <span className="sm:hidden">Campus Tour</span>
+                </span>
               </button>
             </div>
 
             {/* TAB 1: MESSAGE FORM */}
             {activeTab === 'message' && (
               <form onSubmit={handleSendMessage} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 4px 0', color: '#0f172a' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 500, margin: '0 0 4px 0', color: '#0f172a' }}>
                   Send an Inquiry
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 14px 0' }}>
@@ -407,7 +440,7 @@ export const ContactPage: React.FC = () => {
             {/* TAB 2: TOUR FORM */}
             {activeTab === 'tour' && (
               <form onSubmit={handleBookTour} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 4px 0', color: '#0f172a' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 500, margin: '0 0 4px 0', color: '#0f172a' }}>
                   Book a Guided Campus Tour
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 14px 0' }}>
