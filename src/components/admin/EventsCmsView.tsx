@@ -14,6 +14,7 @@ import {
 import type { SchoolEvent } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
@@ -123,7 +124,13 @@ export const EventsCmsView: React.FC = () => {
   };
 
   const handleDeleteEvent = async (id: string, evtTitle: string) => {
-    if (!window.confirm(`Are you sure you want to delete event "${evtTitle}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete School Event',
+      message: `Are you sure you want to delete event "${evtTitle}"?`,
+      confirmText: 'Delete Event',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await cmsApi.deleteEvent(id);
       setEvents((prev) => prev.filter((evt) => evt.id !== id));

@@ -15,6 +15,7 @@ import {
 import type { BlogPost } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
@@ -126,7 +127,13 @@ export const BlogsCmsView: React.FC = () => {
   };
 
   const handleDeleteBlog = async (id: string, postTitle: string) => {
-    if (!window.confirm(`Are you sure you want to delete article "${postTitle}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Blog Article',
+      message: `Are you sure you want to delete article "${postTitle}"?`,
+      confirmText: 'Delete Article',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await cmsApi.deleteBlog(id);
     } catch (err) {

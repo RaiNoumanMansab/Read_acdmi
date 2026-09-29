@@ -17,8 +17,10 @@ import type { FinancialSummary, AccountTransaction } from '../../types';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { TableLoadingRow } from '../common/Spinner';
 import { feesApi } from '../../services/api';
+import { exportFinancialReport } from '../../utils/exportUtils';
 
 export const AccountsView: React.FC = () => {
   const { showToast } = useToast();
@@ -115,7 +117,13 @@ export const AccountsView: React.FC = () => {
   };
 
   const handleDeleteTxn = async (id: string, txnTitle: string) => {
-    if (!window.confirm(`Are you sure you want to delete transaction "${txnTitle}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Transaction',
+      message: `Are you sure you want to delete transaction "${txnTitle}"?`,
+      confirmText: 'Delete Transaction',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await feesApi.deleteTransaction(id);
     } catch (err) {
@@ -216,7 +224,14 @@ export const AccountsView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
-            onClick={() => showToast('Audited Income & Expenditure Statement Exported (PDF)', undefined, 'info')}
+            onClick={() => {
+              try {
+                exportFinancialReport(transactions, totalIncome, totalExpenses);
+                showToast('Financial Statement Generated', 'Audited P&L report opened in document viewer', 'success');
+              } catch (err: any) {
+                showToast('Export Failed', err.message || 'Error creating report', 'error');
+              }
+            }}
             className="bca-btn bca-btn-secondary"
           >
             <Download size={16} />

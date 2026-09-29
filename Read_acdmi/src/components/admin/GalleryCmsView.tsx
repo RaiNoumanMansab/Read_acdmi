@@ -12,6 +12,7 @@ import {
 import type { GalleryAlbum } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
@@ -108,7 +109,13 @@ export const GalleryCmsView: React.FC = () => {
   };
 
   const handleDeleteAlbum = async (id: string, albumTitle: string) => {
-    if (!window.confirm(`Are you sure you want to delete album "${albumTitle}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Photo Album',
+      message: `Are you sure you want to delete album "${albumTitle}"?`,
+      confirmText: 'Delete Album',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await cmsApi.deleteAlbum(id);
     } catch (err) {

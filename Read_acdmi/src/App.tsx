@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ToastProvider } from './components/common/Toast';
+import { ConfirmProvider } from './components/common/ConfirmModal';
 import { AuthProvider } from './context/AuthContext';
 import { CommandPalette } from './components/common/CommandPalette';
 import { Sidebar } from './components/admin/Sidebar';
@@ -33,6 +34,7 @@ import { ReportsView } from './components/admin/ReportsView';
 import { SettingsView } from './components/admin/SettingsView';
 import { RolesView } from './components/admin/RolesView';
 import { CareersView } from './components/admin/CareersView';
+import { AdminProfileView } from './components/admin/AdminProfileView';
 
 import type { AdminTab } from './types';
 
@@ -119,6 +121,7 @@ const AdminLayout: React.FC = () => {
             {adminTab === 'roles' && <RolesView />}
             {adminTab === 'careers' && <CareersView />}
             {adminTab === 'settings' && <SettingsView />}
+            {adminTab === 'my-profile' && <AdminProfileView />}
           </main>
         </div>
       </div>
@@ -191,9 +194,11 @@ const AppContent: React.FC = () => {
 export function App() {
   return (
     <ToastProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ConfirmProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ConfirmProvider>
     </ToastProvider>
   );
 }

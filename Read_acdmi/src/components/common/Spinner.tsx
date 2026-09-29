@@ -158,6 +158,6 @@ export const TableLoadingRow: React.FC<TableLoadingRowProps> = ({
   );
 };
 
-export const ButtonSpinner: React.FC<{ color?: SpinnerColor }> = ({ color = 'white' }) => {
-  return <Spinner size="xs" color={color} speed=".75s" style={{ display: 'inline-flex' }} />;
+export const ButtonSpinner: React.FC<{ color?: SpinnerColor; size?: SpinnerSize }> = ({ color = 'white', size = '1.2rem' }) => {
+  return <Spinner size={size} color={color} speed=".75s" style={{ display: 'inline-flex', verticalAlign: 'middle' }} />;
 };

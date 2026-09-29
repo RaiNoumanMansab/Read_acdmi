@@ -21,9 +21,18 @@ import {
 import type { FeeVoucher } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
-import { TableLoadingRow } from '../common/Spinner';
+import { showConfirmModal } from '../common/ConfirmModal';
+import { TableLoadingRow, ButtonSpinner } from '../common/Spinner';
 import { feesApi, studentsApi } from '../../services/api';
 import { WhatsAppButton } from '../common/WhatsAppButton';
+
+export const getMonthlyFeeByClass = (className?: string): number => {
+  const lower = (className || '').toLowerCase();
+  if (lower.includes('9') || lower.includes('10') || lower.includes('matric')) return 6000;
+  if (lower.includes('7') || lower.includes('8')) return 4000;
+  if (lower.includes('4') || lower.includes('5') || lower.includes('6')) return 3000;
+  return 2000; // Nursery – Class 3
+};
 
 const mapBackendVoucher = (v: any): FeeVoucher => ({
   voucherNo: v.voucherNo || `VCH-${v.id}`,
@@ -35,12 +44,12 @@ const mapBackendVoucher = (v: any): FeeVoucher => ({
   section: v.student?.section?.name ? v.student.section.name.replace('Section ', '') : (v.section || 'A'),
   month: v.billingMonth || 'September 2026',
   dueDate: v.dueDate ? v.dueDate.split('T')[0] : '2026-09-20',
-  tuitionFee: Number(v.tuitionFee) || 8500,
+  tuitionFee: Number(v.tuitionFee) || 2000,
   labFee: Number(v.labFee) || 0,
-  examFee: Number(v.examFee) || 500,
-  utilityCharges: Number(v.utilityCharges) || 500,
+  examFee: Number(v.examFee) || 0,
+  utilityCharges: Number(v.utilityCharges) || 0,
   fine: Number(v.lateFeeFine) || 0,
-  totalAmount: Number(v.totalAmount) || 9500,
+  totalAmount: Number(v.totalAmount) || 2000,
   status: v.status === 'PAID' ? 'Paid' : v.status === 'OVERDUE' ? 'Overdue' : 'Pending',
   paymentMethod: v.paymentMethod || 'Bank Transfer',
   paidDate: v.paidDate ? v.paidDate.split('T')[0] : (v.status === 'PAID' ? '2026-09-05' : undefined)
@@ -60,11 +69,11 @@ export const FeesView: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [targetStudentId, setTargetStudentId] = useState('');
   const [billingMonth, setBillingMonth] = useState('September 2026');
-  const [tuitionFeeInput, setTuitionFeeInput] = useState<number>(8500);
-  const [admissionFeeInput, setAdmissionFeeInput] = useState<number>(0);
-  const [examFeeInput, setExamFeeInput] = useState<number>(500);
-  const [labFeeInput, setLabFeeInput] = useState<number>(500);
-  const [utilityChargesInput, setUtilityChargesInput] = useState<number>(500);
+  const [tuitionFeeInput, setTuitionFeeInput] = useState<number>(2000);
+  const [admissionFeeInput, setAdmissionFeeInput] = useState<number>(1000);
+  const [examFeeInput, setExamFeeInput] = useState<number>(0);
+  const [labFeeInput, setLabFeeInput] = useState<number>(0);
+  const [utilityChargesInput, setUtilityChargesInput] = useState<number>(0);
   const [lateFineInput, setLateFineInput] = useState<number>(0);
   const [dueDateInput, setDueDateInput] = useState<string>(
     new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
@@ -102,7 +111,9 @@ export const FeesView: React.FC = () => {
         }));
         setStudentsList(mapped);
         if (mapped.length > 0) {
-          setTargetStudentId(mapped[0].rollNo || mapped[0].id);
+          const firstStu = mapped[0];
+          setTargetStudentId(firstStu.rollNo || firstStu.id);
+          setTuitionFeeInput(getMonthlyFeeByClass(firstStu.class));
         }
       }
     }).catch((err) => {
@@ -111,6 +122,14 @@ export const FeesView: React.FC = () => {
 
     return () => { isMounted = false; };
   }, []);
+
+  const handleStudentChange = (id: string) => {
+    setTargetStudentId(id);
+    const stu = studentsList.find((s) => (s.rollNo || s.id) === id);
+    if (stu) {
+      setTuitionFeeInput(getMonthlyFeeByClass(stu.class));
+    }
+  };
 
   const handleCreateCustomVoucher = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,8 +243,14 @@ export const FeesView: React.FC = () => {
     setShowEditVoucherModal(false);
   };
 
-  const handleDeleteVoucher = (v: FeeVoucher) => {
-    if (!window.confirm(`Are you sure you want to delete fee voucher ${v.voucherNo} for ${v.studentName}?`)) return;
+  const handleDeleteVoucher = async (v: FeeVoucher) => {
+    const confirmed = await showConfirmModal({
+      title: 'Delete Fee Voucher',
+      message: `Are you sure you want to delete fee voucher ${v.voucherNo} for ${v.studentName}?`,
+      confirmText: 'Delete Voucher',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setVouchers((prev) => prev.filter((item) => item.voucherNo !== v.voucherNo));
     showToast('Voucher Deleted', `Challan ${v.voucherNo} was deleted`, 'success');
   };
@@ -263,6 +288,24 @@ export const FeesView: React.FC = () => {
             <Printer size={16} />
             <span>Batch Print Vouchers</span>
           </button>
+        </div>
+      </div>
+
+      {/* Official Fee Schedule Reference */}
+      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px 18px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0B3974', fontWeight: 700 }}>
+          <DollarSign size={16} /> Official Fee Schedule:
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', color: '#334155' }}>
+          <span><strong>Nursery – Class 3:</strong> Rs. 2,000/mo</span>
+          <span style={{ color: '#cbd5e1' }}>|</span>
+          <span><strong>Class 4 – 6:</strong> Rs. 3,000/mo</span>
+          <span style={{ color: '#cbd5e1' }}>|</span>
+          <span><strong>Class 7 – 8:</strong> Rs. 4,000/mo</span>
+          <span style={{ color: '#cbd5e1' }}>|</span>
+          <span><strong>Class 9 – 10:</strong> Rs. 6,000/mo</span>
+          <span style={{ color: '#cbd5e1' }}>|</span>
+          <span style={{ color: '#0B3974', background: '#e0f2fe', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>Admission & Paper Fund: Rs. 1,000</span>
         </div>
       </div>
 
@@ -316,7 +359,7 @@ export const FeesView: React.FC = () => {
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#4CAF50', margin: '4px 0' }}>
             Rs. {totalBilled.toLocaleString()}
           </div>
-          <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Auto-synced with PostgreSQL</span>
+          <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Real-time synced</span>
         </div>
       </div>
 
@@ -707,11 +750,17 @@ export const FeesView: React.FC = () => {
                 type="submit"
                 form="createVoucherForm"
                 className="bca-btn bca-btn-primary"
-                style={{ background: '#0B3974' }}
+                style={{ background: '#0B3974', minWidth: '190px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 disabled={isSubmittingVoucher}
               >
-                <Plus size={16} />
-                {isSubmittingVoucher ? 'Generating Challan...' : 'Generate & Issue Challan'}
+                {isSubmittingVoucher ? (
+                  <ButtonSpinner color="white" />
+                ) : (
+                  <>
+                    <Plus size={16} />
+                    <span>Generate & Issue Challan</span>
+                  </>
+                )}
               </button>
             </>
           }
@@ -724,7 +773,7 @@ export const FeesView: React.FC = () => {
                 </label>
                 <select
                   value={targetStudentId}
-                  onChange={(e) => setTargetStudentId(e.target.value)}
+                  onChange={(e) => handleStudentChange(e.target.value)}
                   required
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                 >
@@ -773,7 +822,7 @@ export const FeesView: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                  Admission Fee (Rs.)
+                  Admission & Paper Fund (Rs.)
                 </label>
                 <input
                   type="number"

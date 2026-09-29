@@ -159,6 +159,19 @@ export const studentsApi = {
       method: 'DELETE',
     });
   },
+
+  uploadDocument: async (idOrRoll: string, docData: { name: string; docType?: string; fileSize?: string; fileType?: string; dataUrl: string }) => {
+    return apiRequest<{ status: string; message: string; data: any; allDocuments: any[] }>(`/students/${idOrRoll}/documents`, {
+      method: 'POST',
+      body: JSON.stringify(docData),
+    });
+  },
+
+  deleteDocument: async (idOrRoll: string, docId: string) => {
+    return apiRequest<{ status: string; message: string; allDocuments: any[] }>(`/students/${idOrRoll}/documents/${docId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // ==============================================================================
@@ -197,6 +210,13 @@ export const admissionsApi = {
     return apiRequest<{ status: string; message: string; data: any }>(`/admissions/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status, adminNotes, ...(feeDetails || {}) }),
+    });
+  },
+
+  updateAdmission: async (id: string, updateData: any) => {
+    return apiRequest<{ status: string; message: string; data: any }>(`/admissions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
     });
   },
 
@@ -828,4 +848,44 @@ export const settingsApi = {
     });
   },
 };
+
+// ==============================================================================
+// 15. EXPORT & REPORTING API
+// ==============================================================================
+export const exportApi = {
+  getDashboardSummary: async () => {
+    return apiRequest<{ status: string; data: any }>('/export/dashboard-summary');
+  },
+
+  getStudents: async () => {
+    return apiRequest<{ status: string; count: number; data: any[] }>('/export/students');
+  },
+
+  getAdmissions: async () => {
+    return apiRequest<{ status: string; count: number; data: any[] }>('/export/admissions');
+  },
+
+  getPayroll: async () => {
+    return apiRequest<{ status: string; count: number; data: any[] }>('/export/payroll');
+  },
+
+  getFinance: async () => {
+    return apiRequest<{ status: string; data: any }>('/export/finance');
+  },
+
+  getDuties: async () => {
+    return apiRequest<{ status: string; count: number; data: any[] }>('/export/duties');
+  },
+
+  downloadCsv: (endpoint: 'dashboard-summary' | 'students' | 'admissions' | 'payroll' | 'finance' | 'duties'): void => {
+    const url = `${API_BASE_URL}/export/${endpoint}?format=csv`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+};
+
 

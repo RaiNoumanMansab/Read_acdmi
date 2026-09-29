@@ -69,7 +69,7 @@ export const SettingsView: React.FC = () => {
         activeSession,
         termSystem
       });
-      showToast('School Profile Updated', 'Institutional information saved to PostgreSQL database successfully', 'success');
+      showToast('School Profile Updated', 'Institutional information saved successfully', 'success');
     } catch (err: any) {
       showToast('Save Failed', err.message || 'Could not save settings', 'error');
     } finally {
@@ -102,9 +102,16 @@ export const SettingsView: React.FC = () => {
           onClick={() => handleSaveGeneral()}
           disabled={saving}
           className="bca-btn bca-btn-primary"
+          style={{ minWidth: '160px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
-          {saving ? <ButtonSpinner color="#ffffff" /> : <Save size={16} />}
-          <span>{saving ? 'Saving...' : 'Save All Settings'}</span>
+          {saving ? (
+            <ButtonSpinner color="#ffffff" />
+          ) : (
+            <>
+              <Save size={16} />
+              <span>Save All Settings</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -223,8 +230,13 @@ export const SettingsView: React.FC = () => {
             </div>
 
             <div style={{ paddingTop: '10px' }}>
-              <button type="submit" className="bca-btn bca-btn-primary">
-                Save Profile
+              <button
+                type="submit"
+                disabled={saving}
+                className="bca-btn bca-btn-primary"
+                style={{ minWidth: '120px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                {saving ? <ButtonSpinner color="#ffffff" /> : 'Save Profile'}
               </button>
             </div>
           </div>
@@ -306,28 +318,33 @@ export const SettingsView: React.FC = () => {
       {/* TAB 3: FEES CONFIG */}
       {activeTab === 'fees' && (
         <div className="bca-card" style={{ padding: '24px', maxWidth: '780px' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem' }}>Default Monthly Fee Schedule per Wing</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Default Monthly Fee Schedule per Class</h3>
+            <span style={{ fontSize: '0.82rem', background: '#e0f2fe', color: '#0369a1', padding: '4px 12px', borderRadius: '6px', fontWeight: 700, border: '1px solid #bae6fd' }}>
+              Admission & Paper Fund: Rs. 1,000
+            </span>
+          </div>
           <table className="bca-table" style={{ fontSize: '0.82rem' }}>
             <thead>
               <tr>
-                <th>Academic Wing</th>
+                <th>Class / Group</th>
                 <th>Monthly Tuition (PKR)</th>
+                <th>Admission & Paper Fund</th>
                 <th>Lab & Science Fee</th>
-                <th>Admission / Reg Fee (One-Time)</th>
               </tr>
             </thead>
             <tbody>
               {[
-                { wing: 'Senior Wing (Grades 9 - 12)', fee: 18000, lab: 3000, adm: 35000 },
-                { wing: 'Middle Wing (Grades 6 - 8)', fee: 14500, lab: 1500, adm: 30000 },
-                { wing: 'Primary Wing (Grades 1 - 5)', fee: 12000, lab: 500, adm: 25000 },
-                { wing: 'Kindergarten & Pre-School', fee: 10500, lab: 0, adm: 20000 }
+                { wing: 'Class 9 – 10 (Grades 9 & 10 / Matric)', fee: 6000, adm: 1000, lab: 0 },
+                { wing: 'Class 7 – 8', fee: 4000, adm: 1000, lab: 0 },
+                { wing: 'Class 4 – 6', fee: 3000, adm: 1000, lab: 0 },
+                { wing: 'Nursery – Class 3', fee: 2000, adm: 1000, lab: 0 }
               ].map((row, i) => (
                 <tr key={i}>
                   <td><strong>{row.wing}</strong></td>
                   <td><input type="number" defaultValue={row.fee} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '110px' }} /></td>
-                  <td><input type="number" defaultValue={row.lab} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '90px' }} /></td>
                   <td><input type="number" defaultValue={row.adm} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '110px' }} /></td>
+                  <td><input type="number" defaultValue={row.lab} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '90px' }} /></td>
                 </tr>
               ))}
             </tbody>

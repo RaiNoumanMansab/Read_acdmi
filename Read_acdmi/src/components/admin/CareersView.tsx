@@ -25,7 +25,8 @@ import {
 import { jobsApi } from '../../services/api';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
-import { TableLoadingRow } from '../common/Spinner';
+import { showConfirmModal } from '../common/ConfirmModal';
+import { TableLoadingRow, ButtonSpinner } from '../common/Spinner';
 import { WhatsAppButton } from '../common/WhatsAppButton';
 
 export const CareersView: React.FC = () => {
@@ -187,7 +188,13 @@ export const CareersView: React.FC = () => {
   };
 
   const handleDeleteJob = async (job: any) => {
-    if (!window.confirm(`Are you sure you want to delete job posting "${job.title}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Job Posting',
+      message: `Are you sure you want to delete job posting "${job.title}"?`,
+      confirmText: 'Delete Job',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await jobsApi.deleteJob(job.id);
       showToast('Job Posting Deleted', undefined, 'info');
@@ -256,7 +263,13 @@ export const CareersView: React.FC = () => {
   };
 
   const handleDeleteApp = async (app: any) => {
-    if (!window.confirm(`Delete application for ${app.fullName}?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Job Application',
+      message: `Are you sure you want to delete application for ${app.fullName}?`,
+      confirmText: 'Delete Application',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await jobsApi.deleteApplication(app.id);
       showToast('Application Deleted', undefined, 'info');
@@ -903,8 +916,13 @@ export const CareersView: React.FC = () => {
                 type="submit"
                 disabled={isSubmittingJob}
                 className="bca-btn bca-btn-primary"
+                style={{ minWidth: '140px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                {isSubmittingJob ? 'Saving...' : editingJob ? 'Update Position' : 'Publish Job'}
+                {isSubmittingJob ? (
+                  <ButtonSpinner color="white" />
+                ) : (
+                  editingJob ? 'Update Position' : 'Publish Job'
+                )}
               </button>
             </div>
           </form>
@@ -1063,8 +1081,13 @@ export const CareersView: React.FC = () => {
                 type="submit"
                 disabled={isUpdatingApp}
                 className="bca-btn bca-btn-primary"
+                style={{ minWidth: '130px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                {isUpdatingApp ? 'Updating...' : 'Save Decision'}
+                {isUpdatingApp ? (
+                  <ButtonSpinner color="white" />
+                ) : (
+                  'Save Decision'
+                )}
               </button>
             </div>
           </form>

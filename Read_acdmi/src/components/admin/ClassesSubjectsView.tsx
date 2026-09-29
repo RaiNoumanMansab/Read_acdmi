@@ -15,8 +15,9 @@ import {
 import type { ClassEntity, SubjectEntity } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState, TableLoadingRow } from '../common/Spinner';
-import { academicsApi } from '../../services/api';
+import { academicsApi, teachersApi } from '../../services/api';
 
 const mapBackendClass = (cls: any): ClassEntity => ({
   id: cls.id,
@@ -45,12 +46,14 @@ export const ClassesSubjectsView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
+  // Teachers list for class teacher dropdown
+  const [teacherOptions, setTeacherOptions] = useState<{ id: string; name: string }[]>([]);
 
   // Fetch live classes and subjects from academicsApi
   useEffect(() => {
     let isMounted = true;
-    Promise.all([academicsApi.getClasses(), academicsApi.getSubjects()])
-      .then(([clsRes, subRes]) => {
+    Promise.all([academicsApi.getClasses(), academicsApi.getSubjects(), teachersApi.getTeachers()])
+      .then(([clsRes, subRes, tchRes]) => {
         if (!isMounted) return;
         if (clsRes?.data && Array.isArray(clsRes.data)) {
           setClasses(clsRes.data.map(mapBackendClass));
@@ -61,6 +64,14 @@ export const ClassesSubjectsView: React.FC = () => {
           setSubjects(subRes.data.map(mapBackendSubject));
         } else {
           setSubjects([]);
+        }
+        if (tchRes?.data && Array.isArray(tchRes.data)) {
+          setTeacherOptions(
+            tchRes.data.map((t: any) => ({
+              id: t.id,
+              name: t.fullName || t.name || 'Unnamed Teacher'
+            }))
+          );
         }
         setLoading(false);
       })
@@ -95,12 +106,14 @@ export const ClassesSubjectsView: React.FC = () => {
   const [editClassName, setEditClassName] = useState('');
   const [editClassCap, setEditClassCap] = useState(40);
   const [editClassRoom, setEditClassRoom] = useState('Room 201');
+  const [editClassTeacher, setEditClassTeacher] = useState('');
 
   const handleOpenEditClass = (c: ClassEntity) => {
     setEditingClass(c);
     setEditClassName(c.name);
     setEditClassCap(c.capacity || 40);
     setEditClassRoom(c.roomNumber || 'Room 201');
+    setEditClassTeacher(c.classTeacher || '');
     setShowEditClassModal(true);
   };
 
@@ -110,7 +123,7 @@ export const ClassesSubjectsView: React.FC = () => {
     setClasses((prev) =>
       prev.map((c) =>
         c.id === editingClass.id
-          ? { ...c, name: editClassName, capacity: editClassCap, roomNumber: editClassRoom }
+          ? { ...c, name: editClassName, capacity: editClassCap, roomNumber: editClassRoom, classTeacher: editClassTeacher }
           : c
       )
     );
@@ -118,8 +131,14 @@ export const ClassesSubjectsView: React.FC = () => {
     setShowEditClassModal(false);
   };
 
-  const handleDeleteClass = (c: ClassEntity) => {
-    if (!window.confirm(`Are you sure you want to delete class "${c.name}"?`)) return;
+  const handleDeleteClass = async (c: ClassEntity) => {
+    const confirmed = await showConfirmModal({
+      title: 'Delete Class',
+      message: `Are you sure you want to delete class "${c.name}"?`,
+      confirmText: 'Delete Class',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setClasses((prev) => prev.filter((item) => item.id !== c.id));
     showToast('Class Removed', `${c.name} was removed from academic list`, 'success');
   };
@@ -161,8 +180,14 @@ export const ClassesSubjectsView: React.FC = () => {
     setShowEditSubModal(false);
   };
 
-  const handleDeleteSubject = (sub: SubjectEntity) => {
-    if (!window.confirm(`Are you sure you want to delete subject "${sub.name}" (${sub.code})?`)) return;
+  const handleDeleteSubject = async (sub: SubjectEntity) => {
+    const confirmed = await showConfirmModal({
+      title: 'Delete Subject',
+      message: `Are you sure you want to delete subject "${sub.name}" (${sub.code})?`,
+      confirmText: 'Delete Subject',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setSubjects((prev) => prev.filter((item) => item.id !== sub.id));
     showToast('Subject Removed', `${sub.name} was removed from curriculum catalog`, 'success');
   };
@@ -516,13 +541,17 @@ export const ClassesSubjectsView: React.FC = () => {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>Class Teacher</label>
-            <input
-              type="text"
+            <select
               required
               value={newClassTeacher}
               onChange={(e) => setNewClassTeacher(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-            />
+            >
+              <option value="">— Select Class Teacher —</option>
+              {teacherOptions.map((t) => (
+                <option key={t.id} value={t.name}>{t.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="bca-form-row">
@@ -664,6 +693,23 @@ export const ClassesSubjectsView: React.FC = () => {
                 style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>
+                Class Teacher
+              </label>
+              <select
+                value={editClassTeacher}
+                onChange={(e) => setEditClassTeacher(e.target.value)}
+                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              >
+                <option value="">— Select Class Teacher —</option>
+                {teacherOptions.map((t) => (
+                  <option key={t.id} value={t.name}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="bca-form-row">
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '4px' }}>

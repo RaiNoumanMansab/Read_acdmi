@@ -217,12 +217,14 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                   }}
                   className="nav-animate-item nav-btn-animated nav-link-btn"
                   style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                     background: 'none',
                     border: 'none',
                     padding: '7px 9px',
                     borderRadius: '8px',
-                    fontSize: '0.82rem',
+                    fontSize: '14px',
                     fontWeight: 700,
+                    lineHeight: '21px',
                     color: isActive ? '#0B3974' : '#334155',
                     backgroundColor: isActive ? '#eff6ff' : 'transparent',
                     borderBottom: isActive ? '3px solid #E62929' : '3px solid transparent',
@@ -253,6 +255,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                           handleSubItemClick(sub);
                         }}
                         className="nav-dropdown-item"
+                        style={{
+                          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          lineHeight: '21px'
+                        }}
                       >
                         <span>{sub.label}</span>
                         <span className="nav-dropdown-arrow">›</span>
@@ -497,8 +505,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                             background: 'none',
                             border: 'none',
                             padding: '11px 12px',
-                            fontSize: '0.92rem',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                            fontSize: '14px',
                             fontWeight: 700,
+                            lineHeight: '21px',
                             color: isActive ? '#0B3974' : '#1e293b',
                             cursor: 'pointer',
                             display: 'flex',
@@ -552,8 +562,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                                 background: 'none',
                                 border: 'none',
                                 padding: '8px 10px',
-                                fontSize: '0.82rem',
-                                fontWeight: 600,
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                fontSize: '14px',
+                                fontWeight: 700,
+                                lineHeight: '21px',
                                 color: '#475569',
                                 cursor: 'pointer',
                                 borderRadius: '6px',

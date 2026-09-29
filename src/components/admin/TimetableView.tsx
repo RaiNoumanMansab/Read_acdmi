@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
-import { TableLoadingRow } from '../common/Spinner';
+import { TableLoadingRow, ButtonSpinner } from '../common/Spinner';
 import { academicsApi, teachersApi } from '../../services/api';
 
 export const ALL_ACADEMIC_GRADES = [
@@ -939,10 +939,16 @@ export const TimetableView: React.FC = () => {
                 type="submit"
                 disabled={isSaving}
                 className="bca-btn bca-btn-primary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '150px', gap: '6px' }}
               >
-                <Save size={16} />
-                <span>{isSaving ? 'Saving to DB...' : isEditing ? 'Update Period' : 'Save to Database'}</span>
+                {isSaving ? (
+                  <ButtonSpinner color="white" />
+                ) : (
+                  <>
+                    <Save size={16} />
+                    <span>{isEditing ? 'Update Period' : 'Save to Database'}</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -985,10 +991,16 @@ export const TimetableView: React.FC = () => {
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
                 className="bca-btn bca-btn-red"
-                style={{ background: '#dc2626', color: '#ffffff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{ background: '#dc2626', color: '#ffffff', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '130px', gap: '6px' }}
               >
-                <Trash2 size={16} />
-                <span>{isDeleting ? 'Deleting...' : 'Delete Period'}</span>
+                {isDeleting ? (
+                  <ButtonSpinner color="white" />
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    <span>Delete Period</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

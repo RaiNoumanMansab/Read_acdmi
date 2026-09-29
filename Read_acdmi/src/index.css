@@ -104,13 +104,13 @@
   --font-body: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
 
   /* Layout */
-  --sidebar-width: 270px;
-  --sidebar-collapsed-width: 76px;
-  --header-height: 70px;
+  --sidebar-width: 232px;
+  --sidebar-collapsed-width: 72px;
+  --header-height: 56px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
   --radius-full: 9999px;
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -125,8 +125,8 @@
 html {
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.45;
   color: var(--slate-800);
   background-color: var(--slate-50);
   -webkit-font-smoothing: antialiased;
@@ -136,6 +136,7 @@ html {
   max-width: 100vw;
   overflow-x: clip;
 }
+
 
 body {
   font-family: var(--font-body);
@@ -191,19 +192,19 @@ h1[style], h2[style], h3[style], h4[style], h5[style], h6[style] {
 }
 
 h1, .h1 {
-  font-size: clamp(2rem, 3.8vw, 2.75rem);
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
   line-height: 1.25 !important;
   font-weight: 500 !important;
 }
 
 h2, .h2 {
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
   line-height: 1.3 !important;
   font-weight: 500 !important;
 }
 
 h3, .h3 {
-  font-size: clamp(1.15rem, 2vw, 1.35rem);
+  font-size: clamp(0.98rem, 1.3vw, 1.18rem);
   line-height: 1.35 !important;
   font-weight: 500 !important;
 }
@@ -302,29 +303,220 @@ button, input, select, textarea {
    COMMON UTILITY CLASSES
    ========================================================================== */
 
-.bca-card {
+.bca-card,
+.card-interactive-lift {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --glow-opacity: 0;
+  --card-lift: 0px;
+
   background: var(--white);
   border: 1px solid var(--slate-200);
   border-top: 3px solid #E62929;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
-  will-change: transform, box-shadow;
   position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transform: perspective(1000px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(var(--card-lift));
+  transition:
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease;
+  will-change: transform, box-shadow;
 }
 
-.bca-card:hover {
-  box-shadow: 0 18px 36px -6px rgba(230, 41, 41, 0.18), 0 8px 16px -4px rgba(11, 57, 116, 0.06);
-  transform: translateY(-6px) scale(1.01);
+/* While actively tracking mouse cursor, respond responsively with slight damping */
+.bca-card.card-tilting,
+.card-interactive-lift.card-tilting {
+  transition:
+    transform 0.12s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease;
+}
+
+/* Cursor-Following Glow: Soft, elegant radial glow following pointer inside the card */
+.bca-card::before,
+.card-interactive-lift::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--glow-opacity, 0);
+  background: radial-gradient(
+    380px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(11, 57, 116, 0.07) 0%,
+    rgba(230, 41, 41, 0.035) 45%,
+    transparent 75%
+  );
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Premium Light Sweep: Soft light reflection that smoothly sweeps across the card once on hover */
+.bca-card::after,
+.card-interactive-lift::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 25%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 215, 0, 0.08) 55%,
+    rgba(255, 255, 255, 0.16) 60%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+}
+
+.bca-card:hover::after,
+.card-interactive-lift:hover::after {
+  animation: cardLightSweep 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+}
+
+@keyframes cardLightSweep {
+  0% {
+    left: -120%;
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.8;
+  }
+  100% {
+    left: 170%;
+    opacity: 0;
+  }
+}
+
+/* Shadow & Border: Refined luxury depth & subtle brand border glow */
+.bca-card:hover,
+.card-interactive-lift:hover {
+  --card-lift: -5px;
+  box-shadow:
+    0 16px 32px -6px rgba(11, 57, 116, 0.12),
+    0 8px 16px -4px rgba(230, 41, 41, 0.08),
+    0 0 0 1px rgba(230, 41, 41, 0.10);
+  border-color: rgba(230, 41, 41, 0.35);
 }
 
 .bca-card:hover svg {
-  transform: scale(1.12) rotate(3deg);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(1.08) rotate(2deg);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bca-card svg {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   3D FLIP-FLOP & FADE INTERACTIVE CARD SYSTEM
+   Smooth 180° rotation on hover with fade-in details on back face
+   ========================================================================== */
+
+.bca-flip-card-wrapper {
+  perspective: 1200px;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.bca-flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  border-radius: 16px;
+}
+
+.bca-flip-card-wrapper:hover .bca-flip-card-inner,
+.bca-flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.bca-flip-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 16px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bca-flip-front {
+  z-index: 2;
+  transform: rotateY(0deg);
+  transition: opacity 0.35s ease;
+  opacity: 1;
+}
+
+.bca-flip-card-wrapper:hover .bca-flip-front {
+  opacity: 0.92;
+}
+
+.bca-flip-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+  background: linear-gradient(145deg, #0B3974 0%, #061d3d 55%, #04142a 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-top: 4px solid #E62929;
+  box-shadow: 0 20px 40px -8px rgba(11, 57, 116, 0.35);
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.35s ease 0.12s;
+}
+
+.bca-flip-card-wrapper:hover .bca-flip-back,
+.bca-flip-card-inner.is-flipped .bca-flip-back {
+  opacity: 1;
+}
+
+.bca-flip-hint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0B3974;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.bca-flip-card-wrapper:hover .bca-flip-hint-badge {
+  background-color: #0B3974;
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bca-flip-card-inner {
+    transition: none !important;
+  }
 }
 
 .bca-badge {
@@ -372,11 +564,11 @@ button, input, select, textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 9px 18px;
+  gap: 6px;
+  padding: 6px 14px;
   border-radius: var(--radius-md);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   border: 1px solid transparent;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -475,19 +667,19 @@ button, input, select, textarea {
 
 .bca-table th {
   background: #f8fafc;
-  padding: 13px 18px;
-  font-size: 0.78rem;
+  padding: 7px 10px;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: #0B3974;
   border-bottom: 2px solid #e2e8f0;
   white-space: nowrap;
 }
 
 .bca-table td {
-  padding: 14px 18px;
-  font-size: 0.88rem;
+  padding: 7px 10px;
+  font-size: 0.8rem;
   color: var(--slate-700);
   border-bottom: 1px solid var(--slate-100);
   vertical-align: middle;
@@ -535,9 +727,19 @@ button, input, select, textarea {
   width: var(--sidebar-collapsed-width);
 }
 
+.admin-sidebar.collapsed .admin-sidebar-header {
+  padding: 10px 4px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: auto;
+  min-height: var(--header-height);
+  gap: 8px;
+}
+
 .admin-sidebar-header {
   height: var(--header-height);
-  padding: 0 20px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -547,32 +749,32 @@ button, input, select, textarea {
 .admin-sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 14px 12px;
+  padding: 10px 8px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 .admin-nav-section-title {
-  font-size: 0.68rem;
+  font-size: 0.63rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #94a3b8;
-  padding: 10px 12px 6px;
+  padding: 6px 10px 3px;
   font-weight: 700;
 }
 
 .admin-nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 7px 10px;
   border-radius: var(--radius-md);
   color: #cbd5e1;
   font-weight: 500;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   cursor: pointer;
   transition: all var(--transition-fast);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   user-select: none;
   border: 1px solid transparent;
 }
@@ -618,7 +820,7 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 20px;
   position: sticky;
   top: 0;
   z-index: 40;
@@ -626,8 +828,8 @@ button, input, select, textarea {
 
 .admin-content {
   flex: 1;
-  padding: 28px;
-  max-width: 1600px;
+  padding: 16px 20px;
+  max-width: 100%;
   width: 100%;
 }
 
@@ -808,6 +1010,10 @@ button, input, select, textarea {
 /* Modal Responsive Container */
 .bca-modal-content {
   max-width: 95vw !important;
+  isolation: isolate;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @media (max-width: 1024px) {
@@ -1027,23 +1233,41 @@ button, input, select, textarea {
 }
 
 /* Image Zoom on Card Hover */
-.scale-hover-img {
+.scale-hover-img,
+.bca-card img:not([class*="avatar"]):not([class*="icon"]):not(.no-hover-scale),
+.card-interactive-lift img:not([class*="avatar"]):not([class*="icon"]):not(.no-hover-scale) {
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
   will-change: transform;
 }
 
-.bca-card:hover .scale-hover-img {
-  transform: scale(1.08);
+.bca-card:hover .scale-hover-img,
+.card-interactive-lift:hover .scale-hover-img,
+.bca-card:hover img:not([class*="avatar"]):not([class*="icon"]):not(.no-hover-scale),
+.card-interactive-lift:hover img:not([class*="avatar"]):not([class*="icon"]):not(.no-hover-scale) {
+  transform: scale(1.04);
 }
 
-/* Enhanced 3D Card Hover Lift */
-.card-interactive-lift {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
-}
+/* Accessibility: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .bca-card,
+  .card-interactive-lift,
+  .scale-hover-img,
+  .bca-card:hover,
+  .card-interactive-lift:hover,
+  .bca-card img,
+  .card-interactive-lift img {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+    box-shadow: var(--shadow-card) !important;
+  }
 
-.card-interactive-lift:hover {
-  transform: translateY(-8px) scale(1.01) !important;
-  box-shadow: 0 20px 35px -8px rgba(11, 57, 116, 0.18), 0 8px 16px -6px rgba(0, 0, 0, 0.08) !important;
+  .bca-card::before,
+  .card-interactive-lift::before,
+  .bca-card::after,
+  .card-interactive-lift::after {
+    display: none !important;
+  }
 }
 
 /* Gentle Floating Effect */
@@ -1217,6 +1441,7 @@ button, input, select, textarea {
 }
 
 .nav-dropdown-item {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1224,8 +1449,9 @@ button, input, select, textarea {
   width: 100%;
   padding: 9px 18px;
   color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 21px !important;
   text-decoration: none;
   border: none;
   background: transparent;
@@ -1254,6 +1480,10 @@ button, input, select, textarea {
 }
 
 .nav-link-btn {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 21px !important;
   white-space: nowrap !important;
   flex-shrink: 0 !important;
 }
@@ -1261,7 +1491,8 @@ button, input, select, textarea {
 @media (min-width: 1024px) and (max-width: 1280px) {
   .nav-link-btn {
     padding: 6px 6px !important;
-    font-size: 0.78rem !important;
+    font-size: 13.5px !important;
+    line-height: 20px !important;
   }
 }
 
@@ -1270,9 +1501,19 @@ button, input, select, textarea {
    ========================================================================== */
 
 /* Universal mobile safeguards */
-img, video, canvas, svg {
+img, video, canvas {
   max-width: 100%;
   height: auto;
+}
+
+/* Ensure all Lucide icons and inline SVGs maintain intended dimensions and never collapse */
+svg.lucide,
+.lucide,
+.bca-btn svg,
+button svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 /* 1. Mobile Screens: sm (< 640px) */

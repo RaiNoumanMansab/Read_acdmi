@@ -27,6 +27,7 @@ import { ScrollReveal } from '../../common/ScrollReveal';
 import { LoadingState, ButtonSpinner } from '../../common/Spinner';
 import { WhatsAppButton } from '../../common/WhatsAppButton';
 import { SCHOOL_WHATSAPP_NUMBER } from '../../../utils/whatsapp';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../../utils/pkPhone';
 
 interface JobPosting {
   id: string;
@@ -166,6 +167,11 @@ export const CareersPage: React.FC = () => {
       return;
     }
 
+    if (!isValidPKPhone(phone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload: any = {
@@ -210,14 +216,29 @@ export const CareersPage: React.FC = () => {
       {/* 1. HERO BANNER */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
+          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
           padding: 'clamp(85px, 8vw, 115px) 24px 80px',
           textAlign: 'center',
           position: 'relative',
+          overflow: 'hidden',
           borderBottom: '4px solid #E62929'
         }}
       >
+        {/* Background decorative circles */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-10%',
+            right: '-5%',
+            width: '450px',
+            height: '450px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.18) 0%, rgba(0,0,0,0) 70%)',
+            pointerEvents: 'none'
+          }}
+        />
+
         <ScrollReveal animation="up">
           <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
             <div
@@ -458,7 +479,7 @@ export const CareersPage: React.FC = () => {
             </p>
             <button
               onClick={() => handleOpenApply()}
-              className="bca-btn bca-btn-primary"
+              className="bca-btn bca-btn-gold"
             >
               Submit General Teacher Application
             </button>
@@ -468,26 +489,17 @@ export const CareersPage: React.FC = () => {
             {filteredJobs.map((job, idx) => (
               <ScrollReveal key={job.id} animation="up" delay={idx * 60}>
                 <div
+                  className="bca-card card-interactive-lift"
                   style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '14px',
-                  padding: '24px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  position: 'relative'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 12px 24px -4px rgba(0,0,0,0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.04)';
-                }}
-              >
+                    backgroundColor: '#ffffff',
+                    borderRadius: '14px',
+                    padding: '24px',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative'
+                  }}
+                >
                 {/* Badges Row */}
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
                   <span
@@ -591,7 +603,7 @@ export const CareersPage: React.FC = () => {
 
                   <button
                     onClick={() => handleOpenApply(job)}
-                    className="bca-btn bca-btn-primary"
+                    className="bca-btn bca-btn-gold"
                     style={{ padding: '8px 16px', fontSize: '0.82rem' }}
                   >
                     <span>Apply Now</span>
@@ -677,11 +689,14 @@ export const CareersPage: React.FC = () => {
                   <input
                     type="tel"
                     required
-                    placeholder="0300 1234567"
+                    placeholder="+92 300 1234567"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }}
+                    onChange={(e) => setPhone(handlePKPhoneInput(e.target.value))}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(phone)}`, boxSizing: 'border-box' }}
                   />
+                  {phone.length > 3 && !isValidPKPhone(phone) && (
+                    <div style={{ fontSize: '0.72rem', color: '#ef4444', marginTop: '3px' }}>⚠ Pakistani number required — e.g. +92 300 1234567</div>
+                  )}
                 </div>
 
                 {/* Gender */}
@@ -881,14 +896,11 @@ export const CareersPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bca-btn bca-btn-primary"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                  className="bca-btn bca-btn-gold"
+                  style={{ minWidth: '160px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                   {isSubmitting ? (
-                    <>
-                      <ButtonSpinner color="#ffffff" />
-                      <span>Submitting Application...</span>
-                    </>
+                    <ButtonSpinner color="#0B3974" />
                   ) : (
                     <>
                       <Send size={15} />

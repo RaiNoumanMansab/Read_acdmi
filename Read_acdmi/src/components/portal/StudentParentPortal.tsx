@@ -21,6 +21,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../common/Toast';
+import { printStudentIdCard, exportStudentProgressDossier } from '../../utils/exportUtils';
 
 export const StudentParentPortal: React.FC = () => {
   const navigate = useNavigate();
@@ -170,7 +171,23 @@ export const StudentParentPortal: React.FC = () => {
 
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
-              onClick={() => showToast('Printing Student Dossier', 'Preparing official student academic report...', 'info')}
+              onClick={() => {
+                try {
+                  exportStudentProgressDossier({
+                    name: studentName,
+                    rollNo: rollNo,
+                    class: 'Grade 10',
+                    section: 'A',
+                    parentName: (user as any)?.parentName || 'Parent / Guardian',
+                    parentPhone: user?.phone || '+92 300 7982018',
+                    attendancePct: 96,
+                    gpaOrAvg: 90
+                  });
+                  showToast('Academic Dossier Opened', 'Print or save report card in document viewer', 'success');
+                } catch (err: any) {
+                  showToast('Export Failed', err.message || 'Error creating report', 'error');
+                }
+              }}
               className="bca-btn"
               style={{ background: '#ffffff', color: '#0B3974', fontWeight: 700, padding: '8px 16px', borderRadius: '8px' }}
             >
@@ -252,8 +269,11 @@ export const StudentParentPortal: React.FC = () => {
               {/* ID Card Body */}
               <div style={{ padding: '24px 20px', textAlign: 'center' }}>
                 <img
-                  src={user?.avatarUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200'}
+                  src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName || 'Student')}&background=0B3974&color=fff&bold=true`}
                   alt={studentName}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName || 'Student')}&background=0B3974&color=fff&bold=true`;
+                  }}
                   style={{
                     width: '96px',
                     height: '96px',
@@ -302,7 +322,23 @@ export const StudentParentPortal: React.FC = () => {
 
               <div style={{ padding: '12px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
                 <button
-                  onClick={() => showToast('Printing ID Card', 'Sending official ID card layout to printer...', 'success')}
+                  onClick={() => {
+                    try {
+                      printStudentIdCard({
+                        name: studentName,
+                        rollNo: rollNo,
+                        class: 'Grade 10',
+                        section: 'A',
+                        parentName: (user as any)?.parentName || 'Parent / Guardian',
+                        emergencyContact: user?.phone || '+92 300 7982018',
+                        bloodGroup: 'B+',
+                        avatar: user?.avatarUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200'
+                      });
+                      showToast('ID Card Opened', 'Print layout opened in document viewer', 'success');
+                    } catch (err: any) {
+                      showToast('Print Failed', err.message || 'Error generating ID Card', 'error');
+                    }
+                  }}
                   className="bca-btn bca-btn-primary"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
@@ -330,7 +366,21 @@ export const StudentParentPortal: React.FC = () => {
               </div>
 
               <button
-                onClick={() => showToast('Downloading Official Report Card', 'Generating signed PDF result card...', 'success')}
+                onClick={() => {
+                  try {
+                    exportStudentProgressDossier({
+                      name: studentName,
+                      rollNo: rollNo,
+                      class: 'Grade 10',
+                      section: 'A',
+                      attendancePct: 96,
+                      gpaOrAvg: 90
+                    });
+                    showToast('Report Card Opened', 'Download or print marksheet in document viewer', 'success');
+                  } catch (err: any) {
+                    showToast('Download Failed', err.message || 'Error generating marksheet', 'error');
+                  }
+                }}
                 className="bca-btn bca-btn-primary"
               >
                 <Download size={14} /> Download Marksheet (PDF)
@@ -457,9 +507,9 @@ export const StudentParentPortal: React.FC = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {[
-                { voucherNo: 'VCH-2026-09-089', month: 'September 2026', tuition: 7500, exam: 1500, utility: 800, total: 9800, status: 'PAID', paidDate: '2026-09-05' },
-                { voucherNo: 'VCH-2026-08-089', month: 'August 2026', tuition: 7500, exam: 0, utility: 800, total: 8300, status: 'PAID', paidDate: '2026-08-04' },
-                { voucherNo: 'VCH-2026-07-089', month: 'July 2026', tuition: 7500, exam: 0, utility: 800, total: 8300, status: 'PAID', paidDate: '2026-07-06' },
+                { voucherNo: 'VCH-2026-09-089', month: 'September 2026', tuition: 6000, exam: 0, utility: 0, total: 6000, status: 'PAID', paidDate: '2026-09-05' },
+                { voucherNo: 'VCH-2026-08-089', month: 'August 2026', tuition: 6000, exam: 0, utility: 0, total: 6000, status: 'PAID', paidDate: '2026-08-04' },
+                { voucherNo: 'VCH-2026-07-089', month: 'July 2026', tuition: 6000, exam: 0, utility: 0, total: 6000, status: 'PAID', paidDate: '2026-07-06' },
               ].map((voucher) => (
                 <div
                   key={voucher.voucherNo}

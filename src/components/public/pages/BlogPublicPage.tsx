@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import {
   Search,
   ArrowRight,
-  Share2
+  Share2,
+  RotateCw,
+  Clock,
+  Eye,
+  User,
+  BookOpen
 } from 'lucide-react';
 import type { BlogPost } from '../../../types';
 import { Modal } from '../../common/Modal';
 import { useToast } from '../../common/Toast';
 import { ScrollReveal } from '../../common/ScrollReveal';
+import { FlipCard } from '../../common/FlipCard';
 import { LoadingState } from '../../common/Spinner';
 import { cmsApi } from '../../../services/api';
 
@@ -43,13 +49,29 @@ export const BlogPublicPage: React.FC = () => {
       {/* Hero Banner */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
+          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
           padding: 'clamp(75px, 8vw, 105px) 24px',
           textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
           borderBottom: '4px solid #E62929'
         }}
       >
+        {/* Background decorative circles */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-10%',
+            right: '-5%',
+            width: '450px',
+            height: '450px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.18) 0%, rgba(0,0,0,0) 70%)',
+            pointerEvents: 'none'
+          }}
+        />
+
         <ScrollReveal animation="up">
           <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
@@ -126,65 +148,138 @@ export const BlogPublicPage: React.FC = () => {
             >
               {filtered.map((post, idx) => (
                 <ScrollReveal key={post.id} animation="up" delay={idx * 80}>
-              <div
-                onClick={() => setActivePost(post)}
-                className="bca-card card-interactive-lift"
-                style={{
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  borderTop: '4px solid #E62929',
-                  height: '100%'
-                }}
-              >
-                <div>
-                  <div style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
-                    <img src={post.featuredImage} alt={post.title} className="scale-hover-img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        backgroundColor: 'rgba(15, 23, 42, 0.8)',
-                        color: '#ffffff',
-                        backdropFilter: 'blur(4px)',
-                        padding: '3px 10px',
-                        borderRadius: '6px',
-                        fontSize: '0.72rem',
-                        fontWeight: 700
-                      }}
-                    >
-                      {post.category}
-                    </span>
-                  </div>
+                  <FlipCard
+                    minHeight="430px"
+                    front={
+                      <div
+                        style={{
+                          borderRadius: '16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          height: '100%'
+                        }}
+                      >
+                        <div>
+                          <div style={{ height: '190px', overflow: 'hidden', position: 'relative' }}>
+                            <img src={post.featuredImage} alt={post.title} className="scale-hover-img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <span
+                              style={{
+                                position: 'absolute',
+                                top: '12px',
+                                left: '12px',
+                                backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                                color: '#ffffff',
+                                backdropFilter: 'blur(4px)',
+                                padding: '3px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.72rem',
+                                fontWeight: 700
+                              }}
+                            >
+                              {post.category}
+                            </span>
+                          </div>
 
-                  <div style={{ padding: '22px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.74rem', color: '#64748b', marginBottom: '8px' }}>
-                      <span>{post.publishedDate}</span> • <span>{post.readTime}</span> • <span>{post.views} views</span>
-                    </div>
+                          <div style={{ padding: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.74rem', color: '#64748b', marginBottom: '8px' }}>
+                              <span>{post.publishedDate}</span> • <span>{post.readTime}</span> • <span>{post.views} views</span>
+                            </div>
 
-                    <h3 style={{ fontSize: '1.12rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a', lineHeight: 1.35 }}>
-                      {post.title}
-                    </h3>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a', lineHeight: 1.35 }}>
+                              {post.title}
+                            </h3>
 
-                    <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                      {post.excerpt}
-                    </p>
-                  </div>
-                </div>
+                            <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                              {post.excerpt}
+                            </p>
+                          </div>
+                        </div>
 
-                <div style={{ padding: '14px 22px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>By <strong>{post.author}</strong></span>
-                  <span style={{ fontSize: '0.82rem', color: '#0B3974', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    Read Article <ArrowRight size={14} />
-                  </span>
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
+                        <div style={{ padding: '12px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="bca-flip-hint-badge">
+                            <RotateCw size={12} /> Hover to Flip
+                          </span>
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePost(post);
+                            }}
+                            style={{ fontSize: '0.82rem', color: '#0B3974', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                          >
+                            Read Article <ArrowRight size={14} />
+                          </span>
+                        </div>
+                      </div>
+                    }
+                    back={
+                      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '12px', marginBottom: '14px' }}>
+                            <div>
+                              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                {post.category}
+                              </span>
+                              <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: '4px 0 0 0', lineHeight: 1.3 }}>
+                                {post.title}
+                              </h4>
+                            </div>
+                            <span style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.7rem', color: '#FFD700', display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                              <RotateCw size={11} /> Story
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.82rem', color: '#e2e8f0', marginBottom: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <User size={14} color="#FFD700" style={{ flexShrink: 0 }} />
+                              <span>Author: <strong>{post.author}</strong></span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <Clock size={14} color="#FFD700" style={{ flexShrink: 0 }} />
+                              <span>Reading Time: {post.readTime}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <Eye size={14} color="#FFD700" style={{ flexShrink: 0 }} />
+                              <span>Community Reads: {post.views}</span>
+                            </div>
+                          </div>
+
+                          <p style={{ fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>
+                            "{post.excerpt}"
+                          </p>
+                        </div>
+
+                        <div style={{ paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePost(post);
+                            }}
+                            style={{
+                              width: '100%',
+                              backgroundColor: '#E62929',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '10px 16px',
+                              fontWeight: 700,
+                              fontSize: '0.84rem',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              boxShadow: '0 4px 14px rgba(230, 41, 41, 0.4)'
+                            }}
+                          >
+                            <BookOpen size={14} /> Read Full Article
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  />
+                </ScrollReveal>
+              ))}
         </div>
       )}
         </div>

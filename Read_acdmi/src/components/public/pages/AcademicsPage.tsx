@@ -93,7 +93,7 @@ export const AcademicsPage: React.FC<AcademicsPageProps> = ({ onOpenApply }) => 
               </button>
               <button
                 onClick={onOpenApply}
-                className="bca-btn bca-btn-primary"
+                className="bca-btn bca-btn-gold"
                 style={{ padding: '10px 20px' }}
               >
                 <span>Apply for Admission</span>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Menu,
   Search,
@@ -13,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '../common/Toast';
 import { useAuth } from '../../context/AuthContext';
-import { AdminProfileModal } from './AdminProfileModal';
 
 interface AdminHeaderProps {
   onOpenMobileSidebar: () => void;
@@ -28,9 +28,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 }) => {
   const { showToast } = useToast();
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const notifications = [
     { id: 1, title: 'New Admission Application', text: 'Shahmeer Khan applied for Grade 9', time: '10m ago', unread: true },
@@ -41,49 +41,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
   return (
     <header className="admin-topbar">
-      {/* Left: Mobile hamburger & Search */}
+      {/* Left: Empty placeholder */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <button
-          onClick={onOpenMobileSidebar}
-          className="bca-btn-icon flex lg:hidden"
-          id="mobile-menu-btn"
-          title="Open Navigation Menu"
-        >
-          <Menu size={20} />
-        </button>
-
-        {/* Mobile Search Button (small screens) */}
-        <button
-          onClick={onOpenCommandPalette}
-          className="bca-btn-icon flex sm:hidden"
-          title="Search anything (Cmd+K)"
-        >
-          <Search size={18} />
-        </button>
-
-        {/* Global Search Bar (opens Ctrl+K on sm+) */}
-        <div
-          onClick={onOpenCommandPalette}
-          className="hidden sm:flex items-center gap-2.5 bg-slate-100 hover:bg-white border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-1.5 cursor-pointer w-48 md:w-64 lg:w-72 transition-all"
-        >
-          <Search size={16} color="#94a3b8" />
-          <span style={{ fontSize: '0.84rem', color: '#64748b', flex: 1 }}>
-            Search anything...
-          </span>
-          <kbd
-            style={{
-              fontSize: '0.7rem',
-              backgroundColor: '#ffffff',
-              border: '1px solid #cbd5e1',
-              borderRadius: '4px',
-              padding: '1px 5px',
-              color: '#64748b',
-              boxShadow: '0 1px 1px rgba(0,0,0,0.05)'
-            }}
-          >
-            ⌘K
-          </kbd>
-        </div>
       </div>
 
       {/* Right: Academic Session, Switcher, Notifications, Profile */}
@@ -96,16 +55,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <span>Session 2026–2027 • Term 1</span>
         </div>
 
-        {/* View Public Website (Hidden on mobile) */}
-        <button
-          onClick={onSwitchToPublic}
-          className="bca-btn bca-btn-secondary hidden md:inline-flex"
-          style={{ padding: '6px 12px', fontSize: '0.82rem' }}
-          title="Open Public School Website"
-        >
-          <Globe size={15} color="#2563eb" />
-          <span>Public Website</span>
-        </button>
+
 
 
         {/* Notifications */}
@@ -269,7 +219,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
               <div
                 onClick={() => {
                   setShowProfileMenu(false);
-                  setShowProfileModal(true);
+                  navigate('/admin/my-profile');
                 }}
                 style={{
                   display: 'flex',
@@ -313,10 +263,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         </div>
       </div>
 
-      <AdminProfileModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-      />
     </header>
   );
 };

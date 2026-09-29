@@ -15,6 +15,7 @@ import {
 import type { ClassEntity, SubjectEntity } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState, TableLoadingRow } from '../common/Spinner';
 import { academicsApi } from '../../services/api';
 
@@ -118,8 +119,14 @@ export const ClassesSubjectsView: React.FC = () => {
     setShowEditClassModal(false);
   };
 
-  const handleDeleteClass = (c: ClassEntity) => {
-    if (!window.confirm(`Are you sure you want to delete class "${c.name}"?`)) return;
+  const handleDeleteClass = async (c: ClassEntity) => {
+    const confirmed = await showConfirmModal({
+      title: 'Delete Class',
+      message: `Are you sure you want to delete class "${c.name}"?`,
+      confirmText: 'Delete Class',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setClasses((prev) => prev.filter((item) => item.id !== c.id));
     showToast('Class Removed', `${c.name} was removed from academic list`, 'success');
   };
@@ -161,8 +168,14 @@ export const ClassesSubjectsView: React.FC = () => {
     setShowEditSubModal(false);
   };
 
-  const handleDeleteSubject = (sub: SubjectEntity) => {
-    if (!window.confirm(`Are you sure you want to delete subject "${sub.name}" (${sub.code})?`)) return;
+  const handleDeleteSubject = async (sub: SubjectEntity) => {
+    const confirmed = await showConfirmModal({
+      title: 'Delete Subject',
+      message: `Are you sure you want to delete subject "${sub.name}" (${sub.code})?`,
+      confirmText: 'Delete Subject',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     setSubjects((prev) => prev.filter((item) => item.id !== sub.id));
     showToast('Subject Removed', `${sub.name} was removed from curriculum catalog`, 'success');
   };

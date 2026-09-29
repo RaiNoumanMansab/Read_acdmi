@@ -10,6 +10,7 @@ import { useToast } from '../../common/Toast';
 import { ScrollReveal } from '../../common/ScrollReveal';
 import { LoadingState } from '../../common/Spinner';
 import { cmsApi } from '../../../services/api';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../../utils/pkPhone';
 
 export const EventsPublicPage: React.FC = () => {
   const { showToast } = useToast();
@@ -34,6 +35,10 @@ export const EventsPublicPage: React.FC = () => {
     e.preventDefault();
     if (!guestName || !guestPhone) {
       showToast('Please enter your name and contact phone', undefined, 'error');
+      return;
+    }
+    if (!isValidPKPhone(guestPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
       return;
     }
     showToast(
@@ -217,11 +222,14 @@ export const EventsPublicPage: React.FC = () => {
                 <input
                   type="tel"
                   required
-                  placeholder="+92 300 0000000"
+                  placeholder="+92 300 1234567"
                   value={guestPhone}
-                  onChange={(e) => setGuestPhone(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                  onChange={(e) => setGuestPhone(handlePKPhoneInput(e.target.value))}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(guestPhone)}` }}
                 />
+                {guestPhone.length > 3 && !isValidPKPhone(guestPhone) && (
+                  <div style={{ fontSize: '0.72rem', color: '#E62929', marginTop: '3px' }}>⚠ Pakistani number required — e.g. +92 300 1234567</div>
+                )}
               </div>
 
               <div>

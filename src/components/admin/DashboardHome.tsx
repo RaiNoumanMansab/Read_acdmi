@@ -26,6 +26,8 @@ import type { AdminTab } from '../../types';
 import { useToast } from '../common/Toast';
 import { LoadingState } from '../common/Spinner';
 import { adminApi, admissionsApi, feesApi, cmsApi, studentsApi } from '../../services/api';
+import { exportDashboardSummary } from '../../utils/exportUtils';
+import { useAuth } from '../../context/AuthContext';
 
 // Register Chart.js components
 ChartJS.register(...registerables);
@@ -35,6 +37,7 @@ interface DashboardHomeProps {
 }
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [recentAdmissions, setRecentAdmissions] = useState<any[]>([]);
@@ -143,6 +146,10 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
     year: 'numeric'
   });
 
+  const currentHour = new Date().getHours();
+  const timeGreeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
+  const adminName = user?.fullName || 'Dr. Muhammad Tariq Khan';
+
   // Chart 1: Income vs Expenses (Jan - Dec)
   const incomeVsExpenseData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -250,49 +257,56 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
       <div
         style={{
           background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #082a57 100%)',
-          borderRadius: '20px',
-          padding: '24px clamp(20px, 4vw, 36px)',
+          borderRadius: '14px',
+          padding: '16px 22px',
           color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '16px',
-          marginBottom: '24px',
-          boxShadow: '0 10px 25px -5px rgba(11, 57, 116, 0.25)',
+          gap: '12px',
+          marginBottom: '16px',
+          boxShadow: '0 8px 20px -4px rgba(11, 57, 116, 0.22)',
           position: 'relative',
           overflow: 'hidden',
-          borderLeft: '5px solid #E62929'
+          borderLeft: '4px solid #E62929'
         }}
       >
         <div style={{ position: 'relative', zIndex: 2, flex: '1 1 280px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255, 215, 0, 0.4)', padding: '4px 14px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: 700, marginBottom: '10px' }}>
-            <img src="/logo.png" alt="Read Academy Sahiwal" style={{ height: '20px', width: 'auto' }} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255, 215, 0, 0.4)', padding: '3px 10px', borderRadius: '20px', fontSize: '0.74rem', fontWeight: 700, marginBottom: '6px' }}>
+            <img src="/logo.png" alt="Read Academy Sahiwal" style={{ height: '16px', width: 'auto' }} />
             <span style={{ color: '#FFD700' }}>Read Academy Sahiwal ERP • "Read To Lead"</span>
           </div>
-          <h1 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 1.85rem)', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', margin: 0 }}>
-            Good Morning, Admin 👋
+          <h1 style={{ fontSize: 'clamp(1.2rem, 2.5vw, 1.5rem)', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em', margin: 0 }}>
+            {timeGreeting}, {adminName} 👋
           </h1>
-          <p style={{ color: '#cbd5e1', fontSize: '0.88rem', margin: '6px 0 0 0', maxWidth: '640px' }}>
+          <p style={{ color: '#cbd5e1', fontSize: '0.82rem', margin: '4px 0 0 0', maxWidth: '640px' }}>
             Today is <strong style={{ color: '#ffffff' }}>{todayDate}</strong>. {dashboardData?.stats?.totalClasses ?? 0} active classes registered with {dashboardData?.stats?.todayAttendancePct ?? 0}% student attendance recorded today.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
           <button
-            onClick={() => showToast('Exported Executive Dashboard Summary (PDF)', undefined, 'success')}
+            onClick={() => {
+              try {
+                exportDashboardSummary(dashboardData);
+                showToast('Executive Dashboard Summary Generated', 'Print or save as PDF opened in document viewer', 'success');
+              } catch (err: any) {
+                showToast('Failed to export summary', err.message || 'Error generating document', 'error');
+              }
+            }}
             className="bca-btn"
-            style={{ background: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)', padding: '8px 14px', fontSize: '0.84rem' }}
+            style={{ background: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)', padding: '6px 12px', fontSize: '0.8rem' }}
           >
-            <Download size={15} />
+            <Download size={14} />
             <span>Export Summary</span>
           </button>
           <button
             onClick={() => onNavigate('admissions')}
             className="bca-btn bca-btn-red"
-            style={{ padding: '8px 16px', fontSize: '0.84rem' }}
+            style={{ padding: '6px 14px', fontSize: '0.8rem' }}
           >
-            <UserPlus size={15} />
+            <UserPlus size={14} />
             <span>Review Admissions</span>
           </button>
         </div>
@@ -302,9 +316,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ onNavigate }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px',
-          marginBottom: '24px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '12px',
+          marginBottom: '16px'
         }}
       >
         <StatCard

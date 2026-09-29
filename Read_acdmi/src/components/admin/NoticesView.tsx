@@ -14,6 +14,7 @@ import {
 import type { Notice } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState } from '../common/Spinner';
 import { cmsApi } from '../../services/api';
 
@@ -123,7 +124,13 @@ export const NoticesView: React.FC = () => {
   };
 
   const handleDeleteNotice = async (id: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to delete notice "${title}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Notice',
+      message: `Are you sure you want to delete notice "${title}"?`,
+      confirmText: 'Delete Notice',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await cmsApi.deleteNotice(id);
       setNotices((prev) => prev.filter((n) => n.id !== id));

@@ -138,62 +138,122 @@ export const Sidebar: React.FC<SidebarProps> = ({
         className={`admin-sidebar ${collapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}
       >
         {/* Header Branding */}
-        <div className="admin-sidebar-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
-            <div
-              style={{
-                width: '42px',
-                height: '42px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <img src="/logo.png" alt="Read Academy Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </div>
-            {!collapsed && (
-              <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                <h2
+        <div
+          className="admin-sidebar-header"
+          style={
+            collapsed
+              ? {
+                  padding: '12px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: 'auto',
+                  minHeight: '74px',
+                  gap: '8px'
+                }
+              : undefined
+          }
+        >
+          {collapsed ? (
+            <>
+              <div
+                onClick={onToggleCollapse}
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+                title="Read Academy - Click to expand"
+              >
+                <img
+                  src="/logo.png"
+                  alt="Read Academy Logo"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              </div>
+              <button
+                onClick={onToggleCollapse}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  width: '24px',
+                  height: '24px',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s'
+                }}
+                title="Expand Sidebar"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+                <div
                   style={{
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                    color: '#ffffff',
-                    lineHeight: 1.2,
-                    letterSpacing: '-0.02em',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden'
+                    width: '42px',
+                    height: '42px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
                   }}
                 >
-                  Read Academy
-                </h2>
-                <div style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <ShieldCheck size={11} color="#4CAF50" />
-                  <span>Sahiwal • Admin ERP</span>
+                  <img src="/logo.png" alt="Read Academy Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  <h2
+                    style={{
+                      fontSize: '1rem',
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      lineHeight: 1.2,
+                      letterSpacing: '-0.02em',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    Read Academy
+                  </h2>
+                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <ShieldCheck size={11} color="#4CAF50" />
+                    <span>Sahiwal • Admin ERP</span>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
 
-          <button
-            onClick={onToggleCollapse}
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: 'none',
-              borderRadius: '6px',
-              width: '26px',
-              height: '26px',
-              color: '#94a3b8',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s'
-            }}
-            title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
+              <button
+                onClick={onToggleCollapse}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  width: '26px',
+                  height: '26px',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s',
+                  flexShrink: 0
+                }}
+                title="Collapse Sidebar"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Navigation Items */}

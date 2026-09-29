@@ -15,6 +15,7 @@ import {
 import type { Homework } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState } from '../common/Spinner';
 import { homeworkApi, studentsApi } from '../../services/api';
 
@@ -135,7 +136,13 @@ export const HomeworkView: React.FC = () => {
   };
 
   const handleDeleteHomework = async (id: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to delete homework "${title}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Homework Assignment',
+      message: `Are you sure you want to delete homework "${title}"?`,
+      confirmText: 'Delete Homework',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await homeworkApi.deleteHomework(id);
     } catch (err) {

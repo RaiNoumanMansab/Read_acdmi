@@ -12,6 +12,7 @@ import {
   Eye
 } from 'lucide-react';
 import { useToast } from '../common/Toast';
+import { exportInstitutionalReport } from '../../utils/exportUtils';
 
 export const ReportsView: React.FC = () => {
   const { showToast } = useToast();
@@ -61,14 +62,28 @@ export const ReportsView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
-            onClick={() => showToast('Exported Report to CSV Format', undefined, 'info')}
+            onClick={() => {
+              try {
+                exportInstitutionalReport(selectedReport, { start: startDate, end: endDate }, 'csv');
+                showToast('Analytics Report Exported', `Generated CSV report for ${selectedReport}`, 'success');
+              } catch (err: any) {
+                showToast('Export Failed', err.message || 'Error exporting CSV', 'error');
+              }
+            }}
             className="bca-btn bca-btn-secondary"
           >
             <Download size={16} />
             <span>Export CSV</span>
           </button>
           <button
-            onClick={() => showToast('Report Generated & Downloaded (PDF with School Seal)', undefined, 'success')}
+            onClick={() => {
+              try {
+                exportInstitutionalReport(selectedReport, { start: startDate, end: endDate }, 'pdf');
+                showToast('Official PDF Generated', 'Print or save report opened in document viewer', 'success');
+              } catch (err: any) {
+                showToast('Generation Failed', err.message || 'Error generating PDF', 'error');
+              }
+            }}
             className="bca-btn bca-btn-primary"
           >
             <Printer size={16} />

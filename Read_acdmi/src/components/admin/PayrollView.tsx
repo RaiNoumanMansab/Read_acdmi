@@ -16,8 +16,10 @@ import {
 import type { PayrollRecord } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { TableLoadingRow } from '../common/Spinner';
 import { teachersApi } from '../../services/api';
+import { exportPayrollCsv } from '../../utils/exportUtils';
 
 const mapBackendPayroll = (t: any): PayrollRecord => {
   const basic = Number(t.basicSalary) || 85000;
@@ -108,7 +110,13 @@ export const PayrollView: React.FC = () => {
   };
 
   const handleDeleteSlip = async (id: string, empName: string) => {
-    if (!window.confirm(`Are you sure you want to delete payroll record for "${empName}"?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Payroll Record',
+      message: `Are you sure you want to delete payroll record for "${empName}"?`,
+      confirmText: 'Delete Payroll',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await teachersApi.deletePayroll(id);
     } catch (err) {
@@ -168,7 +176,18 @@ export const PayrollView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
-            onClick={() => showToast('Batch Payslips exported as consolidated PDF', undefined, 'info')}
+            onClick={() => {
+              if (filtered.length === 0) {
+                showToast('No payroll records to export', undefined, 'warning');
+                return;
+              }
+              try {
+                exportPayrollCsv(filtered);
+                showToast('Payroll Sheet Exported', `Exported ${filtered.length} salary records to CSV`, 'success');
+              } catch (err: any) {
+                showToast('Export Failed', err.message || 'Error exporting payroll sheet', 'error');
+              }
+            }}
             className="bca-btn bca-btn-secondary"
           >
             <Download size={16} />

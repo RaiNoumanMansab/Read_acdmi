@@ -192,10 +192,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               }}
             >
               {isSubmitting ? (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <ButtonSpinner color="#0B3974" />
-                  <span>Authenticating with Backend...</span>
-                </div>
+                <ButtonSpinner color="#0B3974" />
               ) : (
                 <>
                   <LogIn size={16} />

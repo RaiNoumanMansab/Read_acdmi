@@ -14,6 +14,7 @@ import { ScrollReveal } from '../../common/ScrollReveal';
 import { cmsApi } from '../../../services/api';
 import { WhatsAppButton, WhatsAppIcon } from '../../common/WhatsAppButton';
 import { SCHOOL_WHATSAPP_NUMBER } from '../../../utils/whatsapp';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../../utils/pkPhone';
 
 export const ContactPage: React.FC = () => {
   const { showToast } = useToast();
@@ -37,6 +38,11 @@ export const ContactPage: React.FC = () => {
     e.preventDefault();
     if (!name || !email || !message) {
       showToast('Please fill required fields', undefined, 'error');
+      return;
+    }
+
+    if (phone && !isValidPKPhone(phone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
       return;
     }
 
@@ -69,6 +75,10 @@ export const ContactPage: React.FC = () => {
       showToast('Please provide your name and phone number', undefined, 'error');
       return;
     }
+    if (!isValidPKPhone(tourPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
+      return;
+    }
     showToast(
       'Campus Tour Scheduled!',
       `We look forward to hosting you on ${tourDate} at ${tourTime}. Confirmation sent to ${tourPhone}.`,
@@ -83,13 +93,29 @@ export const ContactPage: React.FC = () => {
       {/* Hero Banner */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
+          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
           padding: 'clamp(44px, 6vw, 84px) clamp(16px, 4vw, 24px)',
           textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
           borderBottom: '4px solid #E62929'
         }}
       >
+        {/* Background decorative circles */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-10%',
+            right: '-5%',
+            width: '450px',
+            height: '450px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.18) 0%, rgba(0,0,0,0) 70%)',
+            pointerEvents: 'none'
+          }}
+        />
+
         <ScrollReveal animation="up">
           <div style={{ maxWidth: '900px', margin: '0 auto' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
@@ -389,9 +415,14 @@ export const ContactPage: React.FC = () => {
                       type="tel"
                       placeholder="+92 300 0000000"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                      onChange={(e) => setPhone(handlePKPhoneInput(e.target.value))}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(phone)}` }}
                     />
+                    {phone.length > 3 && !isValidPKPhone(phone) && (
+                      <div style={{ fontSize: '0.73rem', color: '#E62929', marginTop: '3px' }}>
+                        ⚠ Pakistani number required — e.g. +92 300 1234567
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -470,9 +501,14 @@ export const ContactPage: React.FC = () => {
                     required
                     placeholder="+92 321 0000000"
                     value={tourPhone}
-                    onChange={(e) => setTourPhone(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                    onChange={(e) => setTourPhone(handlePKPhoneInput(e.target.value))}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(tourPhone)}` }}
                   />
+                  {tourPhone.length > 3 && !isValidPKPhone(tourPhone) && (
+                    <div style={{ fontSize: '0.73rem', color: '#E62929', marginTop: '3px' }}>
+                      ⚠ Pakistani number required — e.g. +92 321 1234567
+                    </div>
+                  )}
                 </div>
 
                 <div className="bca-form-row">

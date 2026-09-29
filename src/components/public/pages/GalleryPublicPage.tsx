@@ -31,13 +31,29 @@ export const GalleryPublicPage: React.FC = () => {
       {/* Hero Banner */}
       <section
         style={{
-          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 100%)',
+          background: 'linear-gradient(135deg, #04142a 0%, #0B3974 55%, #0e458e 100%)',
           color: '#ffffff',
           padding: 'clamp(75px, 8vw, 105px) 24px',
           textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
           borderBottom: '4px solid #E62929'
         }}
       >
+        {/* Background decorative circles */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-10%',
+            right: '-5%',
+            width: '450px',
+            height: '450px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.18) 0%, rgba(0,0,0,0) 70%)',
+            pointerEvents: 'none'
+          }}
+        />
+
         <ScrollReveal animation="up">
           <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>

@@ -11,19 +11,19 @@
 .students-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 22px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .students-kpi-card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 16px 18px;
+  border-radius: 10px;
+  padding: 11px 14px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(11, 57, 116, 0.05);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -57,9 +57,9 @@
 }
 
 .kpi-icon-box {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,7 +87,7 @@
 }
 
 .kpi-title {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
@@ -96,13 +96,13 @@
 }
 
 .kpi-value {
-  font-size: 1.55rem;
+  font-size: 1.3rem;
   font-weight: 800;
   line-height: 1.2;
 }
 
 .kpi-subtext {
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   margin-top: 2px;
   display: flex;
   align-items: center;
@@ -449,11 +449,11 @@
 
 .profile-tabs-scroll {
   display: flex;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
   gap: 6px;
   overflow-x: auto;
   margin-bottom: 20px;
-  padding-bottom: 2px;
+  padding-bottom: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -472,8 +472,22 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.15s ease;
-  border-bottom: 2.5px solid transparent;
+  position: relative;
+  margin-bottom: -2px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+.profile-tab-button:hover {
+  color: #0B3974;
+}
+
+.profile-tab-button.active,
+.profile-tab-button[data-active="true"] {
+  border-bottom: 2px solid #0B3974 !important;
+  color: #0B3974 !important;
+  font-weight: 600;
 }
 
 .profile-info-grid {
@@ -613,4 +627,34 @@
   .student-card-actions .bca-btn {
     width: 100%;
   }
+}
+
+/* --- COMPACT STUDENTS MANAGEMENT TABLE --- */
+.students-management-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.students-management-table th {
+  padding: 9px 12px !important;
+  font-size: 0.74rem !important;
+  letter-spacing: 0.04em !important;
+  color: #0B3974 !important;
+  background-color: #f8fafc !important;
+  white-space: nowrap !important;
+}
+
+.students-management-table td {
+  padding: 8px 12px !important;
+  font-size: 0.83rem !important;
+  vertical-align: middle !important;
+}
+
+.students-management-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.students-management-table tbody tr:hover {
+  background-color: #f8fafc !important;
 }

@@ -34,7 +34,8 @@ export type AdminTab =
   | 'reports'
   | 'roles'
   | 'careers'
-  | 'settings';
+  | 'settings'
+  | 'my-profile';
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT';
 
@@ -83,9 +84,24 @@ export interface Student {
   admissionDate: string;
   emergencyContact: string;
   previousSchool?: string;
+  admissionNo?: string;
+  documentsSubmitted?: (string | AttachedDocument)[];
   recentMarks: { subject: string; marks: number; total: number; grade: string }[];
   attendanceHistory: { month: string; present: number; absent: number; late: number }[];
-  feeRecords: { voucherNo: string; month: string; amount: number; status: string; date: string }[];
+  feeRecords: {
+    id?: string;
+    voucherNo: string;
+    month: string;
+    amount: number;
+    status: string;
+    date: string;
+    tuitionFee?: number;
+    examFee?: number;
+    labFee?: number;
+    utilityCharges?: number;
+    fine?: number;
+    dueDate?: string;
+  }[];
 }
 
 export interface AttachedDocument {

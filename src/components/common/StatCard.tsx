@@ -44,38 +44,27 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       onClick={onClick}
+      className="bca-card card-interactive-lift"
       style={{
         background: '#ffffff',
-        borderRadius: '16px',
+        borderRadius: '10px',
         border: '1px solid #e2e8f0',
         borderTop: '3px solid #E62929',
-        padding: '20px',
+        padding: '12px 14px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         cursor: onClick ? 'pointer' : 'default',
-        boxShadow: '0 1px 3px rgba(11, 57, 116, 0.05)',
-        transition: 'all 0.2s ease',
         position: 'relative',
         overflow: 'hidden'
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-3px)';
-        e.currentTarget.style.boxShadow = '0 12px 24px -4px rgba(230, 41, 41, 0.18)';
-        e.currentTarget.style.borderColor = '#E62929';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'none';
-        e.currentTarget.style.boxShadow = '0 1px 3px rgba(11, 57, 116, 0.05)';
-        e.currentTarget.style.borderColor = '#e2e8f0';
-      }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
         <div
           style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '12px',
+            width: '34px',
+            height: '34px',
+            borderRadius: '8px',
             backgroundColor: iconBg,
             color: iconColor,
             display: 'flex',
@@ -101,10 +90,10 @@ export const StatCard: React.FC<StatCardProps> = ({
       </div>
 
       <div>
-        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
           {label}
         </span>
-        <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 8px', letterSpacing: '-0.02em' }}>
+        <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: '3px 0 6px', letterSpacing: '-0.02em' }}>
           {value}
         </div>
 

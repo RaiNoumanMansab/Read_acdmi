@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { PublicFooter } from './PublicFooter';
@@ -17,9 +17,10 @@ import { CareersPage } from './pages/CareersPage';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
 import { ButtonSpinner } from '../common/Spinner';
-import { CheckCircle, Upload, FileText, Paperclip, Trash2 } from 'lucide-react';
+import { CheckCircle, Upload, FileText, Paperclip, Trash2, Camera } from 'lucide-react';
 import { admissionsApi, academicsApi } from '../../services/api';
 import { FloatingWhatsApp } from './FloatingWhatsApp';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../utils/pkPhone';
 
 interface PublicWebsiteProps {
   onOpenAdmin: () => void;
@@ -60,6 +61,8 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
 
   // Quick Apply Modal Form State
   const [applicantName, setApplicantName] = useState('');
+  const [studentPhoto, setStudentPhoto] = useState('');
+  const studentPhotoRef = useRef<HTMLInputElement>(null);
   const [gender, setGender] = useState<'Male' | 'Female'>('Male');
   const [dob, setDob] = useState('');
   const [guardianName, setGuardianName] = useState('');
@@ -92,6 +95,55 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
     );
   };
 
+  const handleStudentPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Invalid File Type', 'Please upload a valid image file (JPG, PNG, WEBP)', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File Too Large', 'Maximum photo size allowed is 5MB', 'error');
+      return;
+    }
+
+    const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setStudentPhoto(dataUrl);
+
+      setUploadedFiles((prev) => {
+        const filtered = prev.filter((f) => f.docType !== 'Passport Sized Photographs');
+        return [
+          ...filtered,
+          {
+            docType: 'Passport Sized Photographs',
+            fileName: file.name,
+            fileSize: sizeStr,
+            fileData: dataUrl,
+            fileType: file.type
+          }
+        ];
+      });
+
+      if (!selectedDocs.includes('Passport Sized Photographs')) {
+        setSelectedDocs((prev) => [...prev, 'Passport Sized Photographs']);
+      }
+      showToast('Profile Photo Attached', 'Student passport-size photograph attached successfully', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveStudentPhoto = () => {
+    setStudentPhoto('');
+    setUploadedFiles((prev) => prev.filter((f) => f.docType !== 'Passport Sized Photographs'));
+    if (studentPhotoRef.current) studentPhotoRef.current.value = '';
+    showToast('Photo Removed', 'Student photograph has been removed', 'info');
+  };
+
   const handleDocFileUpload = (docType: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -110,6 +162,10 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
         return [...filtered, { docType, fileName: file.name, fileSize: sizeStr, fileData: dataUrl, fileType: file.type }];
       });
 
+      if (docType === 'Passport Sized Photographs') {
+        setStudentPhoto(dataUrl);
+      }
+
       if (!selectedDocs.includes(docType)) {
         setSelectedDocs((prev) => [...prev, docType]);
       }
@@ -120,6 +176,10 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
 
   const handleRemoveUploadedDoc = (docType: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.docType !== docType));
+    if (docType === 'Passport Sized Photographs') {
+      setStudentPhoto('');
+      if (studentPhotoRef.current) studentPhotoRef.current.value = '';
+    }
   };
 
   // Fetch classes dynamically from backend API (sorted sequence-wise)
@@ -143,6 +203,10 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
     e.preventDefault();
     if (!applicantName.trim() || !guardianPhone.trim() || !guardianName.trim()) {
       showToast('Please fill all required fields', 'Scholar name, guardian name, and phone are required.', 'error');
+      return;
+    }
+    if (!isValidPKPhone(guardianPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
       return;
     }
 
@@ -222,6 +286,7 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
       setNotes('');
       setSelectedDocs(['Birth Certificate (B-Form)', 'Passport Sized Photographs']);
       setUploadedFiles([]);
+      setStudentPhoto('');
     } catch (err: any) {
       console.error('Admission submit error:', err);
       showToast('Submission Failed', err?.message || 'Could not connect to admissions server. Please try again.', 'error');
@@ -282,15 +347,14 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
           footer={
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                <button type="submit" form="quickApplyForm" disabled={isSubmitting} className="bca-btn bca-btn-gold">
-                  {isSubmitting ? (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                      <ButtonSpinner color="#0B3974" />
-                      <span>Registering...</span>
-                    </div>
-                  ) : (
-                    'Submit Application'
-                  )}
+                <button
+                  type="submit"
+                  form="quickApplyForm"
+                  disabled={isSubmitting}
+                  className="bca-btn bca-btn-gold"
+                  style={{ minWidth: '150px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {isSubmitting ? <ButtonSpinner color="#0B3974" /> : 'Submit Application'}
                 </button>
                 <button type="button" disabled={isSubmitting} onClick={() => setApplyModalOpen(false)} className="bca-btn bca-btn-secondary">
                   Cancel
@@ -325,6 +389,100 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
               <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0B3974', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 1. Candidate / Student Information
               </div>
+
+              {/* Student Photo Upload Card */}
+              <div style={{ background: '#ffffff', border: '1.5px dashed #cbd5e1', borderRadius: '10px', padding: '12px 14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                <input
+                  type="file"
+                  ref={studentPhotoRef}
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  onChange={handleStudentPhotoChange}
+                  style={{ display: 'none' }}
+                />
+                <div
+                  onClick={() => studentPhotoRef.current?.click()}
+                  style={{
+                    width: '68px',
+                    height: '80px',
+                    borderRadius: '8px',
+                    border: '2px solid #94a3b8',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#f1f5f9',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    position: 'relative'
+                  }}
+                  title="Click to select student photograph"
+                >
+                  {studentPhoto ? (
+                    <img src={studentPhoto} alt="Student Photograph" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ textAlign: 'center', color: '#64748b' }}>
+                      <Camera size={24} style={{ margin: '0 auto', display: 'block', color: '#94a3b8' }} />
+                      <span style={{ fontSize: '0.62rem', fontWeight: 700, display: 'block', marginTop: '2px' }}>PHOTO</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                      Student Profile Picture / Passport Photo
+                    </label>
+                    <span style={{ fontSize: '0.68rem', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '1px 6px', borderRadius: '10px', fontWeight: 600 }}>
+                      {studentPhoto ? 'Photo Attached' : 'Recommended'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.72rem', color: '#64748b', margin: '0 0 6px 0' }}>
+                    Attach candidate passport-size picture (JPG, PNG, max 5MB).
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => studentPhotoRef.current?.click()}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '5px 11px',
+                        background: '#0B3974',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '0.76rem',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Upload size={13} /> {studentPhoto ? 'Change Photo' : 'Upload Student Photo'}
+                    </button>
+                    {studentPhoto && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveStudentPhoto}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '5px 9px',
+                          background: '#fff',
+                          color: '#dc2626',
+                          border: '1px solid #fca5a5',
+                          borderRadius: '6px',
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Trash2 size={12} /> Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
@@ -436,9 +594,14 @@ export const PublicWebsite: React.FC<PublicWebsiteProps> = ({ onOpenAdmin }) => 
                     required
                     placeholder="+92 300 1234567"
                     value={guardianPhone}
-                    onChange={(e) => setGuardianPhone(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                    onChange={(e) => setGuardianPhone(handlePKPhoneInput(e.target.value))}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(guardianPhone)}` }}
                   />
+                  {guardianPhone.length > 3 && !isValidPKPhone(guardianPhone) && (
+                    <div style={{ fontSize: '0.73rem', color: '#E62929', marginTop: '3px' }}>
+                      ⚠ Pakistani number required — e.g. +92 300 1234567
+                    </div>
+                  )}
                 </div>
 
                 <div>

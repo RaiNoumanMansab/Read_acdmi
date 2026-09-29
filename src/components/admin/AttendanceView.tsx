@@ -12,7 +12,6 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { useToast } from '../common/Toast';
-import { Line } from 'react-chartjs-2';
 import { attendanceApi, studentsApi, teachersApi } from '../../services/api';
 
 export const AttendanceView: React.FC = () => {
@@ -43,7 +42,8 @@ export const AttendanceView: React.FC = () => {
           rollNo: s.rollNo || s.id,
           class: s.class?.name || 'Grade 9',
           section: s.section?.name ? s.section.name.replace('Section ', '') : 'A',
-          attendancePct: s.attendancePct ?? 95
+          attendancePct: s.attendancePct ?? 95,
+          avatar: s.avatarUrl || s.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.fullName || s.name || 'Student')}&background=0B3974&color=fff&bold=true`
         }));
         setStudentList(formatted);
       }
@@ -129,20 +129,12 @@ export const AttendanceView: React.FC = () => {
     }
   };
 
-  // Teacher monthly chart
-  const teacherMonthlyChart = {
-    labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep'],
-    datasets: [
-      {
-        label: 'Faculty Attendance %',
-        data: [98.2, 97.5, 96.8, 98.4, 97.9],
-        borderColor: '#7c3aed',
-        backgroundColor: 'rgba(124, 58, 237, 0.1)',
-        fill: true,
-        tension: 0.3
-      }
-    ]
-  };
+  // Compute filtered student list based on selected class and section
+  const filteredStudentList = studentList.filter((student) => {
+    const classMatch = selectedClass === 'All' || student.class === selectedClass;
+    const sectionMatch = selectedSection === 'All' || student.section === selectedSection;
+    return classMatch && sectionMatch;
+  });
 
   return (
     <div>
@@ -233,6 +225,7 @@ export const AttendanceView: React.FC = () => {
                   onChange={(e) => setSelectedClass(e.target.value)}
                   style={{ padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
                 >
+                  <option value="All">All Classes</option>
                   <option value="Playgroup">Playgroup</option>
                   <option value="Nursery">Nursery</option>
                   <option value="Prep / KG">Prep / KG</option>
@@ -262,6 +255,7 @@ export const AttendanceView: React.FC = () => {
                   onChange={(e) => setSelectedSection(e.target.value)}
                   style={{ padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
                 >
+                  <option value="All">All Sections</option>
                   <option value="A">Section A</option>
                   <option value="B">Section B</option>
                   <option value="C">Section C</option>
@@ -321,7 +315,13 @@ export const AttendanceView: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {studentList.map((student) => {
+                {filteredStudentList.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                      No students found for the selected class / section.
+                    </td>
+                  </tr>
+                ) : filteredStudentList.map((student) => {
                   const status = studentAttendanceMap[student.id] || 'Present';
                   return (
                     <tr key={student.id}>
@@ -331,13 +331,15 @@ export const AttendanceView: React.FC = () => {
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img
-                            src={student.avatar}
+                            src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=0B3974&color=fff&bold=true`}
                             alt={student.name}
-                            style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=0B3974&color=fff&bold=true`;
+                            }}
+                            style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #cbd5e1' }}
                           />
                           <div>
                             <div style={{ fontWeight: 700, color: '#0f172a' }}>{student.name}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>ID: {student.id}</div>
                           </div>
                         </div>
                       </td>
@@ -403,14 +405,18 @@ export const AttendanceView: React.FC = () => {
           >
             <div className="bca-card" style={{ padding: '16px' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>TOTAL FACULTY</span>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>86</div>
-              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>6 Selected Cohort</span>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>{teacherList.length}</div>
+              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Loaded from database</span>
             </div>
 
             <div className="bca-card" style={{ padding: '16px' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>PRESENT TODAY</span>
               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669' }}>{teacherPresent}</div>
-              <span style={{ fontSize: '0.72rem', color: '#059669' }}>98.2% on duty</span>
+              <span style={{ fontSize: '0.72rem', color: '#059669' }}>
+                {teacherList.length > 0
+                  ? `${(((teacherPresent + teacherLate) / teacherList.length) * 100).toFixed(1)}% on duty`
+                  : '—'}
+              </span>
             </div>
 
             <div className="bca-card" style={{ padding: '16px' }}>
@@ -420,103 +426,82 @@ export const AttendanceView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '20px', marginBottom: '20px' }}>
-            {/* Teachers Table */}
-            <div className="bca-table-wrapper">
-              <table className="bca-table">
-                <thead>
-                  <tr>
-                    <th>Faculty Member</th>
-                    <th>Department</th>
-                    <th>Biometric In</th>
-                    <th style={{ textAlign: 'center' }}>Mark Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teacherList.map((teacher) => {
-                    const status = teacherAttendanceMap[teacher.id] || 'Present';
-                    return (
-                      <tr key={teacher.id}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <img
-                              src={teacher.avatar}
-                              alt={teacher.name}
-                              style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }}
-                            />
-                            <div>
-                              <div style={{ fontWeight: 700, color: '#0f172a' }}>{teacher.name}</div>
-                              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{teacher.empId}</div>
-                            </div>
+          {/* Teachers Table — full width */}
+          <div className="bca-table-wrapper">
+            <table className="bca-table">
+              <thead>
+                <tr>
+                  <th>Faculty Member</th>
+                  <th>Department</th>
+                  <th>Biometric In</th>
+                  <th style={{ textAlign: 'center' }}>Mark Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teacherList.map((teacher) => {
+                  const status = teacherAttendanceMap[teacher.id] || 'Present';
+                  return (
+                    <tr key={teacher.id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <img
+                            src={teacher.avatar}
+                            alt={teacher.name}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=0B3974&color=fff&bold=true`;
+                            }}
+                            style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #cbd5e1' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#0f172a' }}>{teacher.name}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{teacher.empId}</div>
                           </div>
-                        </td>
-                        <td>{teacher.department}</td>
-                        <td>
-                          <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#10b981', fontWeight: 600 }}>
-                            {status === 'Present' ? '07:28 AM' : '-'}
-                          </span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <div style={{ display: 'inline-flex', borderRadius: '8px', border: '1px solid #cbd5e1', overflow: 'hidden' }}>
-                            {['Present', 'Absent', 'Leave', 'Late'].map((opt) => {
-                              const isSelected = status === opt;
-                              return (
-                                <button
-                                  key={opt}
-                                  type="button"
-                                  onClick={() => handleTeacherStatusChange(teacher.id, opt)}
-                                  style={{
-                                    padding: '5px 10px',
-                                    fontSize: '0.76rem',
-                                    fontWeight: 600,
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    backgroundColor: isSelected
-                                      ? opt === 'Present'
-                                        ? '#10b981'
-                                        : opt === 'Absent'
-                                        ? '#f43f5e'
-                                        : opt === 'Leave'
-                                        ? '#64748b'
-                                        : '#f59e0b'
-                                      : '#ffffff',
-                                    color: isSelected ? '#ffffff' : '#475569'
-                                  }}
-                                >
-                                  {opt}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Monthly Trend Chart */}
-            <div className="bca-card" style={{ padding: '20px' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '6px' }}>
-                Faculty Monthly Attendance Trend
-              </h3>
-              <p style={{ fontSize: '0.76rem', color: '#64748b', marginBottom: '16px' }}>
-                Overall monthly average across 5 academic terms
-              </p>
-              <div style={{ height: '220px' }}>
-                <Line
-                  data={teacherMonthlyChart}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                      y: { min: 90, max: 100 }
-                    }
-                  }}
-                />
-              </div>
-            </div>
+                        </div>
+                      </td>
+                      <td>{teacher.department}</td>
+                      <td>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#10b981', fontWeight: 600 }}>
+                          {status === 'Present' ? '07:28 AM' : '-'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <div style={{ display: 'inline-flex', borderRadius: '8px', border: '1px solid #cbd5e1', overflow: 'hidden' }}>
+                          {['Present', 'Absent', 'Leave', 'Late'].map((opt) => {
+                            const isSelected = status === opt;
+                            return (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => handleTeacherStatusChange(teacher.id, opt)}
+                                style={{
+                                  padding: '5px 10px',
+                                  fontSize: '0.76rem',
+                                  fontWeight: 600,
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  backgroundColor: isSelected
+                                    ? opt === 'Present'
+                                      ? '#10b981'
+                                      : opt === 'Absent'
+                                      ? '#f43f5e'
+                                      : opt === 'Leave'
+                                      ? '#64748b'
+                                      : '#f59e0b'
+                                    : '#ffffff',
+                                  color: isSelected ? '#ffffff' : '#475569'
+                                }}
+                              >
+                                {opt}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </>
       )}

@@ -50,6 +50,7 @@ Click the **Authorize** button on the right and enter your Bearer token:
     { name: 'Homework', description: 'Homework assignments and student submissions' },
     { name: 'Fees & Accounts', description: 'Fee vouchers, fee collection & accounts ledger' },
     { name: 'CMS & Website', description: 'Notices, Blogs, Photo Gallery, Events, and Contact Inquiries' },
+    { name: 'Export & CSV Downloads', description: 'Export institutional data, student rosters, admissions, payroll, finance, and duty rosters in CSV & JSON' },
   ],
   paths: {
     // -------------------------------------------------------------
@@ -1076,6 +1077,124 @@ Click the **Authorize** button on the right and enter your Bearer token:
           },
         },
         responses: { 201: { description: 'Inquiry received' } },
+      },
+    },
+
+    // -------------------------------------------------------------
+    // EXPORT & CSV DOWNLOADS
+    // -------------------------------------------------------------
+    '/api/export/dashboard-summary': {
+      get: {
+        tags: ['Export & CSV Downloads'],
+        summary: 'Export Executive Dashboard Summary (CSV or JSON)',
+        description: 'Returns real-time campus summary with total students, classes, attendance rate, fee collections, recent admissions, and notices. Pass ?format=csv to download RFC-4180 CSV file directly.',
+        parameters: [
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'] }, description: 'Set to "csv" for direct file download, or omit for JSON' },
+        ],
+        responses: {
+          200: {
+            description: 'Executive dashboard summary data (JSON) or direct CSV attachment file',
+            content: {
+              'application/json': { schema: { type: 'object' } },
+              'text/csv': { schema: { type: 'string' } },
+            },
+          },
+        },
+      },
+    },
+    '/api/export/students': {
+      get: {
+        tags: ['Export & CSV Downloads'],
+        summary: 'Export Student Enrollment Roster (CSV or JSON)',
+        description: 'Exports full student roster with Roll No, full name, class, section, guardian details, contact, and fee status. Pass ?format=csv to download file.',
+        parameters: [
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'] }, description: 'Set to "csv" for direct file download, or omit for JSON' },
+        ],
+        responses: {
+          200: {
+            description: 'Student roster data (JSON) or direct CSV attachment file',
+            content: {
+              'application/json': { schema: { type: 'object' } },
+              'text/csv': { schema: { type: 'string' } },
+            },
+          },
+        },
+      },
+    },
+    '/api/export/admissions': {
+      get: {
+        tags: ['Export & CSV Downloads'],
+        summary: 'Export Admissions Registry Ledger (CSV or JSON)',
+        description: 'Exports candidates list, applied grades, parent contacts, submission dates, and application statuses. Pass ?format=csv to download file.',
+        parameters: [
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'] }, description: 'Set to "csv" for direct file download, or omit for JSON' },
+        ],
+        responses: {
+          200: {
+            description: 'Admissions registry data (JSON) or direct CSV attachment file',
+            content: {
+              'application/json': { schema: { type: 'object' } },
+              'text/csv': { schema: { type: 'string' } },
+            },
+          },
+        },
+      },
+    },
+    '/api/export/payroll': {
+      get: {
+        tags: ['Export & CSV Downloads'],
+        summary: 'Export Faculty & Staff Payroll Sheet (CSV or JSON)',
+        description: 'Exports employee IDs, names, departments, basic salaries, allowances, deductions, and net disbursements. Pass ?format=csv to download file.',
+        parameters: [
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'] }, description: 'Set to "csv" for direct file download, or omit for JSON' },
+        ],
+        responses: {
+          200: {
+            description: 'Faculty payroll sheet data (JSON) or direct CSV attachment file',
+            content: {
+              'application/json': { schema: { type: 'object' } },
+              'text/csv': { schema: { type: 'string' } },
+            },
+          },
+        },
+      },
+    },
+    '/api/export/finance': {
+      get: {
+        tags: ['Export & CSV Downloads'],
+        summary: 'Export Financial Report & Treasury Ledger (CSV or JSON)',
+        description: 'Exports income and expense transactions ledger, categories, and totals. Pass ?format=csv to download file.',
+        parameters: [
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'] }, description: 'Set to "csv" for direct file download, or omit for JSON' },
+        ],
+        responses: {
+          200: {
+            description: 'Financial ledger data (JSON) or direct CSV attachment file',
+            content: {
+              'application/json': { schema: { type: 'object' } },
+              'text/csv': { schema: { type: 'string' } },
+            },
+          },
+        },
+      },
+    },
+    '/api/export/duties': {
+      get: {
+        tags: ['Export & CSV Downloads'],
+        summary: 'Export Teacher Duty Roster (CSV or JSON)',
+        description: 'Exports supervisory shift allocations, assembly duties, recess, and gate supervision. Pass ?format=csv to download file.',
+        parameters: [
+          { name: 'format', in: 'query', schema: { type: 'string', enum: ['json', 'csv'] }, description: 'Set to "csv" for direct file download, or omit for JSON' },
+        ],
+        responses: {
+          200: {
+            description: 'Teacher duties roster data (JSON) or direct CSV attachment file',
+            content: {
+              'application/json': { schema: { type: 'object' } },
+              'text/csv': { schema: { type: 'string' } },
+            },
+          },
+        },
       },
     },
   },

@@ -17,6 +17,7 @@ import {
 import { useToast } from '../../common/Toast';
 import { ButtonSpinner } from '../../common/Spinner';
 import { authApi } from '../../../services/api';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../../utils/pkPhone';
 
 interface SignUpPageProps {
   onNavigate: (page: string) => void;
@@ -41,6 +42,11 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     e.preventDefault();
     if (!fullName || !email || !phone || !password) {
       showToast('Please complete all required fields', undefined, 'error');
+      return;
+    }
+
+    if (!isValidPKPhone(phone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
       return;
     }
 
@@ -306,19 +312,24 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                   <input
                     type="tel"
                     required
-                    placeholder="0300-1234567"
+                    placeholder="+92 300 1234567"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(handlePKPhoneInput(e.target.value))}
                     style={{
                       width: '100%',
                       padding: '10px 10px 10px 34px',
                       borderRadius: '8px',
-                      border: '1.5px solid #cbd5e1',
+                      border: `1.5px solid ${pkPhoneBorderColor(phone)}`,
                       fontSize: '0.84rem',
                       outline: 'none'
                     }}
                   />
                 </div>
+                {phone.length > 3 && !isValidPKPhone(phone) && (
+                  <div style={{ fontSize: '0.73rem', color: '#E62929', marginTop: '3px' }}>
+                    ⚠ Pakistani number required — e.g. +92 300 1234567
+                  </div>
+                )}
               </div>
             </div>
 
@@ -441,10 +452,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               }}
             >
               {isSubmitting ? (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <ButtonSpinner color="#ffffff" />
-                  <span>Registering Account...</span>
-                </div>
+                <ButtonSpinner color="#ffffff" />
               ) : (
                 <>
                   <UserPlus size={18} />

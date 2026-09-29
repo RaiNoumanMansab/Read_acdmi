@@ -18,6 +18,7 @@ import cmsRoutes from './routes/cmsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import careerRoutes from './routes/careerRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
+import exportRoutes from './routes/exportRoutes.js';
 
 dotenv.config();
 
@@ -103,6 +104,7 @@ app.use('/api/cms', cmsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/jobs', careerRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/export', exportRoutes);
 
 // Root redirect to docs
 app.get('/', (_req: Request, res: Response) => {

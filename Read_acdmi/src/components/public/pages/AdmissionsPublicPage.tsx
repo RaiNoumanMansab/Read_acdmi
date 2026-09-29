@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   CheckCircle,
   Download,
@@ -6,12 +6,15 @@ import {
   Upload,
   FileText,
   Paperclip,
-  Trash2
+  Trash2,
+  Camera,
+  User
 } from 'lucide-react';
 import { useToast } from '../../common/Toast';
 import { ScrollReveal } from '../../common/ScrollReveal';
 import { ButtonSpinner } from '../../common/Spinner';
 import { admissionsApi, academicsApi } from '../../../services/api';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../../utils/pkPhone';
 
 interface UploadedDoc {
   docType: string;
@@ -29,6 +32,8 @@ export const AdmissionsPublicPage: React.FC = () => {
   const [parentEmail, setParentEmail] = useState('');
   const [parentPhone, setParentPhone] = useState('');
   const [childName, setChildName] = useState('');
+  const [studentPhoto, setStudentPhoto] = useState<string>('');
+  const studentPhotoRef = useRef<HTMLInputElement>(null);
   const [gender, setGender] = useState<'Male' | 'Female'>('Male');
   const [dob, setDob] = useState('');
   const [homeAddress, setHomeAddress] = useState('');
@@ -58,6 +63,55 @@ export const AdmissionsPublicPage: React.FC = () => {
     );
   };
 
+  const handleStudentPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Invalid File Type', 'Please upload a valid image file (JPG, PNG, WEBP)', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File Too Large', 'Maximum photo size allowed is 5MB', 'error');
+      return;
+    }
+
+    const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setStudentPhoto(dataUrl);
+
+      setUploadedFiles((prev) => {
+        const filtered = prev.filter((f) => f.docType !== 'Passport Sized Photographs');
+        return [
+          ...filtered,
+          {
+            docType: 'Passport Sized Photographs',
+            fileName: file.name,
+            fileSize: sizeStr,
+            fileData: dataUrl,
+            fileType: file.type
+          }
+        ];
+      });
+
+      if (!selectedDocs.includes('Passport Sized Photographs')) {
+        setSelectedDocs((prev) => [...prev, 'Passport Sized Photographs']);
+      }
+      showToast('Profile Photo Attached', 'Student passport-size photograph attached successfully', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveStudentPhoto = () => {
+    setStudentPhoto('');
+    setUploadedFiles((prev) => prev.filter((f) => f.docType !== 'Passport Sized Photographs'));
+    if (studentPhotoRef.current) studentPhotoRef.current.value = '';
+    showToast('Photo Removed', 'Student photograph has been removed', 'info');
+  };
+
   const handleDocFileUpload = (docType: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -76,6 +130,10 @@ export const AdmissionsPublicPage: React.FC = () => {
         return [...filtered, { docType, fileName: file.name, fileSize: sizeStr, fileData: dataUrl, fileType: file.type }];
       });
 
+      if (docType === 'Passport Sized Photographs') {
+        setStudentPhoto(dataUrl);
+      }
+
       if (!selectedDocs.includes(docType)) {
         setSelectedDocs((prev) => [...prev, docType]);
       }
@@ -86,6 +144,10 @@ export const AdmissionsPublicPage: React.FC = () => {
 
   const handleRemoveUploadedDoc = (docType: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.docType !== docType));
+    if (docType === 'Passport Sized Photographs') {
+      setStudentPhoto('');
+      if (studentPhotoRef.current) studentPhotoRef.current.value = '';
+    }
   };
 
   useEffect(() => {
@@ -108,6 +170,10 @@ export const AdmissionsPublicPage: React.FC = () => {
     e.preventDefault();
     if (!parentName.trim() || !parentPhone.trim() || !childName.trim()) {
       showToast('Please provide parent name, phone, and candidate name', undefined, 'error');
+      return;
+    }
+    if (!isValidPKPhone(parentPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
       return;
     }
 
@@ -293,45 +359,68 @@ export const AdmissionsPublicPage: React.FC = () => {
           <ScrollReveal animation="left">
             <div>
               <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: '0 0 18px 0' }}>
-                Tuition Fee Structure (2026-2027)
+                Academy Fee Structure (2026-2027)
               </h2>
-              <div className="bca-table-wrapper" style={{ marginBottom: '28px' }}>
-                <table className="bca-table" style={{ fontSize: '0.84rem' }}>
+              <div className="bca-table-wrapper" style={{ marginBottom: '20px' }}>
+                <table className="bca-table" style={{ fontSize: '0.88rem' }}>
                   <thead>
                     <tr>
-                      <th>Academic Wing</th>
-                      <th>Monthly Tuition</th>
-                      <th>One-Time Admission</th>
+                      <th style={{ padding: '12px 16px' }}>Class</th>
+                      <th style={{ textAlign: 'right', padding: '12px 16px' }}>Monthly Fee</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><strong>College Wing (FA, FSC, ICS, I.Com & D.Com)</strong></td>
-                      <td><strong style={{ color: '#0B3974' }}>Rs. 18,000</strong></td>
-                      <td>Rs. 35,000</td>
+                      <td style={{ padding: '12px 16px' }}><strong>Nursery – Class 3</strong></td>
+                      <td style={{ textAlign: 'right', padding: '12px 16px' }}><strong style={{ color: '#0B3974', fontSize: '0.96rem' }}>Rs. 2,000</strong></td>
                     </tr>
                     <tr>
-                      <td><strong>Senior Wing (Matriculation - Grades 9 & 10)</strong></td>
-                      <td><strong style={{ color: '#0B3974' }}>Rs. 16,000</strong></td>
-                      <td>Rs. 30,000</td>
+                      <td style={{ padding: '12px 16px' }}><strong>Class 4 – 6</strong></td>
+                      <td style={{ textAlign: 'right', padding: '12px 16px' }}><strong style={{ color: '#0B3974', fontSize: '0.96rem' }}>Rs. 3,000</strong></td>
                     </tr>
                     <tr>
-                      <td><strong>Middle Wing (Grades 6-8)</strong></td>
-                      <td><strong style={{ color: '#0B3974' }}>Rs. 14,500</strong></td>
-                      <td>Rs. 28,000</td>
+                      <td style={{ padding: '12px 16px' }}><strong>Class 7 – 8</strong></td>
+                      <td style={{ textAlign: 'right', padding: '12px 16px' }}><strong style={{ color: '#0B3974', fontSize: '0.96rem' }}>Rs. 4,000</strong></td>
                     </tr>
                     <tr>
-                      <td><strong>Primary Wing (Grades 1-5)</strong></td>
-                      <td><strong style={{ color: '#0B3974' }}>Rs. 12,000</strong></td>
-                      <td>Rs. 25,000</td>
-                    </tr>
-                    <tr>
-                      <td><strong>Early Years (Nursery & KG)</strong></td>
-                      <td><strong style={{ color: '#0B3974' }}>Rs. 10,500</strong></td>
-                      <td>Rs. 20,000</td>
+                      <td style={{ padding: '12px 16px' }}><strong>Class 9 – 10</strong></td>
+                      <td style={{ textAlign: 'right', padding: '12px 16px' }}><strong style={{ color: '#0B3974', fontSize: '0.96rem' }}>Rs. 6,000</strong></td>
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              {/* Admission Fee */}
+              <div style={{ background: '#eef5fc', padding: '14px 20px', borderRadius: '10px', border: '1px solid #bfdbfe', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                <div>
+                  <div style={{ fontWeight: 800, color: '#0B3974', fontSize: '0.94rem' }}>
+                    📌 Admission Fee
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '2px' }}>
+                    One-time fee charged at the time of admission (all classes)
+                  </div>
+                </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0B3974', background: '#ffffff', padding: '6px 16px', borderRadius: '8px', border: '1px solid #93c5fd', whiteSpace: 'nowrap' }}>
+                  Rs. 1,000
+                </div>
+              </div>
+
+              {/* Paper Fee */}
+              <div style={{ background: '#eef5fc', padding: '14px 20px', borderRadius: '10px', border: '1px solid #bfdbfe', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                <div>
+                  <div style={{ fontWeight: 800, color: '#0B3974', fontSize: '0.94rem' }}>
+                    📄 Paper Fee
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '2px' }}>
+                    Monthly paper & examination fund (charged every month)
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0B3974', background: '#ffffff', padding: '6px 16px', borderRadius: '8px', border: '1px solid #93c5fd', whiteSpace: 'nowrap' }}>
+                    Rs. 1,000
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>per month</div>
+                </div>
               </div>
 
               <div style={{ background: '#eef5fc', padding: '16px', borderRadius: '10px', border: '1px solid #bfdbfe', marginBottom: '28px' }}>
@@ -379,6 +468,100 @@ export const AdmissionsPublicPage: React.FC = () => {
                 <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0B3974', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   1. Candidate / Student Information
                 </div>
+
+                {/* Student Photo Upload Card */}
+                <div style={{ background: '#ffffff', border: '1.5px dashed #cbd5e1', borderRadius: '10px', padding: '14px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  <input
+                    type="file"
+                    ref={studentPhotoRef}
+                    accept="image/png,image/jpeg,image/webp,image/jpg"
+                    onChange={handleStudentPhotoChange}
+                    style={{ display: 'none' }}
+                  />
+                  <div
+                    onClick={() => studentPhotoRef.current?.click()}
+                    style={{
+                      width: '74px',
+                      height: '88px',
+                      borderRadius: '8px',
+                      border: '2px solid #94a3b8',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#f1f5f9',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      position: 'relative'
+                    }}
+                    title="Click to select student photograph"
+                  >
+                    {studentPhoto ? (
+                      <img src={studentPhoto} alt="Student Photograph" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ textAlign: 'center', color: '#64748b' }}>
+                        <Camera size={26} style={{ margin: '0 auto', display: 'block', color: '#94a3b8' }} />
+                        <span style={{ fontSize: '0.65rem', fontWeight: 700, display: 'block', marginTop: '4px' }}>PHOTO</span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: '220px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                      <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                        Student Profile Picture / Passport-Size Photo
+                      </label>
+                      <span style={{ fontSize: '0.7rem', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '1px 6px', borderRadius: '10px', fontWeight: 600 }}>
+                        {studentPhoto ? 'Photo Attached' : 'Recommended'}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.74rem', color: '#64748b', margin: '0 0 8px 0' }}>
+                      Please provide a clear front-facing passport-size photo of the candidate (JPG, PNG, WEBP, max 5MB).
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => studentPhotoRef.current?.click()}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 12px',
+                          background: '#0B3974',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Upload size={13} /> {studentPhoto ? 'Change Photo' : 'Upload Student Photo'}
+                      </button>
+                      {studentPhoto && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveStudentPhoto}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '6px 10px',
+                            background: '#fff',
+                            color: '#dc2626',
+                            border: '1px solid #fca5a5',
+                            borderRadius: '6px',
+                            fontSize: '0.76rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Trash2 size={12} /> Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
@@ -490,9 +673,14 @@ export const AdmissionsPublicPage: React.FC = () => {
                       required
                       placeholder="+92 300 1234567"
                       value={parentPhone}
-                      onChange={(e) => setParentPhone(e.target.value)}
-                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                      onChange={(e) => setParentPhone(handlePKPhoneInput(e.target.value))}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(parentPhone)}` }}
                     />
+                    {parentPhone.length > 3 && !isValidPKPhone(parentPhone) && (
+                      <div style={{ fontSize: '0.74rem', color: '#E62929', marginTop: '3px' }}>
+                        ⚠ Pakistani number required — e.g. +92 300 1234567
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -735,13 +923,10 @@ export const AdmissionsPublicPage: React.FC = () => {
                 type="submit"
                 disabled={isSubmitting}
                 className="bca-btn bca-btn-gold"
-                style={{ padding: '12px', justifyContent: 'center', fontSize: '0.95rem', marginTop: '6px' }}
+                style={{ padding: '12px', minHeight: '44px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem', marginTop: '6px' }}
               >
                 {isSubmitting ? (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                    <ButtonSpinner color="#0B3974" />
-                    <span>Registering to Database...</span>
-                  </div>
+                  <ButtonSpinner color="#0B3974" />
                 ) : (
                   <>
                     <Send size={16} />

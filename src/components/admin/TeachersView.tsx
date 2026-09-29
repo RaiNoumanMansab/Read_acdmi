@@ -15,9 +15,11 @@ import {
 import type { Teacher } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { LoadingState, TableLoadingRow } from '../common/Spinner';
 import { teachersApi } from '../../services/api';
 import { WhatsAppButton } from '../common/WhatsAppButton';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../utils/pkPhone';
 
 const mapBackendTeacher = (t: any): Teacher => ({
   id: t.id || t.empId,
@@ -104,6 +106,10 @@ export const TeachersView: React.FC = () => {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTeacher) return;
+    if (editPhone && !isValidPKPhone(editPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
+      return;
+    }
     try {
       await teachersApi.updateTeacher(editingTeacher.id, {
         fullName: editName,
@@ -138,9 +144,14 @@ export const TeachersView: React.FC = () => {
   };
 
   const handleDeleteTeacher = async (teacher: Teacher) => {
-    if (!window.confirm(`Are you sure you want to delete faculty member "${teacher.name}" (${teacher.empId})?`)) {
-      return;
-    }
+    const confirmed = await showConfirmModal({
+      title: 'Delete Faculty Member',
+      message: `Are you sure you want to delete faculty member "${teacher.name}" (${teacher.empId})?`,
+      subtitle: 'This will remove the teacher from timetable duties and academic records.',
+      confirmText: 'Delete Faculty',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await teachersApi.deleteTeacher(teacher.id);
       setTeachers((prev) => prev.filter((t) => t.id !== teacher.id));
@@ -166,6 +177,10 @@ export const TeachersView: React.FC = () => {
     e.preventDefault();
     if (!newName) {
       showToast('Please enter faculty name', undefined, 'error');
+      return;
+    }
+    if (newPhone && !isValidPKPhone(newPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
       return;
     }
     try {
@@ -700,13 +715,16 @@ export const TeachersView: React.FC = () => {
               Contact Phone *
             </label>
             <input
-              type="text"
+              type="tel"
               required
               placeholder="+92 300 1234567"
               value={newPhone}
-              onChange={(e) => setNewPhone(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              onChange={(e) => setNewPhone(handlePKPhoneInput(e.target.value))}
+              style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(newPhone)}` }}
             />
+            {newPhone.length > 3 && !isValidPKPhone(newPhone) && (
+              <div style={{ fontSize: '0.72rem', color: '#E62929', marginTop: '3px' }}>⚠ Pakistani number required — e.g. +92 300 1234567</div>
+            )}
           </div>
         </form>
       </Modal>
@@ -809,12 +827,16 @@ export const TeachersView: React.FC = () => {
                   Contact Phone *
                 </label>
                 <input
-                  type="text"
+                  type="tel"
                   required
+                  placeholder="+92 300 1234567"
                   value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                  onChange={(e) => setEditPhone(handlePKPhoneInput(e.target.value))}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(editPhone)}` }}
                 />
+                {editPhone.length > 3 && !isValidPKPhone(editPhone) && (
+                  <div style={{ fontSize: '0.72rem', color: '#E62929', marginTop: '3px' }}>⚠ Pakistani number required — e.g. +92 300 1234567</div>
+                )}
               </div>
 
               <div>

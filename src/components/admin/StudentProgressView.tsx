@@ -19,6 +19,7 @@ import { Line, Radar, Bar } from 'react-chartjs-2';
 import { useToast } from '../common/Toast';
 import { studentsApi } from '../../services/api';
 import { LoadingState } from '../common/Spinner';
+import { exportStudentProgressDossier } from '../../utils/exportUtils';
 
 ChartJS.register(...registerables);
 
@@ -126,7 +127,18 @@ export const StudentProgressView: React.FC = () => {
         </div>
 
         <button
-          onClick={() => showToast(`Progress dossier downloaded for ${selectedStudent?.name || 'Student'}`, undefined, 'info')}
+          onClick={() => {
+            if (!selectedStudent) {
+              showToast('No student selected', 'Select a student to export progress dossier.', 'warning');
+              return;
+            }
+            try {
+              exportStudentProgressDossier(selectedStudent);
+              showToast('Progress Dossier Exported', `Generated growth analytics dossier for ${selectedStudent.name}`, 'success');
+            } catch (err: any) {
+              showToast('Export Failed', err.message || 'Error exporting dossier', 'error');
+            }
+          }}
           className="bca-btn bca-btn-secondary"
         >
           <Download size={16} />

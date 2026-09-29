@@ -10,8 +10,11 @@ import {
   Sparkles,
   Star,
   Users,
-  Quote
+  Quote,
+  CheckCircle,
+  RotateCw
 } from 'lucide-react';
+import { FlipCard } from '../../common/FlipCard';
 import { SCHOOL_INFO } from '../../../constants/schoolConfig';
 import type { Testimonial } from '../../../constants/schoolConfig';
 import { cmsApi, settingsApi } from '../../../services/api';
@@ -500,78 +503,172 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
               {
                 icon: BookOpen,
                 title: 'Matriculation & SSC Science Track',
-                desc: 'Comprehensive preparation for BISE Sahiwal Board Matriculation (Grades 9 & 10) with fully equipped modern science and IT laboratories.'
+                desc: 'Comprehensive preparation for BISE Sahiwal Board Matriculation (Grades 9 & 10) with fully equipped modern science and IT laboratories.',
+                features: [
+                  'BISE Sahiwal syllabus & model papers',
+                  'Individual past paper drills & mocks',
+                  'Fully equipped physics, chemistry, bio labs',
+                  'Dedicated board exam faculty specialists'
+                ]
               },
               {
                 icon: Sparkles,
                 title: 'Robotics & STEM Innovation Lab',
-                desc: 'Dedicated state-of-the-art incubation spaces equipped with 3D printers, IoT kits, coding workshops, and AI curriculum.'
+                desc: 'Dedicated state-of-the-art incubation spaces equipped with 3D printers, IoT kits, coding workshops, and AI curriculum.',
+                features: [
+                  'Python, Scratch & Arduino coding modules',
+                  '3D printing & hardware prototyping',
+                  'National STEM Olympiad competition teams',
+                  'Hands-on experimental kits for all grades'
+                ]
               },
               {
                 icon: Compass,
                 title: 'Holistic Character Mentorship',
-                desc: 'Our bespoke pastoral mentorship program pairs every student with an academic tutor focusing on integrity, empathy, and resilience.'
+                desc: 'Our bespoke pastoral mentorship program pairs every student with an academic tutor focusing on integrity, empathy, and resilience.',
+                features: [
+                  'One-on-one student mentor allocation',
+                  'Islamic ethics & civic empathy workshops',
+                  'Debate, calligraphy & leadership clubs',
+                  'Regular emotional wellbeing check-ins'
+                ]
               },
               {
                 icon: Award,
                 title: 'Olympic-Standard Sports Complex',
-                desc: 'Semi-Olympic swimming pool, all-weather synthetic football pitch, tennis courts, and certified physical coaches.'
+                desc: 'Semi-Olympic swimming pool, all-weather synthetic football pitch, tennis courts, and certified physical coaches.',
+                features: [
+                  'Semi-Olympic regulated swimming pool',
+                  'All-weather synthetic football ground',
+                  'Certified physical education trainers',
+                  'Annual district championships & trophies'
+                ]
               },
               {
                 icon: Users,
                 title: 'Active Parent-Teacher Alliance',
-                desc: 'Real-time parent portal with instant attendance alerts, weekly grades, homework trackers, and bi-monthly symposiums.'
+                desc: 'Real-time parent portal with instant attendance alerts, weekly grades, homework trackers, and bi-monthly symposiums.',
+                features: [
+                  'Real-time attendance & homework alerts',
+                  'Parent portal mobile & web access',
+                  'Bi-monthly academic progress symposiums',
+                  'Direct teacher messaging & inquiries'
+                ]
               },
               {
                 icon: Shield,
                 title: 'Zero-Tolerance Safety Protocol',
-                desc: '24/7 CCTV-monitored campus, strict biometric gate access, trained on-site medical staff, and comprehensive child-safeguarding policies.'
+                desc: '24/7 CCTV-monitored campus, strict biometric gate access, trained on-site medical staff, and comprehensive child-safeguarding policies.',
+                features: [
+                  '24/7 HD CCTV security surveillance',
+                  'Biometric turnstile gate access control',
+                  'On-site first aid & medical clinic staff',
+                  'Comprehensive child safeguarding protocols'
+                ]
               }
             ].map((v, idx) => {
               const Icon = v.icon;
               return (
-                <div
+                <FlipCard
                   key={idx}
-                  className="bca-card"
-                  style={{
-                    padding: '28px',
-                    borderRadius: '16px',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    cursor: 'default',
-                    borderTop: '3px solid #E62929'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 16px 30px rgba(230, 41, 41, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'var(--bca-shadow-sm)';
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '50px',
-                      height: '50px',
-                      borderRadius: '12px',
-                      backgroundColor: '#feecec',
-                      color: '#E62929',
-                      border: '1px solid #fecaca',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: '18px'
-                    }}
-                  >
-                    <Icon size={24} color="#E62929" />
-                  </div>
-                  <h3 style={{ fontSize: '1.18rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
-                    {v.title}
-                  </h3>
-                  <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                    {v.desc}
-                  </p>
-                </div>
+                  minHeight="320px"
+                  front={
+                    <div
+                      style={{
+                        padding: '26px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        height: '100%',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '12px',
+                            backgroundColor: '#feecec',
+                            color: '#E62929',
+                            border: '1px solid #fecaca',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '16px'
+                          }}
+                        >
+                          <Icon size={24} color="#E62929" />
+                        </div>
+                        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '0 0 8px 0', color: '#0f172a' }}>
+                          {v.title}
+                        </h3>
+                        <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                          {v.desc}
+                        </p>
+                      </div>
+
+                      <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span className="bca-flip-hint-badge">
+                          <RotateCw size={12} /> Hover to Flip
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: '#0B3974', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          Highlights <ArrowRight size={13} />
+                        </span>
+                      </div>
+                    </div>
+                  }
+                  back={
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '10px', marginBottom: '12px' }}>
+                          <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                            {v.title}
+                          </h4>
+                          <span style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '3px 8px', borderRadius: '6px', fontSize: '0.7rem', color: '#FFD700', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <RotateCw size={11} /> Features
+                          </span>
+                        </div>
+
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {v.features.map((feat, fIdx) => (
+                            <li key={fIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.4 }}>
+                              <CheckCircle size={14} color="#FFD700" style={{ flexShrink: 0, marginTop: '2px' }} />
+                              <span>{feat}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div style={{ paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate('about');
+                          }}
+                          style={{
+                            width: '100%',
+                            backgroundColor: '#E62929',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '9px 14px',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            boxShadow: '0 4px 12px rgba(230, 41, 41, 0.4)'
+                          }}
+                        >
+                          Explore Institutional Standards <ArrowRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  }
+                />
               );
             })}
           </div>
@@ -609,95 +706,160 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onOpenApply }) =
                 age: 'Ages 3 – 5 Years',
                 desc: 'Montessori-inspired active exploration nurturing motor coordination, linguistic fluency, and emotional empathy.',
                 image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600&auto=format&fit=crop&q=80',
-                badge: 'Play-Based Inquiry'
+                badge: 'Play-Based Inquiry',
+                features: [
+                  'Montessori sensory apparatus & hands-on toys',
+                  'Phonics, bilingual vocabulary & speech care',
+                  'Creative arts, music & motor coordination',
+                  'Safe, hygienic & nurturing play environments'
+                ]
               },
               {
                 title: 'Primary School (Grades 1 – 5)',
                 age: 'Ages 6 – 10 Years',
                 desc: 'Foundational literacy, conceptual mathematics, nature science, and artistic expression through thematic learning.',
                 image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=600&auto=format&fit=crop&q=80',
-                badge: 'Foundational Mastery'
+                badge: 'Foundational Mastery',
+                features: [
+                  'Interactive STEM & Mathematics learning lab',
+                  'High English & Urdu linguistic precision',
+                  'Islamic values, ethics & character mentorship',
+                  'Activity-based lessons with regular progress tracking'
+                ]
               },
               {
                 title: 'Middle School (Grades 6 – 8)',
                 age: 'Ages 11 – 13 Years',
                 desc: 'Transitional phase emphasizing scientific inquiry, analytical debate, coding fundamentals, and inter-school sports.',
                 image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&auto=format&fit=crop&q=80',
-                badge: 'Analytical Discovery'
+                badge: 'Analytical Discovery',
+                features: [
+                  'Dedicated physics, chemistry & biology labs',
+                  'Robotics, IT & computer science foundations',
+                  'Parliamentary debating society & speech training',
+                  'Inter-school sports tournaments & leadership'
+                ]
               },
               {
                 title: 'Senior School (Matriculation - Grades 9 & 10)',
                 age: 'Ages 14 – 16 Years',
                 desc: 'Specialized Matriculation (SSC-I & SSC-II) Science pathways preparing scholars for board distinctions and high academic achievement.',
                 image: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=600&auto=format&fit=crop&q=80',
-                badge: 'Matric Excellence'
+                badge: 'Matric Excellence',
+                features: [
+                  'Full BISE Sahiwal board syllabus coverage',
+                  'Comprehensive mock test series & past paper drill',
+                  'Fully equipped science experiment laboratories',
+                  'Individual faculty mentoring for top position candidates'
+                ]
               },
               {
                 title: 'College (FA, FSC, ICS, I.Com & D.Com)',
                 age: 'Ages 16 – 18+ Years',
                 desc: 'FSc Pre-Medical, FSc Pre-Engineering, ICS, I.Com, FA, and D.Com professional programs for higher board success.',
                 image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=80',
-                badge: 'College Programs'
+                badge: 'College Programs',
+                features: [
+                  'FSc Pre-Medical & Pre-Engineering disciplines',
+                  'ICS Computer Science with high-speed labs',
+                  'I.Com & D.Com commerce & business streams',
+                  'MDCAT / ECAT & university entry-test mentorship'
+                ]
               }
             ].map((prog, idx) => (
               <Reveal key={idx} delay={idx * 100}>
-                <div
-                  className="bca-card card-interactive-lift"
-                  style={{
-                    overflow: 'hidden',
-                    borderRadius: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    height: '100%'
-                  }}
-                >
-                  <div>
-                    <div style={{ height: 'clamp(150px, 35vw, 180px)', overflow: 'hidden', position: 'relative' }}>
-                      <img
-                        src={prog.image}
-                        alt={prog.title}
-                        className="scale-hover-img"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: '12px',
-                          left: '12px',
-                          backgroundColor: '#0B3974',
-                          color: '#ffffff',
-                          border: '1px solid #FFD700',
-                          padding: '3px 10px',
-                          borderRadius: '20px',
-                          fontSize: '0.72rem',
-                          fontWeight: 700
-                        }}
-                      >
-                        {prog.badge}
-                      </span>
-                    </div>
+                <FlipCard
+                  minHeight="440px"
+                  front={
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                      <div>
+                        <div style={{ height: 'clamp(150px, 35vw, 180px)', overflow: 'hidden', position: 'relative' }}>
+                          <img
+                            src={prog.image}
+                            alt={prog.title}
+                            className="scale-hover-img"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '12px',
+                              left: '12px',
+                              backgroundColor: '#0B3974',
+                              color: '#ffffff',
+                              border: '1px solid #FFD700',
+                              padding: '3px 10px',
+                              borderRadius: '20px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700
+                            }}
+                          >
+                            {prog.badge}
+                          </span>
+                        </div>
 
-                    <div style={{ padding: 'clamp(16px, 3.5vw, 22px)' }}>
-                      <span style={{ fontSize: '0.76rem', color: '#0B3974', fontWeight: 800 }}>{prog.age}</span>
-                      <h3 style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.15rem)', fontWeight: 500, margin: '4px 0 10px 0', color: '#0f172a' }}>
-                        {prog.title}
-                      </h3>
-                      <p style={{ fontSize: 'clamp(0.82rem, 2vw, 0.86rem)', color: '#475569', lineHeight: 1.6, margin: 0 }}>
-                        {prog.desc}
-                      </p>
-                    </div>
-                  </div>
+                        <div style={{ padding: 'clamp(16px, 3.5vw, 22px)' }}>
+                          <span style={{ fontSize: '0.76rem', color: '#0B3974', fontWeight: 800 }}>{prog.age}</span>
+                          <h3 style={{ fontSize: 'clamp(1.05rem, 2.5vw, 1.15rem)', fontWeight: 500, margin: '4px 0 10px 0', color: '#0f172a' }}>
+                            {prog.title}
+                          </h3>
+                          <p style={{ fontSize: 'clamp(0.82rem, 2vw, 0.86rem)', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                            {prog.desc}
+                          </p>
+                        </div>
+                      </div>
 
-                  <div style={{ padding: '12px clamp(16px, 3.5vw, 22px)', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      onClick={() => onNavigate('academics')}
-                      style={{ background: 'none', border: 'none', color: '#0B3974', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      Curriculum Details <ArrowRight size={14} />
-                    </button>
-                  </div>
-                </div>
+                      <div style={{ padding: '12px clamp(16px, 3.5vw, 22px)', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span className="bca-flip-hint-badge">
+                          <RotateCw size={12} /> Hover to Flip
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onNavigate('academics');
+                          }}
+                          style={{ background: 'none', border: 'none', color: '#0B3974', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          Curriculum Details <ArrowRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  }
+                  back={
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '12px' }}>
+                          <div>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                              {prog.badge}
+                            </span>
+                            <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', margin: '4px 0 2px 0' }}>
+                              {prog.title}
+                            </h4>
+                            <span style={{ fontSize: '0.76rem', color: '#93c5fd' }}>{prog.age}</span>
+                          </div>
+                          <span style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.72rem', color: '#FFD700', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <RotateCw size={12} /> Details
+                          </span>
+                        </div>
+
+                        <div>
+                          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '10px' }}>
+                            Key Offerings & Highlights
+                          </span>
+                          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {prog.features.map((feat, fIdx) => (
+                              <li key={fIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '0.85rem', color: '#e2e8f0', lineHeight: 1.45 }}>
+                                <CheckCircle size={15} color="#FFD700" style={{ flexShrink: 0, marginTop: '2px' }} />
+                                <span>{feat}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                />
               </Reveal>
             ))}
           </div>

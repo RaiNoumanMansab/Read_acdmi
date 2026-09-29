@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   User,
@@ -11,10 +11,14 @@ import {
   Save,
   CheckCircle,
   KeyRound,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../common/Toast';
+import { ButtonSpinner } from '../common/Spinner';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../utils/pkPhone';
 
 interface AdminProfileModalProps {
   isOpen: boolean;
@@ -26,6 +30,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
   const { showToast } = useToast();
 
   const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [designation, setDesignation] = useState('');
@@ -39,12 +44,39 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'security'>('details');
+  const [imgError, setImgError] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Invalid File Type', 'Please select an image file (PNG, JPG, JPEG, WEBP)', 'error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File Too Large', 'Please select a profile picture under 5 MB', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setAvatarUrl(result);
+        setImgError(false);
+        showToast('Profile Photo Selected', 'Click "Save Changes" to apply your profile photo', 'success');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     if (user && isOpen) {
       setFullName(user.fullName || '');
+      setEmail(user.email || '');
       setPhone(user.phone || '');
       setAvatarUrl(user.avatarUrl || '');
+      setImgError(false);
       setDesignation(user.admin?.designation || '');
       setDepartment(user.admin?.department || '');
       setEmergencyContact(user.admin?.emergencyContact || '');
@@ -61,6 +93,21 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
 
     if (!fullName.trim()) {
       showToast('Validation Error', 'Full Name is required', 'error');
+      return;
+    }
+
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email.trim())) {
+      showToast('Validation Error', 'A valid email address is required', 'error');
+      return;
+    }
+
+    if (phone && !isValidPKPhone(phone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
+      return;
+    }
+
+    if (emergencyContact && !isValidPKPhone(emergencyContact)) {
+      showToast('Invalid Emergency Contact', 'Please enter a valid Pakistani mobile number for emergency contact (e.g. +92 300 1234567)', 'error');
       return;
     }
 
@@ -86,6 +133,7 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
     try {
       const payload: any = {
         fullName: fullName.trim(),
+        email: email.trim().toLowerCase(),
         phone: phone.trim(),
         avatarUrl: avatarUrl.trim(),
         designation: designation.trim(),
@@ -328,44 +376,19 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
                   </div>
                 </div>
 
-                {/* Email (Read-Only) */}
+                {/* Email Address (Editable) */}
                 <div>
                   <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Email Address (Account Identifier)
+                    Email Address <span style={{ color: '#E62929' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                     <input
                       type="email"
-                      value={user?.email || ''}
-                      disabled
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px 9px 36px',
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#f8fafc',
-                        borderRadius: '8px',
-                        fontSize: '0.9rem',
-                        color: '#64748b',
-                        boxSizing: 'border-box',
-                        cursor: 'not-allowed'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Phone */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Phone Number
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <Phone size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                    <input
-                      type="text"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+92 300 1234567"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="admin@readacademy.edu.pk"
                       style={{
                         width: '100%',
                         padding: '9px 12px 9px 36px',
@@ -377,6 +400,37 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
                       }}
                     />
                   </div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px' }}>
+                    Institutional login &amp; notification email address
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Phone Number
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Phone size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(handlePKPhoneInput(e.target.value))}
+                      placeholder="+92 300 1234567"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px 9px 36px',
+                        border: `1.5px solid ${pkPhoneBorderColor(phone)}`,
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                  {phone.length > 3 && !isValidPKPhone(phone) && (
+                    <div style={{ fontSize: '0.72rem', color: '#E62929', marginTop: '3px' }}>⚠ Pakistani number required — e.g. +92 300 1234567</div>
+                  )}
                 </div>
 
                 {/* Designation */}
@@ -435,42 +489,99 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
                     Emergency Contact
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     value={emergencyContact}
-                    onChange={(e) => setEmergencyContact(e.target.value)}
+                    onChange={(e) => setEmergencyContact(handlePKPhoneInput(e.target.value))}
                     placeholder="+92 321 9876543"
                     style={{
                       width: '100%',
                       padding: '9px 12px',
-                      border: '1px solid #cbd5e1',
+                      border: emergencyContact.length > 3 && !isValidPKPhone(emergencyContact) ? '1.5px solid #E62929' : '1px solid #cbd5e1',
                       borderRadius: '8px',
                       fontSize: '0.9rem',
                       outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
+                  {emergencyContact.length > 3 && !isValidPKPhone(emergencyContact) && (
+                    <div style={{ fontSize: '0.72rem', color: '#E62929', marginTop: '3px' }}>⚠ Pakistani number required — e.g. +92 321 9876543</div>
+                  )}
                 </div>
 
-                {/* Avatar URL */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Avatar Image URL
-                  </label>
+                {/* Profile Picture Upload */}
+                <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                   <input
-                    type="text"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://example.com/avatar.jpg"
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      fontSize: '0.9rem',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoFileChange}
+                    accept="image/png,image/jpeg,image/webp,image/jpg"
+                    style={{ display: 'none' }}
                   />
+                  <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
+                    Profile Picture / Avatar Photo
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                    <img
+                      src={(!imgError && avatarUrl) ? avatarUrl : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
+                      alt="Profile Preview"
+                      onError={() => setImgError(true)}
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid #cbd5e1',
+                        backgroundColor: '#e2e8f0'
+                      }}
+                    />
+                    <div style={{ flex: 1, minWidth: '200px' }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '7px 12px',
+                            background: '#2563eb',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Upload size={14} /> Upload Photo
+                        </button>
+                        {avatarUrl && (
+                          <button
+                            type="button"
+                            onClick={() => { setAvatarUrl(''); setImgError(false); }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '7px 10px',
+                              background: '#fff',
+                              color: '#dc2626',
+                              border: '1px solid #fca5a5',
+                              borderRadius: '6px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <Trash2 size={13} /> Remove
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '4px' }}>
+                        JPG, PNG, WEBP (Max 5 MB). Click "Save Changes" to apply.
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -614,13 +725,21 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({ isOpen, on
                 fontWeight: 600,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 opacity: isSubmitting ? 0.7 : 1,
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '135px',
                 gap: '8px'
               }}
             >
-              <Save size={16} />
-              <span>{isSubmitting ? 'Saving...' : 'Save Changes'}</span>
+              {isSubmitting ? (
+                <ButtonSpinner color="white" />
+              ) : (
+                <>
+                  <Save size={16} />
+                  <span>Save Changes</span>
+                </>
+              )}
             </button>
           </div>
         </form>

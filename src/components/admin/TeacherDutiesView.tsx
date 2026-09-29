@@ -11,8 +11,10 @@ import {
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
+import { showConfirmModal } from '../common/ConfirmModal';
 import { TableLoadingRow } from '../common/Spinner';
 import { teachersApi } from '../../services/api';
+import { exportTeacherDutiesRoster } from '../../utils/exportUtils';
 
 export interface DutyRosterShift {
   id: string;
@@ -146,7 +148,13 @@ export const TeacherDutiesView: React.FC = () => {
   };
 
   const handleDeleteDuty = async (id: string, type: string, teacher: string) => {
-    if (!window.confirm(`Are you sure you want to delete ${type} for ${teacher}?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Faculty Duty',
+      message: `Are you sure you want to delete ${type} for ${teacher}?`,
+      confirmText: 'Delete Duty',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await teachersApi.deleteDuty(id);
     } catch (err) {
@@ -200,7 +208,18 @@ export const TeacherDutiesView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '10px' }}>
           <button
-            onClick={() => showToast('Exporting Weekly Duty Roster (PDF)', undefined, 'info')}
+            onClick={() => {
+              if (filtered.length === 0) {
+                showToast('No duty shifts to export', undefined, 'warning');
+                return;
+              }
+              try {
+                exportTeacherDutiesRoster(filtered);
+                showToast('Duty Roster Exported', `Generated printable roster for ${filtered.length} shift allocations`, 'success');
+              } catch (err: any) {
+                showToast('Export Failed', err.message || 'Error generating duty roster', 'error');
+              }
+            }}
             className="bca-btn bca-btn-secondary"
           >
             <Download size={16} />

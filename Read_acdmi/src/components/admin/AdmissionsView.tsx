@@ -21,14 +21,19 @@ import {
   Image as ImageIcon,
   Paperclip,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Camera,
+  User
 } from 'lucide-react';
 import type { AdmissionApplication, AttachedDocument } from '../../types';
 import { Modal } from '../common/Modal';
 import { useToast } from '../common/Toast';
-import { TableLoadingRow } from '../common/Spinner';
+import { showConfirmModal } from '../common/ConfirmModal';
+import { TableLoadingRow, ButtonSpinner } from '../common/Spinner';
 import { admissionsApi, academicsApi } from '../../services/api';
 import { WhatsAppButton } from '../common/WhatsAppButton';
+import { exportAdmissionsCsv } from '../../utils/exportUtils';
+import { isValidPKPhone, handlePKPhoneInput, pkPhoneBorderColor } from '../../utils/pkPhone';
 
 export const ALL_CLASSES = [
   'Playgroup',
@@ -80,6 +85,24 @@ export const AdmissionsView: React.FC = () => {
   const [selectedApp, setSelectedApp] = useState<AdmissionApplication | null>(null);
   const [showNewFormModal, setShowNewFormModal] = useState(false);
 
+  // Edit Admission Application State
+  const [editingApp, setEditingApp] = useState<AdmissionApplication | null>(null);
+  const [showEditAppModal, setShowEditAppModal] = useState(false);
+  const [editStudentName, setEditStudentName] = useState('');
+  const [editAppliedClass, setEditAppliedClass] = useState('Grade 9');
+  const [editStatus, setEditStatus] = useState<AdmissionApplication['status']>('Pending');
+  const [editGender, setEditGender] = useState('Male');
+  const [editDob, setEditDob] = useState('2011-06-15');
+  const [editParentName, setEditParentName] = useState('');
+  const [editParentPhone, setEditParentPhone] = useState('');
+  const [editParentEmail, setEditParentEmail] = useState('');
+  const [editPreviousSchool, setEditPreviousSchool] = useState('');
+  const [editPreviousPercentage, setEditPreviousPercentage] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editDocs, setEditDocs] = useState<(string | AttachedDocument)[]>([]);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
   // Approval with custom fee voucher setup modal
   const [approvalModalApp, setApprovalModalApp] = useState<AdmissionApplication | null>(null);
   const [tuitionFee, setTuitionFee] = useState<number>(8500);
@@ -92,6 +115,7 @@ export const AdmissionsView: React.FC = () => {
   );
   const [adminNotes, setAdminNotes] = useState<string>('Approved based on entrance interview and academic merits.');
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
+  const [isSubmittingApp, setIsSubmittingApp] = useState(false);
 
   // Load admissions and classes from backend API
   useEffect(() => {
@@ -151,6 +175,11 @@ export const AdmissionsView: React.FC = () => {
   const [newAddress, setNewAddress] = useState('Sahiwal, Punjab');
 
   // Real-time Document Upload States
+  const [newStudentPhoto, setNewStudentPhoto] = useState('');
+  const newStudentPhotoRef = useRef<HTMLInputElement | null>(null);
+  const [editStudentPhoto, setEditStudentPhoto] = useState('');
+  const editStudentPhotoRef = useRef<HTMLInputElement | null>(null);
+
   const [uploadedDocs, setUploadedDocs] = useState<{
     id: string;
     name: string;
@@ -171,6 +200,98 @@ export const AdmissionsView: React.FC = () => {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleNewStudentPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Invalid File Type', 'Please upload a valid image file (JPG, PNG, WEBP)', 'error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File Too Large', 'Maximum photo size allowed is 5MB', 'error');
+      return;
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setNewStudentPhoto(dataUrl);
+      const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+      setUploadedDocs((prev) => {
+        const filtered = prev.filter((d) => d.docType !== 'Passport Size Photograph');
+        return [
+          ...filtered,
+          {
+            id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            name: file.name,
+            docType: 'Passport Size Photograph',
+            fileSize: sizeStr,
+            fileType: file.type,
+            dataUrl,
+            uploadedAt: new Date().toISOString()
+          }
+        ];
+      });
+      showToast('Candidate Photo Attached', 'Passport-size photo attached successfully', 'success');
+    } catch {
+      showToast('Upload Failed', 'Failed to read photo file', 'error');
+    }
+  };
+
+  const handleRemoveNewStudentPhoto = () => {
+    setNewStudentPhoto('');
+    setUploadedDocs((prev) => prev.filter((d) => d.docType !== 'Passport Size Photograph'));
+    if (newStudentPhotoRef.current) newStudentPhotoRef.current.value = '';
+    showToast('Photo Removed', 'Candidate photo removed', 'info');
+  };
+
+  const handleEditStudentPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Invalid File Type', 'Please upload a valid image file (JPG, PNG, WEBP)', 'error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File Too Large', 'Maximum photo size allowed is 5MB', 'error');
+      return;
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setEditStudentPhoto(dataUrl);
+      const sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+      setEditDocs((prev) => {
+        const filtered = prev.filter((d: any) => {
+          if (typeof d === 'string') return true;
+          return d.docType !== 'Passport Size Photograph' && !/photo/i.test(d.name || '');
+        });
+        return [
+          ...filtered,
+          {
+            id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            name: file.name,
+            docType: 'Passport Size Photograph',
+            fileSize: sizeStr,
+            fileType: file.type,
+            dataUrl,
+            uploadedAt: new Date().toISOString()
+          }
+        ];
+      });
+      showToast('Photo Updated', 'Candidate photo updated in application dossier', 'success');
+    } catch {
+      showToast('Upload Failed', 'Failed to read photo file', 'error');
+    }
+  };
+
+  const handleRemoveEditStudentPhoto = () => {
+    setEditStudentPhoto('');
+    setEditDocs((prev) => prev.filter((d: any) => {
+      if (typeof d === 'string') return true;
+      return d.docType !== 'Passport Size Photograph' && !/photo/i.test(d.name || '');
+    }));
+    if (editStudentPhotoRef.current) editStudentPhotoRef.current.value = '';
+    showToast('Photo Removed', 'Candidate photo removed', 'info');
   };
 
   const handleFilesUpload = async (files: FileList | File[], docTypePrefix?: string) => {
@@ -230,6 +351,10 @@ export const AdmissionsView: React.FC = () => {
         }
         return [...prev, ...newDocs];
       });
+      const photoDoc = newDocs.find((d) => d.docType === 'Passport Size Photograph');
+      if (photoDoc && photoDoc.dataUrl) {
+        setNewStudentPhoto(photoDoc.dataUrl);
+      }
       showToast(
         'Document(s) Attached',
         `${newDocs.length} real document(s) uploaded successfully`,
@@ -239,6 +364,11 @@ export const AdmissionsView: React.FC = () => {
   };
 
   const handleRemoveDoc = (id: string) => {
+    const docToRemove = uploadedDocs.find((d) => d.id === id);
+    if (docToRemove?.docType === 'Passport Size Photograph') {
+      setNewStudentPhoto('');
+      if (newStudentPhotoRef.current) newStudentPhotoRef.current.value = '';
+    }
     setUploadedDocs((prev) => prev.filter((d) => d.id !== id));
     showToast('Document Removed', undefined, 'info');
   };
@@ -252,19 +382,23 @@ export const AdmissionsView: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const getMonthlyFeeByClass = (className?: string): number => {
+    const lower = (className || '').toLowerCase();
+    if (lower.includes('9') || lower.includes('10') || lower.includes('matric')) return 6000;
+    if (lower.includes('7') || lower.includes('8')) return 4000;
+    if (lower.includes('4') || lower.includes('5') || lower.includes('6')) return 3000;
+    return 2000; // Nursery – Class 3
+  };
+
   const handleOpenApproveModal = (app: AdmissionApplication) => {
     setApprovalModalApp(app);
-    // Set appropriate fees based on class
-    const isCollege = app.appliedClass.toLowerCase().includes('fsc') ||
-      app.appliedClass.toLowerCase().includes('ics') ||
-      app.appliedClass.toLowerCase().includes('icom') ||
-      app.appliedClass.toLowerCase().includes('fa') ||
-      app.appliedClass.toLowerCase().includes('d.com');
-    setTuitionFee(isCollege ? 9500 : 7500);
-    setAdmissionFee(10000);
-    setExamFee(1500);
-    setLabFee(isCollege ? 1500 : 800);
-    setUtilityCharges(800);
+    // Set appropriate fees based on official fee structure
+    const calculatedFee = getMonthlyFeeByClass(app.appliedClass);
+    setTuitionFee(calculatedFee);
+    setAdmissionFee(1000); // Admission & Paper Fund: Rs. 1,000
+    setExamFee(0);
+    setLabFee(0);
+    setUtilityCharges(0);
     setFeeDueDate(new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
     setAdminNotes(`Approved candidate ${app.studentName} for ${app.appliedClass}.`);
   };
@@ -334,7 +468,14 @@ export const AdmissionsView: React.FC = () => {
   };
 
   const handleDeleteApplication = async (id: string, studentName: string) => {
-    if (!window.confirm(`Are you sure you want to delete application "${id}" for ${studentName}?`)) return;
+    const confirmed = await showConfirmModal({
+      title: 'Delete Admission Application',
+      message: `Are you sure you want to delete application "${id}" for ${studentName}?`,
+      subtitle: 'This will permanently remove this candidate record from the admissions database.',
+      confirmText: 'Delete Application',
+      type: 'danger',
+    });
+    if (!confirmed) return;
     try {
       await admissionsApi.deleteAdmission(id);
     } catch (err: any) {
@@ -344,10 +485,102 @@ export const AdmissionsView: React.FC = () => {
     showToast(`Application ${id} deleted successfully`, undefined, 'success');
   };
 
+  const handleOpenEdit = (app: AdmissionApplication) => {
+    setEditingApp(app);
+    setEditStudentName(app.studentName || '');
+    setEditAppliedClass(app.appliedClass || 'Grade 9');
+    setEditStatus(app.status || 'Pending');
+    setEditGender(app.gender || 'Male');
+    setEditDob(app.dob ? app.dob.split('T')[0] : '2011-06-15');
+    setEditParentName(app.parentName || '');
+    setEditParentPhone(app.parentPhone || '');
+    setEditParentEmail(app.parentEmail && app.parentEmail !== 'parent@readacademy.edu.pk' ? app.parentEmail : '');
+    setEditPreviousSchool(app.previousSchool && app.previousSchool !== 'Not Provided' ? app.previousSchool : '');
+    setEditPreviousPercentage(app.previousPercentage && app.previousPercentage !== 'Not Provided' ? app.previousPercentage.replace('%', '') : '');
+    setEditAddress(app.address || '');
+    setEditNotes(app.notes || '');
+    setEditDocs(app.documentsSubmitted || []);
+    const docList = (app.documentsSubmitted || []) as any[];
+    const photoDoc = docList.find((d: any) =>
+      typeof d === 'object' && d !== null &&
+      ((d.docType && /photo/i.test(d.docType)) || (d.name && /photo/i.test(d.name))) &&
+      (d.dataUrl || d.url)
+    );
+    const resolvedPhoto: string = photoDoc ? (photoDoc.dataUrl || photoDoc.url || '') : '';
+    setEditStudentPhoto(resolvedPhoto);
+    setShowEditAppModal(true);
+  };
+
+  const handleSaveEditApp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingApp) return;
+    if (!editStudentName.trim() || !editParentName.trim() || !editParentPhone.trim()) {
+      showToast('Required Fields Missing', 'Student name, parent name, and phone are required', 'error');
+      return;
+    }
+    if (!isValidPKPhone(editParentPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    try {
+      const payload = {
+        studentName: editStudentName.trim(),
+        appliedClass: editAppliedClass,
+        status: editStatus,
+        gender: editGender,
+        dob: editDob,
+        parentName: editParentName.trim(),
+        parentPhone: editParentPhone.trim(),
+        parentEmail: editParentEmail.trim() || undefined,
+        previousSchool: editPreviousSchool.trim() || undefined,
+        previousPercentage: editPreviousPercentage.trim() ? `${editPreviousPercentage.trim()}%` : undefined,
+        homeAddress: editAddress.trim(),
+        address: editAddress.trim(),
+        adminNotes: editNotes.trim() || undefined,
+        notes: editNotes.trim() || undefined,
+        documentsSubmitted: editDocs
+      };
+
+      await admissionsApi.updateAdmission(editingApp.id, payload);
+
+      const updated: AdmissionApplication = {
+        ...editingApp,
+        studentName: editStudentName.trim(),
+        appliedClass: editAppliedClass,
+        status: editStatus,
+        gender: editGender,
+        dob: editDob,
+        parentName: editParentName.trim(),
+        parentPhone: editParentPhone.trim(),
+        parentEmail: editParentEmail.trim(),
+        previousSchool: editPreviousSchool.trim() || 'Not Provided',
+        previousPercentage: editPreviousPercentage.trim() ? `${editPreviousPercentage.trim()}%` : 'Not Provided',
+        address: editAddress.trim() || 'Sahiwal, Punjab',
+        notes: editNotes.trim(),
+        documentsSubmitted: editDocs
+      };
+
+      setApplications((prev) => prev.map((a) => (a.id === editingApp.id ? updated : a)));
+      showToast('Admission Updated', `${editStudentName} application updated successfully`, 'success');
+      setShowEditAppModal(false);
+      setEditingApp(null);
+    } catch (err: any) {
+      showToast('Update Failed', err?.message || 'Could not update admission application', 'error');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const handleCreateApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStudentName || !newParentName || !newParentPhone) {
       showToast('Please complete all mandatory fields', undefined, 'error');
+      return;
+    }
+    if (!isValidPKPhone(newParentPhone)) {
+      showToast('Invalid Phone Number', 'Please enter a valid Pakistani mobile number (e.g. +92 300 1234567)', 'error');
       return;
     }
 
@@ -361,6 +594,7 @@ export const AdmissionsView: React.FC = () => {
       uploadedAt: doc.uploadedAt,
     }));
 
+    setIsSubmittingApp(true);
     try {
       const res = await admissionsApi.submitAdmission({
         studentName: newStudentName,
@@ -391,17 +625,21 @@ export const AdmissionsView: React.FC = () => {
         setNewParentEmail('');
         setNewPrevSchool('');
         setUploadedDocs([]);
+        setNewStudentPhoto('');
         setFormSection('student');
       } else {
         setShowNewFormModal(false);
         showToast('Application Submitted', 'Application received', 'info');
         setUploadedDocs([]);
+        setNewStudentPhoto('');
         setFormSection('student');
       }
     } catch (err: any) {
       console.error('Error registering admission:', err);
       const errMsg = err?.response?.data?.message || err?.message || 'Failed to submit application to database';
       showToast('Submission Failed', errMsg, 'error');
+    } finally {
+      setIsSubmittingApp(false);
     }
   };
 
@@ -420,7 +658,18 @@ export const AdmissionsView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
-            onClick={() => showToast('Exporting Admissions Ledger (Excel)', undefined, 'info')}
+            onClick={() => {
+              if (filtered.length === 0) {
+                showToast('No applications to export', 'Adjust filters to include applications.', 'warning');
+                return;
+              }
+              try {
+                exportAdmissionsCsv(filtered);
+                showToast('Admissions Registry Exported', `Exported ${filtered.length} candidate applications to CSV`, 'success');
+              } catch (err: any) {
+                showToast('Export Failed', err.message || 'Error exporting CSV', 'error');
+              }
+            }}
             className="bca-btn bca-btn-secondary"
           >
             <Download size={16} />
@@ -447,7 +696,7 @@ export const AdmissionsView: React.FC = () => {
       >
         <div className="bca-card" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#2563eb' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>TOTAL APPS</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>TOTAL ADMISSIONS</span>
             <UserPlus size={18} />
           </div>
           <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>{totalApps}</div>
@@ -596,10 +845,10 @@ export const AdmissionsView: React.FC = () => {
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '6px' }}>
                       <button
-                        onClick={() => setSelectedApp(app)}
+                        onClick={() => handleOpenEdit(app)}
                         className="bca-btn bca-btn-secondary"
                         style={{ padding: '5px 8px', color: '#2563eb' }}
-                        title="Edit / Review Application"
+                        title="Edit Application"
                       >
                         <Edit2 size={13} />
                       </button>
@@ -611,32 +860,47 @@ export const AdmissionsView: React.FC = () => {
                       >
                         <Trash2 size={13} />
                       </button>
-                      <button
-                        onClick={() => setSelectedApp(app)}
-                        className="bca-btn bca-btn-secondary"
-                        style={{ padding: '5px 10px', fontSize: '0.78rem' }}
-                      >
-                        <Eye size={13} /> Review
-                      </button>
-                      {app.status !== 'Approved' && (
+                      {app.status === 'Approved' ? null : app.status === 'Rejected' ? (
                         <button
                           onClick={() => handleUpdateStatus(app.id, 'Approved')}
                           className="bca-btn bca-btn-emerald"
-                          style={{ padding: '5px 8px' }}
-                          title="Approve Admission"
+                          style={{ padding: '4px 9px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+                          title="Re-Approve Admission Application"
                         >
-                          <Check size={14} />
+                          <Check size={12} />
+                          <span>Re-Approve</span>
                         </button>
-                      )}
-                      {app.status !== 'Rejected' && (
-                        <button
-                          onClick={() => handleUpdateStatus(app.id, 'Rejected')}
-                          className="bca-btn"
-                          style={{ padding: '5px 8px', background: '#ffe4e6', color: '#e11d48', border: 'none' }}
-                          title="Reject Application"
-                        >
-                          <X size={14} />
-                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleUpdateStatus(app.id, 'Approved')}
+                            className="bca-btn bca-btn-emerald"
+                            style={{ padding: '4px 9px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+                            title="Approve Admission & Generate Fee Challan"
+                          >
+                            <Check size={12} />
+                            <span>Approve</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              const confirmed = await showConfirmModal({
+                                title: 'Reject Admission Application',
+                                message: `Are you sure you want to reject the application for ${app.studentName}?`,
+                                confirmText: 'Yes, Reject',
+                                type: 'danger',
+                              });
+                              if (confirmed) {
+                                handleUpdateStatus(app.id, 'Rejected');
+                              }
+                            }}
+                            className="bca-btn"
+                            style={{ padding: '4px 9px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ffe4e6', color: '#e11d48', border: '1px solid #fecdd3', fontWeight: 600 }}
+                            title="Reject Application"
+                          >
+                            <X size={12} />
+                            <span>Reject</span>
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>
@@ -665,15 +929,37 @@ export const AdmissionsView: React.FC = () => {
                   <Check size={16} /> Approve & Issue Voucher
                 </button>
               )}
-              {selectedApp.status !== 'Rejected' && (
+              {selectedApp.status !== 'Approved' && selectedApp.status !== 'Rejected' && (
                 <button
-                  onClick={() => handleUpdateStatus(selectedApp.id, 'Rejected')}
+                  onClick={async () => {
+                    const confirmed = await showConfirmModal({
+                      title: 'Reject Admission Application',
+                      message: `Are you sure you want to reject the application for ${selectedApp.studentName}?`,
+                      confirmText: 'Yes, Reject',
+                      type: 'danger',
+                    });
+                    if (confirmed) {
+                      handleUpdateStatus(selectedApp.id, 'Rejected');
+                    }
+                  }}
                   className="bca-btn"
                   style={{ background: '#fff1f2', color: '#e11d48', border: '1px solid #fecdd3' }}
                 >
                   <X size={16} /> Reject Application
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => {
+                  const a = selectedApp;
+                  setSelectedApp(null);
+                  handleOpenEdit(a);
+                }}
+                className="bca-btn bca-btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Edit2 size={14} /> Edit Application
+              </button>
               <button
                 onClick={() => setSelectedApp(null)}
                 className="bca-btn bca-btn-secondary"
@@ -684,17 +970,44 @@ export const AdmissionsView: React.FC = () => {
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '14px', borderRadius: '10px' }}>
-              <div>
-                <span style={{ fontSize: '0.76rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Desired Class</span>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1d4ed8' }}>{selectedApp.appliedClass}</div>
-              </div>
-              <div>
-                <span className={`bca-badge bca-badge-${selectedApp.status.toLowerCase().replace(' ', '-')}`}>
-                  Current Status: {selectedApp.status}
-                </span>
-              </div>
-            </div>
+            {(() => {
+              const docList = (selectedApp.documentsSubmitted || []) as any[];
+              const photoDoc = docList.find((d: any) =>
+                typeof d === 'object' && d !== null &&
+                ((d.docType && /photo/i.test(d.docType)) || (d.name && /photo/i.test(d.name))) &&
+                (d.dataUrl || d.url)
+              );
+              const photoUrl: string | null = photoDoc ? (photoDoc.dataUrl || photoDoc.url || null) : null;
+
+              return (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '14px', borderRadius: '10px', gap: '14px', flexWrap: 'wrap', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    {photoUrl ? (
+                      <img
+                        src={photoUrl}
+                        alt={selectedApp.studentName}
+                        style={{ width: '56px', height: '66px', objectFit: 'cover', borderRadius: '8px', border: '2px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,0.06)' }}
+                      />
+                    ) : (
+                      <div style={{ width: '56px', height: '66px', borderRadius: '8px', border: '1.5px dashed #cbd5e1', background: '#f1f5f9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
+                        <Camera size={20} />
+                        <span style={{ fontSize: '0.6rem', fontWeight: 700, marginTop: '2px' }}>NO PHOTO</span>
+                      </div>
+                    )}
+                    <div>
+                      <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Desired Class</span>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1d4ed8' }}>{selectedApp.appliedClass}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>{selectedApp.gender} • DOB: {selectedApp.dob || 'N/A'}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <span className={`bca-badge bca-badge-${selectedApp.status.toLowerCase().replace(' ', '-')}`}>
+                      Current Status: {selectedApp.status}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="bca-form-row" style={{ fontSize: '0.88rem' }}>
               <div><strong>Student Name:</strong> {selectedApp.studentName}</div>
@@ -868,6 +1181,402 @@ export const AdmissionsView: React.FC = () => {
         </Modal>
       )}
 
+      {/* EDIT ADMISSION APPLICATION MODAL — ALL FIELDS EDITABLE */}
+      {showEditAppModal && editingApp && (
+        <Modal
+          isOpen={showEditAppModal}
+          onClose={() => setShowEditAppModal(false)}
+          title={`Edit Admission Application — ${editStudentName || editingApp.studentName}`}
+          subtitle={`Application ID: ${editingApp.id} • Submitted on ${editingApp.applicationDate}`}
+          maxWidth="780px"
+          footer={
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                All candidate information fields are editable. Click <strong>Save Changes</strong> to update.
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowEditAppModal(false)}
+                  className="bca-btn bca-btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEditApp}
+                  disabled={isSavingEdit}
+                  className="bca-btn bca-btn-primary"
+                  style={{ minWidth: '130px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {isSavingEdit ? <ButtonSpinner color="white" /> : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          }
+        >
+          <form onSubmit={handleSaveEditApp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Class & Status Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '14px', borderRadius: '10px', flexWrap: 'wrap', gap: '12px', border: '1px solid #e2e8f0' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, marginBottom: '3px' }}>
+                  Desired Class <span style={{ color: '#E62929' }}>*</span>
+                </label>
+                <select
+                  value={editAppliedClass}
+                  onChange={(e) => setEditAppliedClass(e.target.value)}
+                  style={{ padding: '6px 12px', fontSize: '0.94rem', fontWeight: 700, color: '#1d4ed8', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                >
+                  {classesList.map((cls) => (
+                    <option key={cls} value={cls}>
+                      {cls}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, marginBottom: '3px' }}>
+                  Application Status
+                </label>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value as any)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: editStatus === 'Approved' ? '#ecfdf5' : editStatus === 'Rejected' ? '#fef2f2' : '#f8fafc',
+                    color: editStatus === 'Approved' ? '#059669' : editStatus === 'Rejected' ? '#dc2626' : '#1e293b'
+                  }}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Candidate Photo Row */}
+            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <input
+                type="file"
+                ref={editStudentPhotoRef}
+                accept="image/png,image/jpeg,image/webp,image/jpg"
+                onChange={handleEditStudentPhotoUpload}
+                style={{ display: 'none' }}
+              />
+              <div
+                onClick={() => editStudentPhotoRef.current?.click()}
+                style={{
+                  width: '64px',
+                  height: '76px',
+                  borderRadius: '8px',
+                  border: '2px solid #cbd5e1',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#ffffff',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+                title="Click to change candidate photo"
+              >
+                {editStudentPhoto ? (
+                  <img src={editStudentPhoto} alt="Candidate Photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                    <Camera size={24} style={{ margin: '0 auto', display: 'block' }} />
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, display: 'block', marginTop: '2px' }}>PHOTO</span>
+                  </div>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                  <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                    Candidate Passport Photograph
+                  </label>
+                  <span style={{ fontSize: '0.7rem', background: editStudentPhoto ? '#ecfdf5' : '#f1f5f9', color: editStudentPhoto ? '#059669' : '#64748b', border: '1px solid #cbd5e1', padding: '1px 6px', borderRadius: '10px', fontWeight: 600 }}>
+                    {editStudentPhoto ? 'Photo Attached' : 'No Photo'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.74rem', color: '#64748b', marginBottom: '8px' }}>
+                  Supports JPG, PNG, WEBP (Max 5 MB). Upload will be saved with the dossier.
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => editStudentPhotoRef.current?.click()}
+                    className="bca-btn bca-btn-secondary"
+                    style={{ padding: '5px 10px', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                  >
+                    <Upload size={13} /> {editStudentPhoto ? 'Change Photo' : 'Upload Photo'}
+                  </button>
+                  {editStudentPhoto && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveEditStudentPhoto}
+                      style={{
+                        padding: '5px 9px',
+                        background: '#fff',
+                        color: '#dc2626',
+                        border: '1px solid #fca5a5',
+                        borderRadius: '6px',
+                        fontSize: '0.76rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Trash2 size={12} /> Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Editable Fields Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Student Full Name <span style={{ color: '#E62929' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editStudentName}
+                  onChange={(e) => setEditStudentName(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Gender
+                </label>
+                <select
+                  value={editGender}
+                  onChange={(e) => setEditGender(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={editDob}
+                  onChange={(e) => setEditDob(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Previous School
+                </label>
+                <input
+                  type="text"
+                  value={editPreviousSchool}
+                  onChange={(e) => setEditPreviousSchool(e.target.value)}
+                  placeholder="e.g. Royal Cambridge / N/A"
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Previous Academic Record (%)
+                </label>
+                <input
+                  type="text"
+                  value={editPreviousPercentage}
+                  onChange={(e) => setEditPreviousPercentage(e.target.value)}
+                  placeholder="e.g. 80"
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Father / Guardian Name <span style={{ color: '#E62929' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editParentName}
+                  onChange={(e) => setEditParentName(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Contact Number <span style={{ color: '#E62929' }}>*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={editParentPhone}
+                  onChange={(e) => setEditParentPhone(handlePKPhoneInput(e.target.value))}
+                  placeholder="+92 300 0000000"
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(editParentPhone)}`, fontSize: '0.88rem' }}
+                />
+                {editParentPhone.length > 3 && !isValidPKPhone(editParentPhone) && (
+                  <div style={{ fontSize: '0.72rem', color: '#E62929', marginTop: '3px' }}>⚠ Pakistani number required</div>
+                )}
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Contact Email
+                </label>
+                <input
+                  type="email"
+                  value={editParentEmail}
+                  onChange={(e) => setEditParentEmail(e.target.value)}
+                  placeholder="parent@example.com"
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Residential Address
+                </label>
+                <textarea
+                  rows={2}
+                  value={editAddress}
+                  onChange={(e) => setEditAddress(e.target.value)}
+                  placeholder="Street address, colony, city..."
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  Administrative Assessment Notes
+                </label>
+                <textarea
+                  rows={2}
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Notes from entrance test, interview evaluation, or verification remarks..."
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', resize: 'vertical' }}
+                />
+              </div>
+            </div>
+
+            {/* Submitted Verification Documents */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>
+                  Submitted Verification Documents ({editDocs.length})
+                </h4>
+                <span style={{ fontSize: '0.72rem', color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                  Real-Time Dossier
+                </span>
+              </div>
+
+              {editDocs.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
+                  {editDocs.map((doc: any, idx: number) => {
+                    const isObj = typeof doc === 'object' && doc !== null;
+                    const docName = isObj ? (doc.name || doc.docType || 'Certificate') : String(doc);
+                    const docType = isObj ? doc.docType : undefined;
+                    const docSize = isObj ? doc.fileSize : undefined;
+                    const dataUrl = isObj ? (doc.dataUrl || doc.fileData || doc.url) : undefined;
+                    const isPdf = (dataUrl && (dataUrl.startsWith('data:application/pdf') || /\.pdf$/i.test(docName))) || docName.toLowerCase().endsWith('.pdf');
+                    const isImg = (dataUrl && (dataUrl.startsWith('data:image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(docName))) || /\.(jpg|jpeg|png|webp|gif)$/i.test(docName);
+
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          background: '#f8fafc',
+                          borderRadius: '8px',
+                          border: '1px solid #e2e8f0',
+                          fontSize: '0.82rem'
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '6px',
+                            background: isPdf ? '#fee2e2' : isImg ? '#ecfdf5' : '#eff6ff',
+                            color: isPdf ? '#dc2626' : isImg ? '#059669' : '#2563eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            flexShrink: 0
+                          }}
+                        >
+                          {isPdf ? <FileText size={18} /> : isImg ? <ImageIcon size={18} /> : <FileCheck size={18} />}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={docName}>
+                            {docName}
+                          </div>
+                          {docType && (
+                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{docType}</div>
+                          )}
+                          {docSize && (
+                            <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>• {docSize}</div>
+                          )}
+                        </div>
+                        {dataUrl && (
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDoc({ name: docName, url: dataUrl, type: isPdf ? 'pdf' : isImg ? 'image' : 'other' })}
+                              className="bca-btn bca-btn-secondary"
+                              style={{ padding: '3px 7px', fontSize: '0.72rem' }}
+                              title="View Document"
+                            >
+                              <Eye size={12} />
+                            </button>
+                            <a
+                              href={dataUrl}
+                              download={docName}
+                              className="bca-btn bca-btn-secondary"
+                              style={{ padding: '3px 7px', fontSize: '0.72rem', textDecoration: 'none' }}
+                              title="Download Document"
+                            >
+                              <Download size={12} />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', textAlign: 'center', fontSize: '0.82rem', color: '#64748b' }}>
+                  No digital verification documents submitted yet.
+                </div>
+              )}
+            </div>
+          </form>
+        </Modal>
+      )}
+
       {/* MULTI-SECTION ADMISSION FORM MODAL */}
       <Modal
         isOpen={showNewFormModal}
@@ -880,9 +1589,11 @@ export const AdmissionsView: React.FC = () => {
             <button
               type="submit"
               form="admissionAppForm"
+              disabled={isSubmittingApp}
               className="bca-btn bca-btn-primary"
+              style={{ minWidth: '150px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              Submit Application
+              {isSubmittingApp ? <ButtonSpinner color="white" /> : 'Submit Application'}
             </button>
             <button
               type="button"
@@ -926,6 +1637,87 @@ export const AdmissionsView: React.FC = () => {
           {/* Section 1: Student Information */}
           {formSection === 'student' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Candidate Photo Card in Step 1 */}
+              <div style={{ background: '#f8fafc', border: '1.5px dashed #cbd5e1', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                <input
+                  type="file"
+                  ref={newStudentPhotoRef}
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  onChange={handleNewStudentPhotoUpload}
+                  style={{ display: 'none' }}
+                />
+                <div
+                  onClick={() => newStudentPhotoRef.current?.click()}
+                  style={{
+                    width: '64px',
+                    height: '76px',
+                    borderRadius: '8px',
+                    border: '2px solid #cbd5e1',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#ffffff',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                  title="Click to select candidate photograph"
+                >
+                  {newStudentPhoto ? (
+                    <img src={newStudentPhoto} alt="Candidate Photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                      <Camera size={24} style={{ margin: '0 auto', display: 'block' }} />
+                      <span style={{ fontSize: '0.6rem', fontWeight: 700, display: 'block', marginTop: '2px' }}>PHOTO</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: '220px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                    <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                      Candidate Passport Photograph
+                    </label>
+                    <span style={{ fontSize: '0.7rem', background: newStudentPhoto ? '#ecfdf5' : '#eff6ff', color: newStudentPhoto ? '#059669' : '#2563eb', border: '1px solid #bfdbfe', padding: '1px 6px', borderRadius: '10px', fontWeight: 600 }}>
+                      {newStudentPhoto ? 'Photo Attached' : 'Recommended'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.74rem', color: '#64748b', margin: '0 0 6px 0' }}>
+                    Attach recent passport-size photo (JPG, PNG, max 5MB). Synced to Step 4 automatically.
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => newStudentPhotoRef.current?.click()}
+                      className="bca-btn bca-btn-secondary"
+                      style={{ padding: '5px 10px', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                    >
+                      <Upload size={13} /> {newStudentPhoto ? 'Change Photo' : 'Upload Candidate Photo'}
+                    </button>
+                    {newStudentPhoto && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveNewStudentPhoto}
+                        style={{
+                          padding: '5px 9px',
+                          background: '#fff',
+                          color: '#dc2626',
+                          border: '1px solid #fca5a5',
+                          borderRadius: '6px',
+                          fontSize: '0.76rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <Trash2 size={12} /> Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                   Candidate Full Name (as on Birth Certificate) *
@@ -1011,13 +1803,16 @@ export const AdmissionsView: React.FC = () => {
                     Primary Mobile / WhatsApp *
                   </label>
                   <input
-                    type="text"
+                    type="tel"
                     required
                     placeholder="+92 300 5551234"
                     value={newParentPhone}
-                    onChange={(e) => setNewParentPhone(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                    onChange={(e) => setNewParentPhone(handlePKPhoneInput(e.target.value))}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: `1.5px solid ${pkPhoneBorderColor(newParentPhone)}` }}
                   />
+                  {newParentPhone.length > 3 && !isValidPKPhone(newParentPhone) && (
+                    <div style={{ fontSize: '0.72rem', color: '#E62929', marginTop: '3px' }}>⚠ Pakistani number required — e.g. +92 300 1234567</div>
+                  )}
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
@@ -1407,9 +2202,16 @@ export const AdmissionsView: React.FC = () => {
                 onClick={handleConfirmApproval}
                 className="bca-btn bca-btn-emerald"
                 disabled={isSubmittingApproval}
+                style={{ minWidth: '250px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                <Check size={16} />
-                {isSubmittingApproval ? 'Enrolling & Generating Challan...' : 'Confirm Approval & Generate Challan'}
+                {isSubmittingApproval ? (
+                  <ButtonSpinner color="white" />
+                ) : (
+                  <>
+                    <Check size={16} />
+                    <span>Confirm Approval & Generate Challan</span>
+                  </>
+                )}
               </button>
             </>
           }
@@ -1420,7 +2222,7 @@ export const AdmissionsView: React.FC = () => {
                 Admission Decision: Approved
               </div>
               <div style={{ fontSize: '0.82rem', color: '#15803d', marginTop: '4px' }}>
-                Approving this application will automatically register the student in PostgreSQL database, assign roll number, and generate a 3-part bank fee voucher with the exact fee breakdown configured below.
+                Approving this application will officially enroll the student, assign their roll number, and generate their fee challan with the fee breakdown below.
               </div>
             </div>
 
@@ -1441,7 +2243,7 @@ export const AdmissionsView: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                  Admission / Registration Fee (Rs.) *
+                  Admission & Paper Fund (Rs.) *
                 </label>
                 <input
                   type="number"
